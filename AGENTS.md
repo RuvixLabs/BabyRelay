@@ -87,15 +87,33 @@ Read `docs/plans/core/overview.md` before scaffolding or implementing. That docu
 
 ## Commands
 
-The Flutter app has not been scaffolded yet. Once scaffolded, document the real commands here.
-
 ```bash
 # Development
-# flutter pub get
-# flutter run
+flutter pub get
+flutter run            # iOS simulator or device
 
 # Checks
-# flutter analyze
-# flutter test
+flutter analyze
+flutter test
+dart format lib test
 ```
+
+## Current Implementation Notes
+
+The MVP is implemented and runs fully on-device (no credentials):
+
+- `lib/data/local_store.dart` is the persistence seam (SharedPreferences now,
+  Firestore later). `FamilyRepository` is the single source of truth for the
+  shared family state and exposes the mutation API Firestore will mirror.
+- `lib/domain/engine/sleep_prediction_engine.dart` implements the wake-window
+  table, short-nap adjustment, bedtime compression, drift clamp, and 4-of-7
+  transition detection from `docs/plans/core/overview.md`. Pure Dart, tested.
+- `lib/domain/services/handoff_service.dart` generates the plain-language
+  handoff summary. Pure Dart, tested.
+- `PurchaseService` mocks RevenueCat (`pro` entitlement, monthly/annual with
+  7-day trial). `AnalyticsService` enforces the allowlist + no-PII rule.
+- Free tier allows owner + 1 caregiver; inviting beyond that gates on the
+  paywall.
+- Settings has a "Load sample day" action that seeds a believable demo day.
+
 
