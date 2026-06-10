@@ -5,6 +5,8 @@ versus what is **blocked on credentials / live providers**. No secrets live in
 this repo; every provider key arrives at build time via `--dart-define`
 (see `lib/core/config/app_config.dart`).
 
+Provider creation status is tracked in `docs/provider-setup.md`.
+
 ## Implemented (local-first, shippable)
 
 - **Core product**: onboarding → Today (one-tap sleep, quick logs, time-rail
@@ -37,15 +39,23 @@ this repo; every provider key arrives at build time via `--dart-define`
   purchases (all outcomes), invites, and widget flows incl. paywall
   success/cancel/fail/restore.
 
-## Blocked on credentials / live providers
+## Live Provider Status
+
+| Provider | Status | Notes |
+|---|---|---|
+| Firebase | Created | Project `babyrelay-ruvix`; iOS app `com.ruvixlabs.babyrelay`; Firestore `(default)` in `nam5`; plist is bundled in the iOS target. |
+| AppRefer | Created | App `app_16e4ca28f81`; link `babyrelay-meta`; live/test SDK keys stored in `mc-vault`. Needs store destination URL before `trk.apprefer.com` can redirect. |
+| RevenueCat | Account created, onboarding blocked | Login is stored in `mc-vault`; dashboard project/catalog creation is blocked on RevenueCat's post-signup verification/onboarding state. |
+
+## Remaining Provider Work
 
 | Follow-up | Needs | Where it lands |
 |---|---|---|
-| Firebase Auth + Firestore sync | Firebase project + plist | Firestore-backed `FamilyRepository` behind the same API; model in `docs/plans/core/overview.md`; set `--dart-define=FIREBASE_CONFIGURED=true` |
-| Firebase Analytics/Crashlytics/Messaging | same | Sink inside `AnalyticsService.logEvent`; crash + push init in `main.dart` |
-| RevenueCat | `REVENUECAT_API_KEY`, products in ASC matching `ProductIds` | RevenueCat-backed `PurchaseService` implementation; entitlement `pro` |
+| Firebase Auth + Firestore sync | Add Flutter Firebase packages + repository implementation | Firestore-backed `FamilyRepository` behind the same API; model in `docs/plans/core/overview.md`; set `--dart-define=FIREBASE_CONFIGURED=true` |
+| Firebase Analytics/Crashlytics/Messaging | Add Flutter Firebase packages + runtime init | Sink inside `AnalyticsService.logEvent`; crash + push init in `main.dart` |
+| RevenueCat | Finish dashboard onboarding, SDK key, products in ASC matching `ProductIds` | RevenueCat-backed `PurchaseService` implementation; entitlement `pro` |
 | Real join flow | Firebase + universal links | Replace the local on-device add path in `care_team_screen.dart`; scannable QR from `InvitePayload.url` |
-| AppRefer attribution | `APPREFER_LINK_ID` | Override `InviteService.decorateLink` |
+| AppRefer attribution | App Store URL + `APPREFER_LINK_ID=babyrelay-meta` | Override `InviteService.decorateLink` |
 | Gleap support chat | `GLEAP_SDK_KEY` | Settings support row (email fallback already live) |
 | App Store assets/metadata | ASC app record | AppStore Copilot pipeline |
 
