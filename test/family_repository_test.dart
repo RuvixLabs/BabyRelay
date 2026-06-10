@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:babyrelay/data/family_repository.dart';
 import 'package:babyrelay/data/local_store.dart';
 import 'package:babyrelay/domain/models/baby_profile.dart';
@@ -10,7 +12,8 @@ void main() {
 
   Future<void> onboard() async {
     await repo.completeOnboarding(
-      baby: BabyProfile(
+      firstChild: BabyProfile(
+        id: '',
         nickname: 'Mae',
         dob: DateTime.now().subtract(const Duration(days: 210)),
         wakeTimeMinutes: 7 * 60,
@@ -21,29 +24,159 @@ void main() {
     );
   }
 
+  Future<BabyProfile> addSibling({String name = 'Theo'}) {
+    return repo.addChild(
+      BabyProfile(
+        id: '',
+        nickname: name,
+        dob: DateTime.now().subtract(const Duration(days: 480)),
+        wakeTimeMinutes: 7 * 60,
+        bedtimeMinutes: 19 * 60 + 30,
+        napsPerDayEstimate: 1,
+      ),
+    );
+  }
+
   setUp(() {
     store = InMemoryStore();
     repo = FamilyRepository(store);
   });
 
-  test('onboarding creates owner, invite code and persists', () async {
-    await onboard();
-    expect(repo.state.onboarded, isTrue);
-    expect(repo.state.activeCaregivers, hasLength(1));
-    expect(repo.state.currentCaregiver!.isOwner, isTrue);
-    expect(repo.state.inviteCode, hasLength(6));
+  test(
+    'onboarding creates owner, first child, invite code and persists',
+    () async {
+      await onboard();
+      expect(repo.state.onboarded, isTrue);
+      expect(repo.state.activeCaregivers, hasLength(1));
+      expect(repo.state.currentCaregiver!.isOwner, isTrue);
+      expect(repo.state.inviteCode, hasLength(6));
+      expect(repo.state.children, hasLength(1));
+      expect(repo.state.selectedChild!.id, isNotEmpty);
+      expect(repo.state.selectedChildId, repo.state.children.first.id);
 
-    // Round-trips through persistence.
-    final reloaded = FamilyRepository(store);
-    await reloaded.load();
-    expect(reloaded.state.onboarded, isTrue);
-    expect(reloaded.state.baby!.nickname, 'Mae');
+      // Round-trips through persistence.
+      final reloaded = FamilyRepository(store);
+      await reloaded.load();
+      expect(reloaded.state.onboarded, isTrue);
+      expect(reloaded.state.selectedChild!.nickname, 'Mae');
+    },
+  );
+
+  test(
+    'legacy single-child v1 payload migrates to children + childIds',
+    () async {
+      final legacy = {
+        'baby': {
+          'nickname': 'Mae',
+          'dob': DateTime(2025, 11, 1).toIso8601String(),
+          'wakeTimeMinutes': 420,
+          'bedtimeMinutes': 1140,
+          'napsPerDayEstimate': 3,
+        },
+        'caregivers': <Object>[],
+        'events': [
+          {
+            'id': 'e1',
+            'type': 'feed',
+            'startAt': DateTime(2026, 6, 9, 9).toIso8601String(),
+            'endAt': DateTime(2026, 6, 9, 9).toIso8601String(),
+            'loggedById': 'c1',
+            'feedKind': 'bottle',
+          },
+        ],
+        'currentCaregiverId': 'c1',
+        'inviteCode': 'ABCDEF',
+        'onboarded': true,
+      };
+      await store.write('babyrelay.family.v1', jsonEncode(legacy));
+      await repo.load();
+
+      expect(repo.state.children, hasLength(1));
+      final child = repo.state.children.first;
+      expect(child.id, isNotEmpty);
+      expect(repo.state.selectedChildId, child.id);
+      expect(repo.state.events.single.childId, child.id);
+    },
+  );
+
+  test('addChild selects the new child; selectChild switches back', () async {
+    await onboard();
+    final mae = repo.state.selectedChild!;
+    final theo = await addSibling();
+
+    expect(repo.state.children, hasLength(2));
+    expect(repo.state.selectedChildId, theo.id);
+    expect(theo.colorIndex, isNot(mae.colorIndex));
+
+    await repo.selectChild(mae.id);
+    expect(repo.state.selectedChildId, mae.id);
+
+    // Selecting an unknown id is a no-op.
+    await repo.selectChild('nope');
+    expect(repo.state.selectedChildId, mae.id);
   });
+
+  test('events are isolated per child', () async {
+    await onboard();
+    final mae = repo.state.selectedChild!;
+    final theo = await addSibling();
+
+    // Log for Theo (selected after add).
+    await repo.logFeed(FeedKind.solids);
+    await repo.startSleep();
+
+    // Switch to Mae and log differently.
+    await repo.selectChild(mae.id);
+    await repo.logDiaper(DiaperKind.wet);
+
+    final now = DateTime.now();
+    expect(repo.state.eventsOn(now, childId: theo.id), hasLength(2));
+    expect(repo.state.eventsOn(now, childId: mae.id), hasLength(1));
+    expect(repo.state.eventsOn(now), hasLength(1)); // selected = Mae
+
+    // Sleep state is per child: Theo asleep, Mae awake.
+    expect(repo.state.isChildAsleep(theo.id), isTrue);
+    expect(repo.state.isChildAsleep(mae.id), isFalse);
+    expect(repo.state.isAsleep, isFalse);
+
+    // Both children can sleep at once without double-start conflicts.
+    final maeSleep = await repo.startSleep();
+    expect(maeSleep, isNotNull);
+    expect(repo.state.isAsleep, isTrue);
+
+    // Ending sleep only ends the selected child's.
+    await repo.endSleep();
+    expect(repo.state.isChildAsleep(mae.id), isFalse);
+    expect(repo.state.isChildAsleep(theo.id), isTrue);
+  });
+
+  test(
+    'removeChild deletes their events and reselects a remaining child',
+    () async {
+      await onboard();
+      final mae = repo.state.selectedChild!;
+      final theo = await addSibling();
+      await repo.logFeed(FeedKind.bottle); // Theo's event
+      await repo.selectChild(mae.id);
+      await repo.logFeed(FeedKind.nursing); // Mae's event
+
+      await repo.removeChild(theo.id);
+      expect(repo.state.children.map((c) => c.id), [mae.id]);
+      expect(repo.state.events.every((e) => e.childId == mae.id), isTrue);
+
+      // Removing the selected child moves selection to the remaining one.
+      final iris = await addSibling(name: 'Iris');
+      expect(repo.state.selectedChildId, iris.id);
+      await repo.removeChild(iris.id);
+      expect(repo.state.selectedChildId, mae.id);
+    },
+  );
 
   test('sleep toggle: start then end, no double-start', () async {
     await onboard();
     final started = await repo.startSleep();
     expect(started, isNotNull);
+    expect(started!.childId, repo.state.selectedChildId);
     expect(repo.state.isAsleep, isTrue);
 
     final doubleStart = await repo.startSleep();
@@ -54,28 +187,42 @@ void main() {
     expect(repo.state.isAsleep, isFalse);
   });
 
-  test('overlapping sleeps are detected and merge into one span', () async {
-    await onboard();
-    final day = DateTime.now();
-    DateTime at(int h, int m) => DateTime(day.year, day.month, day.day, h, m);
+  test(
+    'overlapping sleeps are detected per child and merge into one span',
+    () async {
+      await onboard();
+      final day = DateTime.now();
+      DateTime at(int h, int m) => DateTime(day.year, day.month, day.day, h, m);
 
-    final a = (await repo.startSleep(at: at(13, 0)))!;
-    await repo.endSleep(at: at(13, 50));
-    final aDone = repo.state.events.firstWhere((e) => e.id == a.id);
+      final a = (await repo.startSleep(at: at(13, 0)))!;
+      await repo.endSleep(at: at(13, 50));
+      final aDone = repo.state.events.firstWhere((e) => e.id == a.id);
 
-    // A second caregiver logs the same nap with slightly different times.
-    final manual = (await repo.startSleep(at: at(13, 10)))!;
-    await repo.endSleep(at: at(14, 0));
+      // A second caregiver logs the same nap with slightly different times.
+      final manual = (await repo.startSleep(at: at(13, 10)))!;
+      await repo.endSleep(at: at(14, 0));
 
-    final overlaps = repo.overlappingSleeps(aDone);
-    expect(overlaps.map((e) => e.id), contains(manual.id));
+      // A sibling's overlapping sleep must NOT count as an overlap.
+      final mae = repo.state.selectedChild!;
+      final theo = await addSibling();
+      await repo.startSleep(at: at(13, 5), childId: theo.id);
+      await repo.endSleep(at: at(13, 40), childId: theo.id);
+      await repo.selectChild(mae.id);
 
-    final merged = await repo.mergeSleepEvents(aDone, overlaps.first);
-    expect(merged.startAt, at(13, 0));
-    expect(merged.endAt, at(14, 0));
-    expect(merged.merged, isTrue);
-    expect(repo.state.events.where((e) => e.isSleep).length, 1);
-  });
+      final overlaps = repo.overlappingSleeps(aDone);
+      expect(overlaps.map((e) => e.id), [manual.id]);
+
+      final merged = await repo.mergeSleepEvents(aDone, overlaps.first);
+      expect(merged.startAt, at(13, 0));
+      expect(merged.endAt, at(14, 0));
+      expect(merged.merged, isTrue);
+      expect(merged.childId, mae.id);
+      expect(
+        repo.state.events.where((e) => e.isSleep && e.childId == mae.id).length,
+        1,
+      );
+    },
+  );
 
   test('edit records attribution and delete removes the entry', () async {
     await onboard();
@@ -103,23 +250,46 @@ void main() {
     );
   });
 
-  test('recentNapCounts counts only completed day sleeps per day', () async {
+  test(
+    'recentNapCounts counts only the child\'s completed day sleeps',
+    () async {
+      await onboard();
+      final today = DateTime.now();
+      final yesterday = today.subtract(const Duration(days: 1));
+      DateTime y(int h) =>
+          DateTime(yesterday.year, yesterday.month, yesterday.day, h);
+
+      await repo.startSleep(at: y(9));
+      await repo.endSleep(at: y(10));
+      await repo.startSleep(at: y(13));
+      await repo.endSleep(at: y(14));
+      // Night sleep should not count as a nap.
+      await repo.startSleep(at: y(20));
+      await repo.endSleep(at: y(22));
+
+      // Sibling naps must not leak into Mae's counts.
+      final mae = repo.state.selectedChild!;
+      final theo = await addSibling();
+      await repo.startSleep(at: y(11), childId: theo.id);
+      await repo.endSleep(at: y(12), childId: theo.id);
+      await repo.selectChild(mae.id);
+
+      expect(repo.recentNapCounts(now: today), [2]);
+      expect(repo.recentNapCounts(now: today, childId: theo.id), [1]);
+    },
+  );
+
+  test('loadSampleDay seeds the selected child and a demo sibling', () async {
     await onboard();
-    final today = DateTime.now();
-    final yesterday = today.subtract(const Duration(days: 1));
-    DateTime y(int h) =>
-        DateTime(yesterday.year, yesterday.month, yesterday.day, h);
+    final mae = repo.state.selectedChild!;
+    await repo.loadSampleDay();
 
-    await repo.startSleep(at: y(9));
-    await repo.endSleep(at: y(10));
-    await repo.startSleep(at: y(13));
-    await repo.endSleep(at: y(14));
-    // Night sleep should not count as a nap.
-    await repo.startSleep(at: y(20));
-    await repo.endSleep(at: y(22));
-
-    final counts = repo.recentNapCounts(now: today);
-    expect(counts, [2]);
+    expect(repo.state.children.length, 2);
+    final sibling = repo.state.children.firstWhere((c) => c.id != mae.id);
+    expect(repo.state.eventsForChild(mae.id), isNotEmpty);
+    expect(repo.state.eventsForChild(sibling.id), isNotEmpty);
+    // Selection stays on the original child.
+    expect(repo.state.selectedChildId, mae.id);
   });
 
   test('deleteAllData wipes state and storage', () async {
@@ -127,6 +297,7 @@ void main() {
     await repo.logFeed(FeedKind.bottle);
     await repo.deleteAllData();
     expect(repo.state.onboarded, isFalse);
+    expect(repo.state.children, isEmpty);
     expect(repo.state.events, isEmpty);
     expect(await store.read('babyrelay.family.v1'), isNull);
   });

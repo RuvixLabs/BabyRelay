@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
+import '../../core/design/relay_widgets.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/baby_profile.dart';
 
@@ -80,7 +81,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final analytics = context.read<AnalyticsService>();
     final router = GoRouter.of(context);
     await repo.completeOnboarding(
-      baby: BabyProfile(
+      firstChild: BabyProfile(
+        id: '',
         nickname: _nameController.text.trim(),
         dob: _dob,
         wakeTimeMinutes: _wakeMinutes,
@@ -256,23 +258,69 @@ class _WelcomeStep extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Night-sky hero: the 2am moment the app exists for.
           Container(
-            width: 76,
-            height: 76,
+            height: 140,
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: c.clay.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(24),
+              gradient: c.nightGradient,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: c.nightLow.withValues(alpha: 0.35),
+                  blurRadius: 24,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-            child: Icon(Icons.swap_horiz_rounded, size: 40, color: c.clayDeep),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: CustomPaint(
+                      painter: StarFieldPainter(
+                        color: c.onNightSoft,
+                        density: 34,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.swap_horiz_rounded,
+                          color: c.onNight,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'BABYRELAY',
+                          style: text.labelSmall?.copyWith(
+                            color: c.onNightSoft,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 28),
           Text(
-            'One baby.\nEvery caregiver.\nZero guesswork.',
+            'Every caregiver.\nEvery child.\nZero guesswork.',
             style: text.displayMedium,
           ),
           const SizedBox(height: 16),
           Text(
-            'BabyRelay keeps parents, partners, grandparents, and nannies on the same page — who did what, and what\'s next.',
+            'BabyRelay keeps parents, partners, grandparents, and nannies on the same page — who did what, what\'s next, and for which little one.',
             style: text.bodyLarge?.copyWith(color: c.inkSoft),
           ),
         ],
@@ -290,8 +338,9 @@ class _NameStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StepScaffold(
-      title: 'Who are we caring for?',
-      subtitle: 'A nickname is fine — this stays private to your care team.',
+      title: 'Who are we caring for first?',
+      subtitle:
+          'A nickname is fine — this stays private to your care team. Brothers and sisters can join later, each with their own timeline.',
       child: TextField(
         controller: controller,
         autofocus: true,

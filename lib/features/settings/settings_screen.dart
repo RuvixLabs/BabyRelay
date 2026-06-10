@@ -8,6 +8,9 @@ import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
 import '../../core/purchases/purchase_service.dart';
 import '../../data/family_repository.dart';
+import '../../domain/models/baby_profile.dart';
+import '../children/child_form_sheet.dart';
+import '../children/child_switcher.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -19,29 +22,52 @@ class SettingsScreen extends StatelessWidget {
     final analytics = context.read<AnalyticsService>();
     final c = context.relay;
     final text = Theme.of(context).textTheme;
-    final baby = repo.state.baby;
+    final state = repo.state;
+    final now = DateTime.now();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
-          const SectionLabel('Baby'),
+          const SectionLabel('Children'),
           RelayCard(
             padding: EdgeInsets.zero,
             child: Column(
               children: [
+                for (final child in state.children) ...[
+                  _ChildSettingsRow(
+                    child: child,
+                    subtitle:
+                        '${child.ageLabelAt(now)} · ${child.napsPerDayEstimate} nap${child.napsPerDayEstimate == 1 ? '' : 's'}/day',
+                    selected: child.id == state.selectedChildId,
+                    canRemove: state.children.length > 1,
+                    onTap: () async {
+                      final updated = await showChildFormSheet(
+                        context,
+                        existing: child,
+                      );
+                      if (updated != null) {
+                        await repo.updateChild(updated);
+                        analytics.logEvent('child_profile_edited');
+                      }
+                    },
+                    onRemove: () =>
+                        _confirmRemoveChild(context, repo, analytics, child),
+                  ),
+                  Divider(height: 1, indent: 60, color: c.outline),
+                ],
                 _SettingsRow(
-                  icon: Icons.child_care,
-                  title: baby?.nickname ?? 'Baby profile',
-                  subtitle: baby == null
-                      ? 'Not set up yet'
-                      : '${baby.ageLabelAt(DateTime.now())} · ${baby.napsPerDayEstimate} naps/day',
-                  onTap: () => _editSchedule(context, repo),
+                  icon: Icons.add,
+                  iconColor: c.clayDeep,
+                  title: 'Add a child',
+                  subtitle: 'Same care team, their own timeline',
+                  onTap: () => startAddChildFlow(context),
                 ),
                 Divider(height: 1, indent: 60, color: c.outline),
                 _SettingsRow(
                   icon: Icons.auto_fix_high,
+                  iconColor: c.sun,
                   title: 'Load sample day',
                   subtitle: 'Fill today with believable demo data',
                   onTap: () async {
@@ -65,6 +91,7 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 _SettingsRow(
                   icon: Icons.workspace_premium_outlined,
+                  iconColor: c.clay,
                   title: purchases.isPro
                       ? 'BabyRelay Family${purchases.inTrial ? ' · trial' : ''}'
                       : 'Free plan',
@@ -72,7 +99,7 @@ class SettingsScreen extends StatelessWidget {
                       ? (purchases.activePlan == PlanId.annual
                             ? 'Annual · \$59.99/yr'
                             : 'Monthly · \$9.99/mo')
-                      : 'Upgrade for unlimited caregivers and handoff sheets',
+                      : 'First child + one extra caregiver',
                   trailing: purchases.isPro
                       ? RelayChip('Active', color: c.sage)
                       : RelayChip('Upgrade', color: c.clay),
@@ -82,6 +109,7 @@ class SettingsScreen extends StatelessWidget {
                   Divider(height: 1, indent: 60, color: c.outline),
                   _SettingsRow(
                     icon: Icons.refresh,
+                    iconColor: c.inkSoft,
                     title: 'Reset entitlement (demo)',
                     subtitle: 'Clears the mock subscription state',
                     onTap: () => purchases.clearEntitlement(),
@@ -98,6 +126,7 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 _SettingsRow(
                   icon: Icons.group_remove_outlined,
+                  iconColor: c.dusk,
                   title: 'Caregiver access',
                   subtitle:
                       'Remove or revoke caregivers from the Care team tab',
@@ -106,6 +135,7 @@ class SettingsScreen extends StatelessWidget {
                 Divider(height: 1, indent: 60, color: c.outline),
                 _SettingsRow(
                   icon: Icons.download_outlined,
+                  iconColor: c.sage,
                   title: 'Export my data',
                   subtitle: 'Copy everything as JSON',
                   onTap: () async {
@@ -124,8 +154,9 @@ class SettingsScreen extends StatelessWidget {
                 Divider(height: 1, indent: 60, color: c.outline),
                 _SettingsRow(
                   icon: Icons.delete_forever_outlined,
+                  iconColor: c.danger,
                   title: 'Delete all data',
-                  subtitle: 'Erases the baby profile, timeline, and care team',
+                  subtitle: 'Erases every child, timeline, and the care team',
                   destructive: true,
                   onTap: () => _confirmDelete(context, repo, analytics),
                 ),
@@ -138,6 +169,7 @@ class SettingsScreen extends StatelessWidget {
             padding: EdgeInsets.zero,
             child: _SettingsRow(
               icon: Icons.support_agent,
+              iconColor: c.dusk,
               title: 'Contact support',
               subtitle: 'In-app support arrives with the Gleap integration',
               onTap: () => _showPlaceholder(
@@ -191,89 +223,35 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _editSchedule(
+  Future<void> _confirmRemoveChild(
     BuildContext context,
     FamilyRepository repo,
+    AnalyticsService analytics,
+    BabyProfile child,
   ) async {
-    final baby = repo.state.baby;
-    if (baby == null) return;
-
-    Future<int?> pickMinutes(int current, String help) async {
-      final picked = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay(hour: current ~/ 60, minute: current % 60),
-        helpText: help,
-      );
-      if (picked == null) return null;
-      return picked.hour * 60 + picked.minute;
-    }
-
-    if (!context.mounted) return;
-    await showModalBottomSheet<void>(
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Schedule',
-                  style: Theme.of(sheetContext).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 12),
-                ListTile(
-                  leading: const Icon(Icons.wb_sunny_outlined),
-                  title: const Text('Typical wake time'),
-                  trailing: Text(_label(baby.wakeTimeMinutes)),
-                  onTap: () async {
-                    final v = await pickMinutes(
-                      baby.wakeTimeMinutes,
-                      'Typical wake time',
-                    );
-                    if (v != null) {
-                      await repo.updateBaby(
-                        repo.state.baby!.copyWith(wakeTimeMinutes: v),
-                      );
-                    }
-                    if (sheetContext.mounted) {
-                      Navigator.of(sheetContext).pop();
-                    }
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.bedtime_outlined),
-                  title: const Text('Target bedtime'),
-                  trailing: Text(_label(baby.bedtimeMinutes)),
-                  onTap: () async {
-                    final v = await pickMinutes(
-                      baby.bedtimeMinutes,
-                      'Target bedtime',
-                    );
-                    if (v != null) {
-                      await repo.updateBaby(
-                        repo.state.baby!.copyWith(bedtimeMinutes: v),
-                      );
-                    }
-                    if (sheetContext.mounted) {
-                      Navigator.of(sheetContext).pop();
-                    }
-                  },
-                ),
-              ],
-            ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Remove ${child.nickname}?'),
+        content: const Text(
+          'This permanently deletes this child\'s profile and their entire timeline for the whole care team. There is no undo.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
           ),
-        );
-      },
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Remove child'),
+          ),
+        ],
+      ),
     );
-  }
-
-  String _label(int minutes) {
-    final h12 = (minutes ~/ 60) % 12 == 0 ? 12 : (minutes ~/ 60) % 12;
-    final suffix = minutes < 720 ? 'am' : 'pm';
-    return '$h12:${(minutes % 60).toString().padLeft(2, '0')} $suffix';
+    if (confirmed == true) {
+      await repo.removeChild(child.id);
+      analytics.logEvent('child_removed');
+    }
   }
 
   Future<void> _confirmDelete(
@@ -286,7 +264,7 @@ class SettingsScreen extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete everything?'),
         content: const Text(
-          'This permanently erases the baby profile, the full timeline, and the care team on this device. There is no undo.',
+          'This permanently erases every child\'s profile, the full timeline, and the care team on this device. There is no undo.',
         ),
         actions: [
           TextButton(
@@ -323,12 +301,79 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+class _ChildSettingsRow extends StatelessWidget {
+  const _ChildSettingsRow({
+    required this.child,
+    required this.subtitle,
+    required this.selected,
+    required this.canRemove,
+    required this.onTap,
+    required this.onRemove,
+  });
+
+  final BabyProfile child;
+  final String subtitle;
+  final bool selected;
+  final bool canRemove;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.relay;
+    final text = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            ChildAvatar(child: child, size: 38),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          child.nickname,
+                          style: text.titleMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (selected) ...[
+                        const SizedBox(width: 8),
+                        RelayChip('Selected', color: c.sage),
+                      ],
+                    ],
+                  ),
+                  Text(subtitle, style: text.bodyMedium),
+                ],
+              ),
+            ),
+            if (canRemove)
+              IconButton(
+                icon: Icon(Icons.delete_outline, color: c.inkFaint, size: 20),
+                tooltip: 'Remove child',
+                onPressed: onRemove,
+              ),
+            Icon(Icons.chevron_right, color: c.inkFaint),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _SettingsRow extends StatelessWidget {
   const _SettingsRow({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.iconColor,
     this.trailing,
     this.destructive = false,
   });
@@ -337,6 +382,7 @@ class _SettingsRow extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final Color? iconColor;
   final Widget? trailing;
   final bool destructive;
 
@@ -347,10 +393,14 @@ class _SettingsRow extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         child: Row(
           children: [
-            Icon(icon, size: 24, color: destructive ? c.danger : c.inkSoft),
+            IconSquare(
+              icon: icon,
+              color: destructive ? c.danger : (iconColor ?? c.inkSoft),
+              size: 34,
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(

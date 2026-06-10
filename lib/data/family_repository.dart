@@ -9,9 +9,13 @@ import '../domain/models/caregiver.dart';
 import 'local_store.dart';
 
 /// Immutable snapshot of the shared family/care state.
+///
+/// A family has one care team and any number of children. Every care event
+/// is scoped to a child; the UI focuses on [selectedChild] at a time.
 class FamilyState {
   const FamilyState({
-    this.baby,
+    this.children = const [],
+    this.selectedChildId = '',
     this.caregivers = const [],
     this.events = const [],
     this.currentCaregiverId = '',
@@ -19,12 +23,27 @@ class FamilyState {
     this.onboarded = false,
   });
 
-  final BabyProfile? baby;
+  final List<BabyProfile> children;
+  final String selectedChildId;
   final List<Caregiver> caregivers;
   final List<CareEvent> events;
   final String currentCaregiverId;
   final String inviteCode;
   final bool onboarded;
+
+  BabyProfile? get selectedChild {
+    for (final child in children) {
+      if (child.id == selectedChildId) return child;
+    }
+    return children.isEmpty ? null : children.first;
+  }
+
+  BabyProfile? childById(String id) {
+    for (final child in children) {
+      if (child.id == id) return child;
+    }
+    return null;
+  }
 
   List<Caregiver> get activeCaregivers =>
       caregivers.where((c) => c.isActive).toList();
@@ -36,27 +55,42 @@ class FamilyState {
     return null;
   }
 
-  CareEvent? get ongoingSleep {
+  /// All events for one child, in start order.
+  List<CareEvent> eventsForChild(String childId) =>
+      events.where((e) => e.childId == childId).toList();
+
+  CareEvent? ongoingSleepFor(String childId) {
     for (final e in events.reversed) {
-      if (e.isOngoingSleep) return e;
+      if (e.childId == childId && e.isOngoingSleep) return e;
     }
     return null;
   }
 
-  bool get isAsleep => ongoingSleep != null;
+  /// Ongoing sleep for the selected child.
+  CareEvent? get ongoingSleep {
+    final child = selectedChild;
+    if (child == null) return null;
+    return ongoingSleepFor(child.id);
+  }
 
-  /// Events that belong to the given calendar day, newest first.
-  List<CareEvent> eventsOn(DateTime day) {
+  bool get isAsleep => ongoingSleep != null;
+  bool isChildAsleep(String childId) => ongoingSleepFor(childId) != null;
+
+  /// Selected child's events on the given calendar day, newest first.
+  List<CareEvent> eventsOn(DateTime day, {String? childId}) {
+    final id = childId ?? selectedChild?.id;
+    if (id == null) return const [];
     final start = DateTime(day.year, day.month, day.day);
     final end = start.add(const Duration(days: 1));
     final list =
         events
             .where(
               (e) =>
-                  !e.startAt.isBefore(start) && e.startAt.isBefore(end) ||
-                  (e.endAt != null &&
-                      !e.endAt!.isBefore(start) &&
-                      e.endAt!.isBefore(end)),
+                  e.childId == id &&
+                  (!e.startAt.isBefore(start) && e.startAt.isBefore(end) ||
+                      (e.endAt != null &&
+                          !e.endAt!.isBefore(start) &&
+                          e.endAt!.isBefore(end))),
             )
             .toList()
           ..sort((a, b) => b.startAt.compareTo(a.startAt));
@@ -64,7 +98,8 @@ class FamilyState {
   }
 
   FamilyState copyWith({
-    BabyProfile? baby,
+    List<BabyProfile>? children,
+    String? selectedChildId,
     List<Caregiver>? caregivers,
     List<CareEvent>? events,
     String? currentCaregiverId,
@@ -72,7 +107,8 @@ class FamilyState {
     bool? onboarded,
   }) {
     return FamilyState(
-      baby: baby ?? this.baby,
+      children: children ?? this.children,
+      selectedChildId: selectedChildId ?? this.selectedChildId,
       caregivers: caregivers ?? this.caregivers,
       events: events ?? this.events,
       currentCaregiverId: currentCaregiverId ?? this.currentCaregiverId,
@@ -82,7 +118,8 @@ class FamilyState {
   }
 
   Map<String, dynamic> toJson() => {
-    'baby': baby?.toJson(),
+    'children': children.map((c) => c.toJson()).toList(),
+    'selectedChildId': selectedChildId,
     'caregivers': caregivers.map((c) => c.toJson()).toList(),
     'events': events.map((e) => e.toJson()).toList(),
     'currentCaregiverId': currentCaregiverId,
@@ -90,20 +127,56 @@ class FamilyState {
     'onboarded': onboarded,
   };
 
-  factory FamilyState.fromJson(Map<String, dynamic> json) => FamilyState(
-    baby: json['baby'] == null
-        ? null
-        : BabyProfile.fromJson(json['baby'] as Map<String, dynamic>),
-    caregivers: (json['caregivers'] as List<dynamic>? ?? [])
-        .map((c) => Caregiver.fromJson(c as Map<String, dynamic>))
-        .toList(),
-    events: (json['events'] as List<dynamic>? ?? [])
+  factory FamilyState.fromJson(Map<String, dynamic> json) {
+    var children = (json['children'] as List<dynamic>? ?? [])
+        .map((c) => BabyProfile.fromJson(c as Map<String, dynamic>))
+        .toList();
+    var events = (json['events'] as List<dynamic>? ?? [])
         .map((e) => CareEvent.fromJson(e as Map<String, dynamic>))
-        .toList(),
-    currentCaregiverId: json['currentCaregiverId'] as String? ?? '',
-    inviteCode: json['inviteCode'] as String? ?? '',
-    onboarded: json['onboarded'] as bool? ?? false,
-  );
+        .toList();
+
+    // Migration from the v1 single-child shape: {'baby': {...}, ...} with
+    // events that carry no childId.
+    if (children.isEmpty && json['baby'] != null) {
+      final legacy = BabyProfile.fromJson(json['baby'] as Map<String, dynamic>);
+      final withId = legacy.id.isEmpty
+          ? BabyProfile(
+              id: 'child_legacy',
+              nickname: legacy.nickname,
+              dob: legacy.dob,
+              wakeTimeMinutes: legacy.wakeTimeMinutes,
+              bedtimeMinutes: legacy.bedtimeMinutes,
+              napsPerDayEstimate: legacy.napsPerDayEstimate,
+              colorIndex: legacy.colorIndex,
+              scheduleOverrideNaps: legacy.scheduleOverrideNaps,
+            )
+          : legacy;
+      children = [withId];
+    }
+    if (children.isNotEmpty) {
+      final firstId = children.first.id;
+      events = events
+          .map((e) => e.childId.isEmpty ? e.copyWith(childId: firstId) : e)
+          .toList();
+    }
+
+    var selectedChildId = json['selectedChildId'] as String? ?? '';
+    if (children.isNotEmpty && !children.any((c) => c.id == selectedChildId)) {
+      selectedChildId = children.first.id;
+    }
+
+    return FamilyState(
+      children: children,
+      selectedChildId: selectedChildId,
+      caregivers: (json['caregivers'] as List<dynamic>? ?? [])
+          .map((c) => Caregiver.fromJson(c as Map<String, dynamic>))
+          .toList(),
+      events: events,
+      currentCaregiverId: json['currentCaregiverId'] as String? ?? '',
+      inviteCode: json['inviteCode'] as String? ?? '',
+      onboarded: json['onboarded'] as bool? ?? false,
+    );
+  }
 }
 
 /// Local demo repository for the shared family state.
@@ -143,6 +216,8 @@ class FamilyRepository extends ChangeNotifier {
   String _newId(String prefix) =>
       '$prefix${DateTime.now().microsecondsSinceEpoch}_${_idCounter++}';
 
+  String get _selectedChildIdOrEmpty => _state.selectedChild?.id ?? '';
+
   static String generateInviteCode([Random? random]) {
     // No ambiguous characters (0/O, 1/I/L) — caregivers read these out loud.
     const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -154,10 +229,10 @@ class FamilyRepository extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------------
-  // Onboarding / profile
+  // Onboarding / children
 
   Future<void> completeOnboarding({
-    required BabyProfile baby,
+    required BabyProfile firstChild,
     required String primaryCaregiverName,
   }) async {
     final ownerId = _newId('c');
@@ -171,9 +246,13 @@ class FamilyRepository extends ChangeNotifier {
       joinedAt: DateTime.now(),
       lastActiveAt: DateTime.now(),
     );
+    final child = firstChild.id.isEmpty
+        ? _withNewId(firstChild, colorIndex: 0)
+        : firstChild;
     await _commit(
       FamilyState(
-        baby: baby,
+        children: [child],
+        selectedChildId: child.id,
         caregivers: [owner],
         events: const [],
         currentCaregiverId: ownerId,
@@ -183,25 +262,82 @@ class FamilyRepository extends ChangeNotifier {
     );
   }
 
-  Future<void> updateBaby(BabyProfile baby) async {
-    await _commit(_state.copyWith(baby: baby));
-  }
-
-  Future<void> applyScheduleOverride(int naps) async {
-    final baby = _state.baby;
-    if (baby == null) return;
-    await _commit(
-      _state.copyWith(baby: baby.copyWith(scheduleOverrideNaps: naps)),
+  BabyProfile _withNewId(BabyProfile child, {required int colorIndex}) {
+    return BabyProfile(
+      id: _newId('b'),
+      nickname: child.nickname,
+      dob: child.dob,
+      wakeTimeMinutes: child.wakeTimeMinutes,
+      bedtimeMinutes: child.bedtimeMinutes,
+      napsPerDayEstimate: child.napsPerDayEstimate,
+      colorIndex: colorIndex,
+      scheduleOverrideNaps: child.scheduleOverrideNaps,
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Care events
+  /// Adds another child to the family and selects them.
+  Future<BabyProfile> addChild(BabyProfile child) async {
+    final withId = child.id.isEmpty
+        ? _withNewId(child, colorIndex: _state.children.length % 6)
+        : child;
+    await _commit(
+      _state.copyWith(
+        children: [..._state.children, withId],
+        selectedChildId: withId.id,
+      ),
+    );
+    return withId;
+  }
 
-  Future<CareEvent?> startSleep({DateTime? at}) async {
-    if (_state.isAsleep) return null;
+  Future<void> updateChild(BabyProfile child) async {
+    await _commit(
+      _state.copyWith(
+        children: _state.children
+            .map((c) => c.id == child.id ? child : c)
+            .toList(),
+      ),
+    );
+  }
+
+  /// Removes a child and every event logged for them.
+  Future<void> removeChild(String childId) async {
+    final remaining = _state.children.where((c) => c.id != childId).toList();
+    await _commit(
+      _state.copyWith(
+        children: remaining,
+        selectedChildId: _state.selectedChildId == childId
+            ? (remaining.isEmpty ? '' : remaining.first.id)
+            : _state.selectedChildId,
+        events: _state.events.where((e) => e.childId != childId).toList(),
+      ),
+    );
+  }
+
+  Future<void> selectChild(String childId) async {
+    if (_state.selectedChildId == childId ||
+        !_state.children.any((c) => c.id == childId)) {
+      return;
+    }
+    await _commit(_state.copyWith(selectedChildId: childId));
+  }
+
+  Future<void> applyScheduleOverride(int naps, {String? childId}) async {
+    final child = childId == null
+        ? _state.selectedChild
+        : _state.childById(childId);
+    if (child == null) return;
+    await updateChild(child.copyWith(scheduleOverrideNaps: naps));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Care events (scoped to a child; defaults to the selected one)
+
+  Future<CareEvent?> startSleep({DateTime? at, String? childId}) async {
+    final id = childId ?? _selectedChildIdOrEmpty;
+    if (id.isEmpty || _state.isChildAsleep(id)) return null;
     final event = CareEvent(
       id: _newId('e'),
+      childId: id,
       type: CareEventType.sleep,
       startAt: at ?? DateTime.now(),
       loggedById: _state.currentCaregiverId,
@@ -210,8 +346,9 @@ class FamilyRepository extends ChangeNotifier {
     return event;
   }
 
-  Future<CareEvent?> endSleep({DateTime? at}) async {
-    final ongoing = _state.ongoingSleep;
+  Future<CareEvent?> endSleep({DateTime? at, String? childId}) async {
+    final id = childId ?? _selectedChildIdOrEmpty;
+    final ongoing = _state.ongoingSleepFor(id);
     if (ongoing == null) return null;
     var end = at ?? DateTime.now();
     if (end.isBefore(ongoing.startAt)) end = ongoing.startAt;
@@ -220,9 +357,15 @@ class FamilyRepository extends ChangeNotifier {
     return updated;
   }
 
-  Future<CareEvent> logFeed(FeedKind kind, {String? note, DateTime? at}) async {
+  Future<CareEvent> logFeed(
+    FeedKind kind, {
+    String? note,
+    DateTime? at,
+    String? childId,
+  }) async {
     final event = CareEvent(
       id: _newId('e'),
+      childId: childId ?? _selectedChildIdOrEmpty,
       type: CareEventType.feed,
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
@@ -234,9 +377,14 @@ class FamilyRepository extends ChangeNotifier {
     return event;
   }
 
-  Future<CareEvent> logDiaper(DiaperKind kind, {DateTime? at}) async {
+  Future<CareEvent> logDiaper(
+    DiaperKind kind, {
+    DateTime? at,
+    String? childId,
+  }) async {
     final event = CareEvent(
       id: _newId('e'),
+      childId: childId ?? _selectedChildIdOrEmpty,
       type: CareEventType.diaper,
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
@@ -247,9 +395,14 @@ class FamilyRepository extends ChangeNotifier {
     return event;
   }
 
-  Future<CareEvent> logNote(String note, {DateTime? at}) async {
+  Future<CareEvent> logNote(
+    String note, {
+    DateTime? at,
+    String? childId,
+  }) async {
     final event = CareEvent(
       id: _newId('e'),
+      childId: childId ?? _selectedChildIdOrEmpty,
       type: CareEventType.note,
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
@@ -260,9 +413,14 @@ class FamilyRepository extends ChangeNotifier {
     return event;
   }
 
-  Future<CareEvent> logNightWaking({String? note, DateTime? at}) async {
+  Future<CareEvent> logNightWaking({
+    String? note,
+    DateTime? at,
+    String? childId,
+  }) async {
     final event = CareEvent(
       id: _newId('e'),
+      childId: childId ?? _selectedChildIdOrEmpty,
       type: CareEventType.nightWaking,
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
@@ -288,13 +446,18 @@ class FamilyRepository extends ChangeNotifier {
     );
   }
 
-  /// Sleep events (other than [event]) whose time range overlaps it.
+  /// Sleep events for the same child (other than [event]) whose time range
+  /// overlaps it.
   List<CareEvent> overlappingSleeps(CareEvent event) {
     if (!event.isSleep) return const [];
     final start = event.startAt;
     final end = event.endAt ?? DateTime.now();
     return _state.events.where((other) {
-      if (other.id == event.id || !other.isSleep) return false;
+      if (other.id == event.id ||
+          !other.isSleep ||
+          other.childId != event.childId) {
+        return false;
+      }
       final oStart = other.startAt;
       final oEnd = other.endAt ?? DateTime.now();
       return start.isBefore(oEnd) && oStart.isBefore(end);
@@ -314,6 +477,7 @@ class FamilyRepository extends ChangeNotifier {
     ].where((n) => (n ?? '').trim().isNotEmpty).join(' · ');
     final merged = CareEvent(
       id: first.id,
+      childId: first.childId,
       type: CareEventType.sleep,
       startAt: first.startAt,
       endAt: keepOpen ? null : (aEnd.isAfter(bEnd) ? aEnd : bEnd),
@@ -335,8 +499,10 @@ class FamilyRepository extends ChangeNotifier {
   }
 
   /// Completed-nap counts per day for the [days] days before today, oldest
-  /// first. Days with no logs are skipped (no signal, not zero naps).
-  List<int> recentNapCounts({int days = 7, DateTime? now}) {
+  /// first, for one child. Days with no logs are skipped (no signal, not
+  /// zero naps).
+  List<int> recentNapCounts({int days = 7, DateTime? now, String? childId}) {
+    final id = childId ?? _selectedChildIdOrEmpty;
     final today = now ?? DateTime.now();
     final counts = <int>[];
     for (var i = days; i >= 1; i--) {
@@ -348,6 +514,7 @@ class FamilyRepository extends ChangeNotifier {
       final dayEnd = day.add(const Duration(days: 1));
       final daysEvents = _state.events.where(
         (e) =>
+            e.childId == id &&
             e.isSleep &&
             e.endAt != null &&
             !e.startAt.isBefore(day) &&
@@ -437,12 +604,14 @@ class FamilyRepository extends ChangeNotifier {
   }
 
   /// Seeds a believable demo day so the prototype can be previewed without
-  /// manually logging a full day first.
+  /// manually logging a full day first. Also adds a sibling so the
+  /// multi-child experience can be exercised immediately.
   Future<void> loadSampleDay() async {
-    if (!_state.onboarded || _state.baby == null) return;
+    if (!_state.onboarded || _state.selectedChild == null) return;
     final now = DateTime.now();
     final day = DateTime(now.year, now.month, now.day);
     final me = _state.currentCaregiverId;
+    final childId = _state.selectedChild!.id;
 
     var partnerId = _state.activeCaregivers
         .where((c) => c.id != me)
@@ -462,76 +631,96 @@ class FamilyRepository extends ChangeNotifier {
       partnerId = partner.id;
     }
 
+    // A sibling makes the child switcher and event isolation demoable.
+    var children = _state.children;
+    var siblingId = children.where((c) => c.id != childId).firstOrNull?.id;
+    if (siblingId == null) {
+      final sibling = BabyProfile(
+        id: _newId('b'),
+        nickname: 'Theo',
+        dob: day.subtract(const Duration(days: 480)),
+        wakeTimeMinutes: 6 * 60 + 45,
+        bedtimeMinutes: 19 * 60 + 30,
+        napsPerDayEstimate: 1,
+        colorIndex: children.length % 6,
+      );
+      children = [...children, sibling];
+      siblingId = sibling.id;
+    }
+
     DateTime at(int hour, int minute) =>
         DateTime(day.year, day.month, day.day, hour, minute);
 
+    CareEvent ev(
+      String child,
+      CareEventType type,
+      DateTime start, {
+      DateTime? end,
+      String? by,
+      FeedKind? feed,
+      DiaperKind? diaper,
+      String? note,
+    }) => CareEvent(
+      id: _newId('e'),
+      childId: child,
+      type: type,
+      startAt: start,
+      endAt: end ?? (type == CareEventType.sleep ? end : start),
+      loggedById: by ?? me,
+      feedKind: feed,
+      diaperKind: diaper,
+      note: note,
+    );
+
     final events = <CareEvent>[
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.nightWaking,
-        startAt: at(3, 10),
-        endAt: at(3, 10),
-        loggedById: me,
+      ev(childId, CareEventType.nightWaking, at(3, 10)),
+      ev(childId, CareEventType.feed, at(7, 5), feed: FeedKind.bottle),
+      ev(childId, CareEventType.diaper, at(7, 20), diaper: DiaperKind.wet),
+      ev(
+        childId,
+        CareEventType.sleep,
+        at(9, 0),
+        end: at(10, 10),
+        by: partnerId,
       ),
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.feed,
-        startAt: at(7, 5),
-        endAt: at(7, 5),
-        loggedById: me,
-        feedKind: FeedKind.bottle,
+      ev(
+        childId,
+        CareEventType.feed,
+        at(10, 30),
+        by: partnerId,
+        feed: FeedKind.nursing,
       ),
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.diaper,
-        startAt: at(7, 20),
-        endAt: at(7, 20),
-        loggedById: me,
-        diaperKind: DiaperKind.wet,
-      ),
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.sleep,
-        startAt: at(9, 0),
-        endAt: at(10, 10),
-        loggedById: partnerId,
-      ),
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.feed,
-        startAt: at(10, 30),
-        endAt: at(10, 30),
-        loggedById: partnerId,
-        feedKind: FeedKind.nursing,
-      ),
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.note,
-        startAt: at(10, 40),
-        endAt: at(10, 40),
-        loggedById: partnerId,
+      ev(
+        childId,
+        CareEventType.note,
+        at(10, 40),
+        by: partnerId,
         note: 'Bottle finished before nap, a little fussy after.',
       ),
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.diaper,
-        startAt: at(12, 45),
-        endAt: at(12, 45),
-        loggedById: me,
-        diaperKind: DiaperKind.both,
+      ev(childId, CareEventType.diaper, at(12, 45), diaper: DiaperKind.both),
+      ev(childId, CareEventType.sleep, at(13, 5), end: at(13, 45)),
+      // Sibling's lighter day, so switching children visibly changes Today.
+      ev(
+        siblingId,
+        CareEventType.feed,
+        at(7, 30),
+        feed: FeedKind.solids,
+        by: partnerId,
       ),
-      CareEvent(
-        id: _newId('e'),
-        type: CareEventType.sleep,
-        startAt: at(13, 5),
-        endAt: at(13, 45),
-        loggedById: me,
+      ev(siblingId, CareEventType.sleep, at(12, 30), end: at(14, 0)),
+      ev(
+        siblingId,
+        CareEventType.note,
+        at(14, 5),
+        note: 'Big lunch, happy after the nap.',
       ),
     ];
 
     final all = [..._state.events, ...events]
       ..sort((a, b) => a.startAt.compareTo(b.startAt));
-    await _commit(_state.copyWith(events: all, caregivers: caregivers));
+    await _commit(
+      _state.copyWith(events: all, caregivers: caregivers, children: children),
+    );
   }
 }
 

@@ -106,6 +106,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     label: 'Unlimited caregivers',
                   ),
                   const _ValueProp(
+                    icon: Icons.child_care_outlined,
+                    label: 'Every child, their own timeline',
+                  ),
+                  const _ValueProp(
                     icon: Icons.swap_horiz_rounded,
                     label: 'Shareable handoff sheets',
                   ),

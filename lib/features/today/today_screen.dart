@@ -5,7 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
+import '../../core/util/formats.dart';
 import '../../data/family_repository.dart';
+import '../../domain/models/care_event.dart';
+import '../children/child_switcher.dart';
 import '../timeline/event_edit_sheet.dart';
 import 'today_cubit.dart';
 import 'widgets/next_up_card.dart';
@@ -31,6 +34,14 @@ class TodayScreen extends StatelessWidget {
 class _TodayView extends StatelessWidget {
   const _TodayView();
 
+  String _greeting(DateTime now) {
+    if (now.hour < 5) return 'Late night shift';
+    if (now.hour < 12) return 'Good morning';
+    if (now.hour < 17) return 'Good afternoon';
+    if (now.hour < 21) return 'Good evening';
+    return 'Night shift';
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
@@ -39,38 +50,79 @@ class _TodayView extends StatelessWidget {
     return BlocBuilder<TodayCubit, TodayState>(
       builder: (context, state) {
         final cubit = context.read<TodayCubit>();
-        final baby = state.family.baby;
+        final child = state.child;
         final caregivers = state.family.activeCaregivers;
+        final you = state.family.currentCaregiver;
 
         return Scaffold(
           body: SafeArea(
             bottom: false,
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 32),
               children: [
-                // Header: baby identity + presence + handoff entry.
+                // Header: who you're caring for + who else is around.
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            baby?.nickname ?? 'Baby',
-                            style: text.displayMedium,
+                            you == null
+                                ? _greeting(state.now)
+                                : '${_greeting(state.now)}, ${you.name}',
+                            style: text.labelSmall?.copyWith(color: c.clayDeep),
                           ),
-                          if (baby != null)
+                          const SizedBox(height: 6),
+                          InkWell(
+                            onTap: () => showChildSwitcherSheet(context),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    child?.nickname ?? 'Baby',
+                                    style: text.displayMedium,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Icon(
+                                    Icons.expand_more_rounded,
+                                    color: c.inkFaint,
+                                    size: 26,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (child != null)
                             Text(
-                              baby.ageLabelAt(state.now),
+                              child.ageLabelAt(state.now),
                               style: text.bodyMedium,
                             ),
                         ],
                       ),
                     ),
-                    _PresenceStack(caregivers: caregivers),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 18),
+                      child: _PresenceStack(caregivers: caregivers),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
+                ChildSwitcherStrip(
+                  children: state.children,
+                  selectedChildId: state.family.selectedChildId,
+                  isAsleepById: state.family.isChildAsleep,
+                  onSelect: cubit.selectChild,
+                  onManage: () => showChildSwitcherSheet(context),
+                ),
+                if (state.children.length > 1) const SizedBox(height: 12),
                 // Handoff is the product promise — keep it one tap from home.
                 _HandoffPill(
                   onTap: () {
@@ -78,9 +130,10 @@ class _TodayView extends StatelessWidget {
                     context.push('/handoff');
                   },
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 NextUpCard(
                   now: state.now,
+                  childName: child?.nickname,
                   prediction: state.prediction,
                   ongoingSleep: state.ongoingSleep,
                   predictionIfWakesNow: state.predictionIfWakesNow,
@@ -92,6 +145,7 @@ class _TodayView extends StatelessWidget {
                 const SizedBox(height: 14),
                 SleepButton(
                   isAsleep: state.isAsleep,
+                  childName: child?.nickname,
                   onPressed: cubit.toggleSleep,
                 ),
                 const SizedBox(height: 14),
@@ -142,20 +196,14 @@ class _TodayView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 SectionLabel(
-                  'Today\'s timeline',
-                  trailing: state.todayEvents.isEmpty
-                      ? null
-                      : Text(
-                          state.todayEvents.length == 1
-                              ? '1 entry'
-                              : '${state.todayEvents.length} entries',
-                          style: text.labelSmall,
-                        ),
+                  'Today',
+                  trailing: _DaySummary(events: state.todayEvents),
                 ),
                 TimelineList(
                   events: state.todayEvents,
                   caregivers: state.family.caregivers,
                   now: state.now,
+                  childName: child?.nickname,
                   onTapEvent: (event) => showEventEditSheet(context, event),
                 ),
               ],
@@ -163,6 +211,36 @@ class _TodayView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Compact glanceable recap: naps · day sleep · feeds · diapers.
+class _DaySummary extends StatelessWidget {
+  const _DaySummary({required this.events});
+
+  final List<CareEvent> events;
+
+  @override
+  Widget build(BuildContext context) {
+    if (events.isEmpty) return const SizedBox.shrink();
+    final naps = events.where((e) => e.isSleep && e.endAt != null).toList();
+    final sleepMins = naps.fold<int>(
+      0,
+      (sum, e) => sum + e.duration!.inMinutes,
+    );
+    final feeds = events.where((e) => e.type == CareEventType.feed).length;
+    final diapers = events.where((e) => e.type == CareEventType.diaper).length;
+    final parts = <String>[
+      if (naps.isNotEmpty)
+        '${naps.length} sleep${naps.length == 1 ? '' : 's'} · ${formatDurationMinutes(sleepMins)}',
+      if (feeds > 0) '$feeds feed${feeds == 1 ? '' : 's'}',
+      if (diapers > 0) '$diapers diaper${diapers == 1 ? '' : 's'}',
+    ];
+    if (parts.isEmpty) return const SizedBox.shrink();
+    return Text(
+      parts.join(' · '),
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(letterSpacing: 0),
     );
   }
 }
@@ -175,34 +253,37 @@ class _HandoffPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(100),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          decoration: BoxDecoration(
-            color: c.ink,
-            borderRadius: BorderRadius.circular(100),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.swap_horiz_rounded, size: 20, color: c.background),
-              const SizedBox(width: 8),
-              Text(
-                'Handoff to next caregiver',
-                style: TextStyle(
-                  color: c.background,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
+    return PressableScale(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+        decoration: BoxDecoration(
+          color: c.ink,
+          borderRadius: BorderRadius.circular(100),
+          boxShadow: [
+            BoxShadow(
+              color: c.ink.withValues(alpha: 0.22),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.swap_horiz_rounded, size: 20, color: c.background),
+            const SizedBox(width: 8),
+            Text(
+              'Handoff to next caregiver',
+              style: TextStyle(
+                color: c.background,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
               ),
-              const Spacer(),
-              Icon(Icons.chevron_right, size: 20, color: c.background),
-            ],
-          ),
+            ),
+            const Spacer(),
+            Icon(Icons.chevron_right, size: 20, color: c.background),
+          ],
         ),
       ),
     );

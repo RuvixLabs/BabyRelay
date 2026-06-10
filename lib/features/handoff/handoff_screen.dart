@@ -8,34 +8,35 @@ import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
 import '../../data/family_repository.dart';
 import '../../domain/engine/sleep_prediction_engine.dart';
+import '../../domain/models/baby_profile.dart';
 import '../../domain/services/day_context_builder.dart';
 import '../../domain/services/handoff_service.dart';
 
 /// The relay moment: a plain-language summary the next caregiver can read in
 /// ten seconds, shareable as text so non-app grandparents still get it.
+/// Always scoped to the selected child.
 class HandoffScreen extends StatelessWidget {
   const HandoffScreen({super.key});
 
-  HandoffSummary? _buildSummary(FamilyRepository repo) {
+  HandoffSummary? _buildSummary(FamilyRepository repo, BabyProfile? child) {
     final state = repo.state;
-    final baby = state.baby;
-    if (baby == null) return null;
+    if (child == null) return null;
     final now = DateTime.now();
     const engine = SleepPredictionEngine();
     const dayBuilder = DayContextBuilder();
     final prediction = engine.predict(
       dayBuilder.build(
-        baby: baby,
-        events: state.events,
+        baby: child,
+        events: state.eventsForChild(child.id),
         now: now,
-        recentNapCounts: repo.recentNapCounts(now: now),
-        assumeAwakeNow: state.isAsleep,
+        recentNapCounts: repo.recentNapCounts(now: now, childId: child.id),
+        assumeAwakeNow: state.isChildAsleep(child.id),
       ),
     );
     return const HandoffService().build(
-      babyName: baby.nickname,
+      babyName: child.nickname,
       now: now,
-      todayEvents: state.eventsOn(now),
+      todayEvents: state.eventsOn(now, childId: child.id),
       caregiverNames: {for (final c in state.caregivers) c.id: c.name},
       prediction: prediction,
     );
@@ -45,9 +46,10 @@ class HandoffScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.relay;
     final text = Theme.of(context).textTheme;
-    final repo = context.read<FamilyRepository>();
+    final repo = context.watch<FamilyRepository>();
     final analytics = context.read<AnalyticsService>();
-    final summary = _buildSummary(repo);
+    final child = repo.state.selectedChild;
+    final summary = _buildSummary(repo, child);
 
     return Scaffold(
       appBar: AppBar(
@@ -57,8 +59,8 @@ class HandoffScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: summary == null
-          ? const Center(child: Text('Set up your baby profile first.'))
+      body: summary == null || child == null
+          ? const Center(child: Text('Set up your child\'s profile first.'))
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
               children: [
@@ -67,32 +69,81 @@ class HandoffScreen extends StatelessWidget {
                   style: text.bodyMedium,
                 ),
                 const SizedBox(height: 16),
-                RelayCard(
-                  padding: const EdgeInsets.all(24),
+                // The relay note. Deep header band makes it feel like a
+                // designed artifact, not another list.
+                Container(
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    borderRadius: BorderRadius.circular(26),
+                    border: Border.all(color: c.outline),
+                    boxShadow: [
+                      BoxShadow(
+                        color: c.ink.withValues(alpha: 0.06),
+                        blurRadius: 22,
+                        offset: const Offset(0, 9),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        summary.headline,
-                        style: text.labelSmall?.copyWith(color: c.clayDeep),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(summary.statusLine, style: text.titleLarge),
-                      const SizedBox(height: 16),
-                      for (final line in summary.lines) ...[
-                        _SummaryLine(line: line),
-                        const SizedBox(height: 10),
-                      ],
-                      Divider(color: c.outline, height: 28),
-                      Text('FOR THE NEXT CAREGIVER', style: text.labelSmall),
-                      const SizedBox(height: 10),
-                      for (final line in summary.headsUp) ...[
-                        _SummaryLine(
-                          line: line,
-                          icon: Icons.tips_and_updates_outlined,
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(gradient: c.nightGradient),
+                        padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+                        child: Row(
+                          children: [
+                            ChildAvatar(child: child, size: 40),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    summary.headline.toUpperCase(),
+                                    style: text.labelSmall?.copyWith(
+                                      color: c.onNightSoft,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    summary.statusLine,
+                                    style: text.titleMedium?.copyWith(
+                                      color: c.onNight,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
-                      ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(22),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final line in summary.lines) ...[
+                              _SummaryLine(line: line),
+                              const SizedBox(height: 10),
+                            ],
+                            Divider(color: c.outline, height: 28),
+                            Text(
+                              'FOR THE NEXT CAREGIVER',
+                              style: text.labelSmall,
+                            ),
+                            const SizedBox(height: 10),
+                            for (final line in summary.headsUp) ...[
+                              _SummaryLine(
+                                line: line,
+                                icon: Icons.tips_and_updates_outlined,
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),

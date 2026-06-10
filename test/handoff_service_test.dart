@@ -17,6 +17,7 @@ void main() {
     String by = 'u1',
   }) => CareEvent(
     id: id,
+    childId: 'child1',
     type: CareEventType.sleep,
     startAt: start,
     endAt: end,
@@ -31,6 +32,7 @@ void main() {
       sleep('s2', at(14, 5), at(14, 45), by: 'u2'),
       CareEvent(
         id: 'n1',
+        childId: 'child1',
         type: CareEventType.note,
         startAt: at(10, 30),
         loggedById: 'u1',
@@ -104,6 +106,7 @@ void main() {
     final events = [
       CareEvent(
         id: 'f1',
+        childId: 'child1',
         type: CareEventType.feed,
         startAt: at(7, 30),
         loggedById: 'u1',
@@ -111,6 +114,7 @@ void main() {
       ),
       CareEvent(
         id: 'f2',
+        childId: 'child1',
         type: CareEventType.feed,
         startAt: at(11, 0),
         loggedById: 'u2',
@@ -118,6 +122,7 @@ void main() {
       ),
       CareEvent(
         id: 'd1',
+        childId: 'child1',
         type: CareEventType.diaper,
         startAt: at(12, 50),
         loggedById: 'u2',
@@ -125,6 +130,7 @@ void main() {
       ),
       CareEvent(
         id: 'w1',
+        childId: 'child1',
         type: CareEventType.nightWaking,
         startAt: at(3, 15),
         loggedById: 'u1',

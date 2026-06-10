@@ -11,6 +11,7 @@ enum DiaperKind { wet, dirty, both }
 class CareEvent extends Equatable {
   const CareEvent({
     required this.id,
+    required this.childId,
     required this.type,
     required this.startAt,
     this.endAt,
@@ -23,6 +24,10 @@ class CareEvent extends Equatable {
   });
 
   final String id;
+
+  /// Which child this event belongs to. Legacy single-child events are
+  /// migrated to the first child's id on load.
+  final String childId;
   final CareEventType type;
   final DateTime startAt;
   final DateTime? endAt;
@@ -39,6 +44,7 @@ class CareEvent extends Equatable {
   Duration? get duration => endAt?.difference(startAt);
 
   CareEvent copyWith({
+    String? childId,
     DateTime? startAt,
     DateTime? endAt,
     bool clearEndAt = false,
@@ -51,6 +57,7 @@ class CareEvent extends Equatable {
   }) {
     return CareEvent(
       id: id,
+      childId: childId ?? this.childId,
       type: type,
       startAt: startAt ?? this.startAt,
       endAt: clearEndAt ? null : (endAt ?? this.endAt),
@@ -65,6 +72,7 @@ class CareEvent extends Equatable {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'childId': childId,
     'type': type.name,
     'startAt': startAt.toIso8601String(),
     'endAt': endAt?.toIso8601String(),
@@ -78,6 +86,7 @@ class CareEvent extends Equatable {
 
   factory CareEvent.fromJson(Map<String, dynamic> json) => CareEvent(
     id: json['id'] as String,
+    childId: json['childId'] as String? ?? '',
     type: CareEventType.values.byName(json['type'] as String),
     startAt: DateTime.parse(json['startAt'] as String),
     endAt: json['endAt'] == null
@@ -98,6 +107,7 @@ class CareEvent extends Equatable {
   @override
   List<Object?> get props => [
     id,
+    childId,
     type,
     startAt,
     endAt,
