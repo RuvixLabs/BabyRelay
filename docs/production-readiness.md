@@ -45,7 +45,7 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 |---|---|---|
 | Firebase | Created | Project `babyrelay-ruvix`; iOS app `com.ruvixlabs.babyrelay`; Firestore `(default)` in `nam5`; plist is bundled in the iOS target. |
 | AppRefer | Created | App `app_16e4ca28f81`; link `babyrelay-meta`; live/test SDK keys stored in `mc-vault`. Needs store destination URL before `trk.apprefer.com` can redirect. |
-| RevenueCat | Account created, onboarding blocked | Login is stored in `mc-vault`; dashboard project/catalog creation is blocked on RevenueCat's post-signup verification/onboarding state. |
+| RevenueCat | Test Store catalog created | Project `26c4f023`; Test Store SDK key stored in `mc-vault`; entitlement `pro`; products `babyrelay_pro_monthly` / `babyrelay_pro_annual`; default offering maps monthly + annual. Account email still needs confirmation. Real App Store config is blocked on a Ruvix App Store in-app purchase key. |
 
 ## Remaining Provider Work
 
@@ -53,7 +53,7 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 |---|---|---|
 | Firebase Auth + Firestore sync | Add Flutter Firebase packages + repository implementation | Firestore-backed `FamilyRepository` behind the same API; model in `docs/plans/core/overview.md`; set `--dart-define=FIREBASE_CONFIGURED=true` |
 | Firebase Analytics/Crashlytics/Messaging | Add Flutter Firebase packages + runtime init | Sink inside `AnalyticsService.logEvent`; crash + push init in `main.dart` |
-| RevenueCat | Finish dashboard onboarding, SDK key, products in ASC matching `ProductIds` | RevenueCat-backed `PurchaseService` implementation; entitlement `pro` |
+| RevenueCat | Create Ruvix App Store in-app purchase key, add real App Store config, create ASC products matching `ProductIds` | RevenueCat-backed `PurchaseService` implementation; entitlement `pro` |
 | Real join flow | Firebase + universal links | Replace the local on-device add path in `care_team_screen.dart`; scannable QR from `InvitePayload.url` |
 | AppRefer attribution | App Store URL + `APPREFER_LINK_ID=babyrelay-meta` | Override `InviteService.decorateLink` |
 | Gleap support chat | `GLEAP_SDK_KEY` | Settings support row (email fallback already live) |

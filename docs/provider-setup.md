@@ -34,22 +34,44 @@ without an App Store / Play destination.
 ## RevenueCat
 
 - Account email: `joe+babyrelay@ruvixlabs.com`
+- Project ID: `26c4f023`
+- Project name: `BabyRelay`
 - Login vault services:
   - `babyrelay-revenuecat-username`
   - `babyrelay-revenuecat-password`
+- Test Store public SDK key vault service:
+  - `babyrelay-revenuecat-test-sdk-key`
 - RevenueCat webhook secret vault service:
   - `babyrelay-apprefer-revenuecat-webhook-secret`
 
-Signup was submitted successfully and reached RevenueCat's `/welcome` flow, but
-dashboard/project onboarding is still blocked by RevenueCat's post-signup login
-state. A Gmail search found other RevenueCat verification/welcome emails from
-the same day, but found no BabyRelay email to `joe+babyrelay@ruvixlabs.com`.
-Treat the account as incomplete until that alias/email delivery issue is cleared
-or a receiving Ruvix address is chosen. The next RevenueCat pass should create:
+Dashboard login is now unblocked. The RevenueCat account still shows an
+unconfirmed-email banner and should be confirmed through the dashboard resend
+flow, but that is not blocking catalog edits.
 
-- Project: `BabyRelay`
-- iOS app bundle: `com.ruvixlabs.babyrelay`
-- Entitlement: `pro`
-- Products: `babyrelay_pro_monthly`, `babyrelay_pro_annual`
-- Default offering/package mapping for the two products
-- AppRefer RevenueCat webhook integration for sandbox and production events
+Live RevenueCat readback:
+
+- App config: Test Store app `appf68d685da8`
+- Active entitlement: `pro`
+- Products:
+  - `babyrelay_pro_monthly` (`P1M`)
+  - `babyrelay_pro_annual` (`P1Y`)
+- Default offering: `default`
+- Packages:
+  - `$rc_monthly` -> `babyrelay_pro_monthly`
+  - `$rc_annual` -> `babyrelay_pro_annual`
+- No lifetime product is active.
+
+RevenueCat initially created an accidental entitlement identifier
+`BabyRelay Pro`; the two products were moved to `pro`, and the accidental
+entitlement is archived with no products attached.
+
+Remaining RevenueCat/App Store blocker:
+
+- A real App Store app configuration for bundle ID `com.ruvixlabs.babyrelay`
+  is blocked until Ruvix Labs has an App Store in-app purchase key available
+  for RevenueCat (`.p8` key file, key ID, issuer ID). RevenueCat rejects the
+  real App Store configuration without those three values. Do not reuse the
+  GymStreak Labs subscription key.
+- After the real App Store configuration exists, replace the Test Store key at
+  build time with the App Store public SDK key and wire AppRefer purchase
+  forwarding via RevenueCat webhook for sandbox and production events.
