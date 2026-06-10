@@ -42,7 +42,10 @@ without an App Store / Play destination.
 
 Signup was submitted successfully and reached RevenueCat's `/welcome` flow, but
 dashboard/project onboarding is still blocked by RevenueCat's post-signup login
-state. The next RevenueCat pass should create:
+state. A Gmail search found other RevenueCat verification/welcome emails from
+the same day, but found no BabyRelay email to `joe+babyrelay@ruvixlabs.com`.
+Treat the account as incomplete until that alias/email delivery issue is cleared
+or a receiving Ruvix address is chosen. The next RevenueCat pass should create:
 
 - Project: `BabyRelay`
 - iOS app bundle: `com.ruvixlabs.babyrelay`
