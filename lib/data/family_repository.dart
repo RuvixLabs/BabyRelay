@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/config/app_config.dart';
 import '../domain/models/baby_profile.dart';
 import '../domain/models/care_event.dart';
 import '../domain/models/caregiver.dart';
+import '../domain/services/invite_service.dart';
 import 'local_store.dart';
 
 /// Immutable snapshot of the shared family/care state.
@@ -13,6 +14,11 @@ import 'local_store.dart';
 /// A family has one care team and any number of children. Every care event
 /// is scoped to a child; the UI focuses on [selectedChild] at a time.
 class FamilyState {
+  /// Version of the persisted/exported JSON shape. The app has never
+  /// shipped, so v1 IS the clean multi-child schema — there are no older
+  /// shapes to migrate from.
+  static const int schemaVersion = 1;
+
   const FamilyState({
     this.children = const [],
     this.selectedChildId = '',
@@ -118,6 +124,7 @@ class FamilyState {
   }
 
   Map<String, dynamic> toJson() => {
+    'schemaVersion': schemaVersion,
     'children': children.map((c) => c.toJson()).toList(),
     'selectedChildId': selectedChildId,
     'caregivers': caregivers.map((c) => c.toJson()).toList(),
@@ -128,37 +135,24 @@ class FamilyState {
   };
 
   factory FamilyState.fromJson(Map<String, dynamic> json) {
-    var children = (json['children'] as List<dynamic>? ?? [])
+    final version = json['schemaVersion'];
+    if (version != schemaVersion) {
+      // Written by a different app schema than this clean pre-launch build.
+      throw FormatException('Unsupported family schema version $version');
+    }
+    final rawChildren = json['children'];
+    final rawCaregivers = json['caregivers'];
+    final rawEvents = json['events'];
+    if (rawChildren is! List || rawCaregivers is! List || rawEvents is! List) {
+      throw const FormatException('Family payload missing required lists');
+    }
+
+    final children = rawChildren
         .map((c) => BabyProfile.fromJson(c as Map<String, dynamic>))
         .toList();
-    var events = (json['events'] as List<dynamic>? ?? [])
+    final events = rawEvents
         .map((e) => CareEvent.fromJson(e as Map<String, dynamic>))
         .toList();
-
-    // Migration from the v1 single-child shape: {'baby': {...}, ...} with
-    // events that carry no childId.
-    if (children.isEmpty && json['baby'] != null) {
-      final legacy = BabyProfile.fromJson(json['baby'] as Map<String, dynamic>);
-      final withId = legacy.id.isEmpty
-          ? BabyProfile(
-              id: 'child_legacy',
-              nickname: legacy.nickname,
-              dob: legacy.dob,
-              wakeTimeMinutes: legacy.wakeTimeMinutes,
-              bedtimeMinutes: legacy.bedtimeMinutes,
-              napsPerDayEstimate: legacy.napsPerDayEstimate,
-              colorIndex: legacy.colorIndex,
-              scheduleOverrideNaps: legacy.scheduleOverrideNaps,
-            )
-          : legacy;
-      children = [withId];
-    }
-    if (children.isNotEmpty) {
-      final firstId = children.first.id;
-      events = events
-          .map((e) => e.childId.isEmpty ? e.copyWith(childId: firstId) : e)
-          .toList();
-    }
 
     var selectedChildId = json['selectedChildId'] as String? ?? '';
     if (children.isNotEmpty && !children.any((c) => c.id == selectedChildId)) {
@@ -168,7 +162,7 @@ class FamilyState {
     return FamilyState(
       children: children,
       selectedChildId: selectedChildId,
-      caregivers: (json['caregivers'] as List<dynamic>? ?? [])
+      caregivers: rawCaregivers
           .map((c) => Caregiver.fromJson(c as Map<String, dynamic>))
           .toList(),
       events: events,
@@ -179,7 +173,7 @@ class FamilyState {
   }
 }
 
-/// Local demo repository for the shared family state.
+/// Local-first repository for the shared family state.
 ///
 /// This is the seam where Firestore lands later: same mutation API, but
 /// writes go to `families/{familyId}/...` and the change stream comes from
@@ -218,16 +212,6 @@ class FamilyRepository extends ChangeNotifier {
 
   String get _selectedChildIdOrEmpty => _state.selectedChild?.id ?? '';
 
-  static String generateInviteCode([Random? random]) {
-    // No ambiguous characters (0/O, 1/I/L) — caregivers read these out loud.
-    const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-    final rng = random ?? Random();
-    return List.generate(
-      6,
-      (_) => alphabet[rng.nextInt(alphabet.length)],
-    ).join();
-  }
-
   // ---------------------------------------------------------------------------
   // Onboarding / children
 
@@ -256,7 +240,7 @@ class FamilyRepository extends ChangeNotifier {
         caregivers: [owner],
         events: const [],
         currentCaregiverId: ownerId,
-        inviteCode: generateInviteCode(),
+        inviteCode: InviteService.generateCode(),
         onboarded: true,
       ),
     );
@@ -588,14 +572,21 @@ class FamilyRepository extends ChangeNotifier {
   }
 
   Future<void> regenerateInviteCode() async {
-    await _commit(_state.copyWith(inviteCode: generateInviteCode()));
+    await _commit(_state.copyWith(inviteCode: InviteService.generateCode()));
   }
 
   // ---------------------------------------------------------------------------
   // Privacy / data control
 
-  String exportJson() =>
-      const JsonEncoder.withIndent('  ').convert(_state.toJson());
+  /// Full data export, wrapped in an envelope so a future import (or a
+  /// support inspection) knows exactly which app and schema produced it.
+  String exportJson() => const JsonEncoder.withIndent('  ').convert({
+    'app': 'BabyRelay',
+    'appVersion': AppConfig.appVersion,
+    'schemaVersion': FamilyState.schemaVersion,
+    'exportedAt': DateTime.now().toIso8601String(),
+    'family': _state.toJson(),
+  });
 
   Future<void> deleteAllData() async {
     _state = const FamilyState();
@@ -603,7 +594,7 @@ class FamilyRepository extends ChangeNotifier {
     await _store.delete(_storageKey);
   }
 
-  /// Seeds a believable demo day so the prototype can be previewed without
+  /// Seeds a believable sample day so the app can be previewed without
   /// manually logging a full day first. Also adds a sibling so the
   /// multi-child experience can be exercised immediately.
   Future<void> loadSampleDay() async {
@@ -631,7 +622,7 @@ class FamilyRepository extends ChangeNotifier {
       partnerId = partner.id;
     }
 
-    // A sibling makes the child switcher and event isolation demoable.
+    // A sibling makes the child switcher and event isolation easy to exercise.
     var children = _state.children;
     var siblingId = children.where((c) => c.id != childId).firstOrNull?.id;
     if (siblingId == null) {

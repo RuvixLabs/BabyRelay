@@ -11,12 +11,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  // Demo build: local persistence only. Firebase (Auth/Firestore/Analytics/
-  // Crashlytics/Messaging), RevenueCat, AppRefer, and Gleap initialize here
-  // once credentials exist — see Settings > Integrations.
+  // Local-first build: everything persists on-device. Firebase (Auth/
+  // Firestore/Analytics/Crashlytics/Messaging), RevenueCat, AppRefer, and
+  // Gleap initialize here once their credentials arrive via --dart-define —
+  // see lib/core/config/app_config.dart and docs/production-readiness.md.
   final store = await SharedPrefsStore.create();
   final familyRepository = FamilyRepository(store);
-  final purchaseService = PurchaseService(store);
+  final PurchaseService purchaseService = LocalPurchaseService(store);
   await Future.wait([familyRepository.load(), purchaseService.load()]);
 
   runApp(

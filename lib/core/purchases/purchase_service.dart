@@ -6,9 +6,18 @@ import '../../data/local_store.dart';
 
 enum PlanId { monthly, annual }
 
+/// Store product identifiers. These are repo-local placeholders until the
+/// products exist in App Store Connect; the RevenueCat offering maps them to
+/// [PlanId]s, so nothing else in the app touches raw product ids.
+abstract final class ProductIds {
+  static const String monthly = 'babyrelay_pro_monthly';
+  static const String annual = 'babyrelay_pro_annual';
+}
+
 class Plan {
   const Plan({
     required this.id,
+    required this.productId,
     required this.title,
     required this.priceLabel,
     required this.periodLabel,
@@ -18,6 +27,7 @@ class Plan {
   });
 
   final PlanId id;
+  final String productId;
   final String title;
   final String priceLabel;
   final String periodLabel;
@@ -26,37 +36,84 @@ class Plan {
   final String? subline;
 }
 
-enum PurchaseResult { success, cancelled, failed }
+/// Outcome of a purchase attempt. `cancelled` is the user backing out of the
+/// store sheet — not an error, never shown as one.
+enum PurchaseOutcome { success, cancelled, failed }
 
-/// Mock of the RevenueCat-backed purchase layer.
-///
-/// Mirrors the surface the real integration will expose: an entitlement
-/// (`pro`), offerings, purchase + restore, and trial state. Product IDs stay
-/// out of business logic — screens only see [Plan]s and [isPro].
-class PurchaseService extends ChangeNotifier {
-  PurchaseService(this._store);
+/// Outcome of a restore attempt. `nothingToRestore` is the common "new
+/// device, never purchased" case and gets neutral copy, not an error.
+enum RestoreOutcome { restored, nothingToRestore, failed }
 
-  static const _storageKey = 'babyrelay.purchases.v1';
+/// Subscription seam. Screens depend only on this interface; the shipped
+/// implementation today is [LocalPurchaseService], and the RevenueCat-backed
+/// one replaces it behind the same surface once `REVENUECAT_API_KEY` is
+/// provided (entitlement id: [entitlementId]).
+abstract class PurchaseService extends ChangeNotifier {
   static const entitlementId = 'pro';
 
+  bool get isPro;
+  PlanId? get activePlan;
+  DateTime? get trialEndsAt;
+
+  /// True while a purchase or restore is in flight; buttons disable on it.
+  bool get busy;
+
+  /// Human-readable reason for the last [PurchaseOutcome.failed] /
+  /// [RestoreOutcome.failed], for the error snackbar.
+  String? get lastErrorMessage;
+
+  /// Plans to offer. Local builds use a fixed catalog; the RevenueCat
+  /// implementation builds these from the current offering so price strings
+  /// always come from the store.
+  List<Plan> get plans;
+
+  bool get inTrial =>
+      isPro && trialEndsAt != null && DateTime.now().isBefore(trialEndsAt!);
+
+  Future<void> load();
+  Future<PurchaseOutcome> purchase(Plan plan);
+  Future<RestoreOutcome> restore();
+}
+
+/// On-device implementation: simulates the store flow and persists the
+/// entitlement locally. Explicitly NOT a billing system — it exists so the
+/// whole paywall/entitlement UX is real and testable before RevenueCat lands.
+class LocalPurchaseService extends PurchaseService {
+  LocalPurchaseService(this._store, {Duration? actionDelay})
+    : _actionDelay = actionDelay ?? const Duration(milliseconds: 1200);
+
+  static const _storageKey = 'babyrelay.purchases.v1';
+
   final LocalStore _store;
+  final Duration _actionDelay;
 
   bool _isPro = false;
   PlanId? _activePlan;
   DateTime? _trialEndsAt;
   bool _busy = false;
+  String? _lastErrorMessage;
 
+  /// What the next simulated store interaction does. Tests (and manual QA)
+  /// flip this to exercise the cancel/failure paths the real store will hit.
+  PurchaseOutcome nextPurchaseOutcome = PurchaseOutcome.success;
+  bool failNextRestore = false;
+
+  @override
   bool get isPro => _isPro;
+  @override
   PlanId? get activePlan => _activePlan;
+  @override
   DateTime? get trialEndsAt => _trialEndsAt;
+  @override
   bool get busy => _busy;
+  @override
+  String? get lastErrorMessage => _lastErrorMessage;
 
-  bool get inTrial =>
-      _isPro && _trialEndsAt != null && DateTime.now().isBefore(_trialEndsAt!);
-
-  static const List<Plan> plans = [
+  @override
+  List<Plan> get plans => const [
     Plan(
       id: PlanId.annual,
+      productId: ProductIds.annual,
       title: 'Annual',
       priceLabel: '\$59.99',
       periodLabel: 'per year',
@@ -66,6 +123,7 @@ class PurchaseService extends ChangeNotifier {
     ),
     Plan(
       id: PlanId.monthly,
+      productId: ProductIds.monthly,
       title: 'Monthly',
       priceLabel: '\$9.99',
       periodLabel: 'per month',
@@ -73,6 +131,7 @@ class PurchaseService extends ChangeNotifier {
     ),
   ];
 
+  @override
   Future<void> load() async {
     final raw = await _store.read(_storageKey);
     if (raw == null) return;
@@ -87,7 +146,11 @@ class PurchaseService extends ChangeNotifier {
           : DateTime.parse(json['trialEndsAt'] as String);
       notifyListeners();
     } catch (_) {
-      // Ignore corrupt purchase cache in the demo build.
+      // A corrupt entitlement cache must never brick the app; the user can
+      // always restore.
+      _isPro = false;
+      _activePlan = null;
+      _trialEndsAt = null;
     }
   }
 
@@ -100,34 +163,66 @@ class PurchaseService extends ChangeNotifier {
     }),
   );
 
-  /// Simulates a StoreKit purchase with a trial start.
-  Future<PurchaseResult> purchase(Plan plan) async {
-    if (_busy) return PurchaseResult.failed;
+  Future<T> _withBusy<T>(Future<T> Function() action) async {
     _busy = true;
     notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 1200));
-    _isPro = true;
-    _activePlan = plan.id;
-    _trialEndsAt = DateTime.now().add(Duration(days: plan.trialDays));
-    _busy = false;
-    notifyListeners();
-    await _persist();
-    return PurchaseResult.success;
+    try {
+      return await action();
+    } finally {
+      _busy = false;
+      notifyListeners();
+    }
   }
 
-  Future<bool> restore() async {
-    if (_busy) return false;
-    _busy = true;
-    notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    // The mock has nothing server-side to restore; reload local state.
-    await load();
-    _busy = false;
-    notifyListeners();
-    return _isPro;
+  @override
+  Future<PurchaseOutcome> purchase(Plan plan) async {
+    if (_busy) return PurchaseOutcome.failed;
+    return _withBusy(() async {
+      await Future<void>.delayed(_actionDelay);
+      final outcome = nextPurchaseOutcome;
+      nextPurchaseOutcome = PurchaseOutcome.success;
+      switch (outcome) {
+        case PurchaseOutcome.success:
+          _isPro = true;
+          _activePlan = plan.id;
+          _trialEndsAt = DateTime.now().add(Duration(days: plan.trialDays));
+          _lastErrorMessage = null;
+          await _persist();
+          break;
+        case PurchaseOutcome.cancelled:
+          _lastErrorMessage = null;
+          break;
+        case PurchaseOutcome.failed:
+          _lastErrorMessage =
+              'The purchase could not be completed. '
+              'You were not charged — please try again.';
+          break;
+      }
+      return outcome;
+    });
   }
 
-  /// Demo-only escape hatch in Settings.
+  @override
+  Future<RestoreOutcome> restore() async {
+    if (_busy) return RestoreOutcome.failed;
+    return _withBusy(() async {
+      await Future<void>.delayed(_actionDelay);
+      if (failNextRestore) {
+        failNextRestore = false;
+        _lastErrorMessage =
+            'Could not reach the store to restore. Please try again.';
+        return RestoreOutcome.failed;
+      }
+      // Locally there is nothing server-side; re-read the persisted
+      // entitlement, which is what a reinstall would find.
+      await load();
+      _lastErrorMessage = null;
+      return _isPro ? RestoreOutcome.restored : RestoreOutcome.nothingToRestore;
+    });
+  }
+
+  /// Debug/QA escape hatch (Settings, debug builds only): drops back to the
+  /// free tier so the paywall gates can be re-tested.
   Future<void> clearEntitlement() async {
     _isPro = false;
     _activePlan = null;

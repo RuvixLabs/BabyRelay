@@ -25,8 +25,8 @@ class CareEvent extends Equatable {
 
   final String id;
 
-  /// Which child this event belongs to. Legacy single-child events are
-  /// migrated to the first child's id on load.
+  /// Which child this event belongs to. Always set — every event is scoped
+  /// to a child at creation time.
   final String childId;
   final CareEventType type;
   final DateTime startAt;
@@ -86,7 +86,7 @@ class CareEvent extends Equatable {
 
   factory CareEvent.fromJson(Map<String, dynamic> json) => CareEvent(
     id: json['id'] as String,
-    childId: json['childId'] as String? ?? '',
+    childId: json['childId'] as String,
     type: CareEventType.values.byName(json['type'] as String),
     startAt: DateTime.parse(json['startAt'] as String),
     endAt: json['endAt'] == null

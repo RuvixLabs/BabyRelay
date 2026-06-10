@@ -100,9 +100,7 @@ class BabyProfile extends Equatable {
   };
 
   factory BabyProfile.fromJson(Map<String, dynamic> json) => BabyProfile(
-    // Legacy single-child profiles had no id; the repository assigns one
-    // during migration.
-    id: json['id'] as String? ?? '',
+    id: json['id'] as String,
     nickname: json['nickname'] as String,
     dob: DateTime.parse(json['dob'] as String),
     wakeTimeMinutes: json['wakeTimeMinutes'] as int,

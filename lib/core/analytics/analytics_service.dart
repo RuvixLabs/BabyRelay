@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 /// - No baby names, caregiver names, free text, or health details in params.
 /// - Params are limited to small enums/counters declared at the call site.
 ///
-/// In the demo build events go to debug logs; the Firebase Analytics
+/// In the local-first build events go to debug logs; the Firebase Analytics
 /// implementation plugs in behind this same interface later.
 class AnalyticsService {
   AnalyticsService();
@@ -38,9 +38,13 @@ class AnalyticsService {
     'plan_selected',
     'purchase_started',
     'purchase_completed',
+    'purchase_cancelled',
     'purchase_failed',
+    'support_contacted',
     'restore_tapped',
     'restore_completed',
+    'restore_empty',
+    'restore_failed',
     'sample_day_loaded',
     'data_deleted',
   };

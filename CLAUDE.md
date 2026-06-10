@@ -26,8 +26,11 @@ JSON.
 | Prediction engine | `lib/domain/engine/sleep_prediction_engine.dart` (pure Dart) |
 | Handoff text | `lib/domain/services/handoff_service.dart` (pure Dart) |
 | Nap derivation | `lib/domain/services/day_context_builder.dart` |
-| Mock RevenueCat | `lib/core/purchases/purchase_service.dart` |
+| Purchases seam (abstract + `LocalPurchaseService`) | `lib/core/purchases/purchase_service.dart` |
+| Build-time config / integration statuses | `lib/core/config/app_config.dart` |
+| Invite codes + share payload | `lib/domain/services/invite_service.dart` |
 | Analytics allowlist | `lib/core/analytics/analytics_service.dart` |
+| Readiness checklist / provider follow-ups | `docs/production-readiness.md` |
 
 ## Multi-child model
 
@@ -39,16 +42,19 @@ JSON.
   children can sleep simultaneously; `overlappingSleeps` only matches the
   same child.
 - `recentNapCounts`, `eventsOn`, the engine, and handoff are all per-child.
-- **Migration**: `FamilyState.fromJson` accepts the legacy v1 shape
-  (`{'baby': {...}}` + events without `childId`) and converts it to a
-  one-child family (`child_legacy` id). Don't break this when touching the
-  JSON shape.
+- **No pre-launch migration**: the app never launched, so
+  `FamilyState.schemaVersion = 1` IS the clean multi-child shape. `fromJson`
+  throws on newer schema versions and the repo starts fresh on any corrupt/
+  unknown payload. `CareEvent.fromJson` / `BabyProfile.fromJson` require
+  `childId` / `id` — don't reintroduce tolerant fallbacks.
 - Free tier: 1 child + owner + 1 caregiver. `kFreeChildLimit` in
   `child_switcher.dart`, `kFreeCaregiverLimit` in `care_team_screen.dart`;
   both gate on `/paywall`. `startAddChildFlow` is the single entry point for
   adding a child (used by the switcher sheet and Settings).
 - "Load sample day" seeds the selected child's day AND a demo sibling
-  ("Theo") so the switcher is demoable; tests rely on that.
+  ("Theo") so the switcher is demoable; tests rely on that. The Settings row
+  for it (and "Reset entitlement") is `kDebugMode`-only — release builds
+  never show demo tooling.
 
 ## Design language v2 ("warm editorial nursery")
 
@@ -81,8 +87,8 @@ JSON.
   `FamilyRepository._isDaySleep` must stay in sync).
 - The invite QR is a deterministic decorative glyph (`_CodeGlyphPainter`), not
   a scannable QR — swap for a real QR lib with the deep-link integration.
-- The care-team "add directly" button is the demo stand-in for the real join
-  flow (second device + invite code).
+- The care-team local add button stands in for the real join flow (second
+  device + invite code) until Firebase/universal links are wired.
 - Transition banner "Keep current" pins the age-table nap count as a schedule
   override so the banner stops reappearing; "Switch" pins the observed count.
 - iOS is iPhone-only portrait-only (`TARGETED_DEVICE_FAMILY = 1`,
@@ -96,16 +102,25 @@ JSON.
 
 `flutter test` — engine (windows, short nap, bedtime compression, drift
 clamp, transitions), handoff text, repository (multi-child add/switch/remove,
-event isolation per child, legacy v1 migration, merge/overlap per child, nap
-counts per child, persistence round-trip, deletion), and widget smoke tests
-for the core flows including child switching and the add-child paywall gate
-(`test/app_flow_test.dart`).
+event isolation per child, schema versioning + fresh-start on bad payloads,
+versioned export envelope, merge/overlap per child, nap counts per child,
+persistence round-trip, deletion), purchases (success/cancel/fail/restore/
+busy-guard/persistence — `test/purchase_service_test.dart`), invites
+(`test/invite_service_test.dart`), and widget smoke tests for the core flows
+including child switching, add-child paywall gate, and paywall purchase/
+restore outcome handling (`test/app_flow_test.dart`).
 
 ## Integration plan (when credentials exist)
+
+Provider keys arrive via `--dart-define` (never committed) and surface in
+`lib/core/config/app_config.dart`; full checklist in
+`docs/production-readiness.md`.
 
 1. Firebase: implement Firestore-backed `FamilyRepository` behind the same
    API; model in `docs/plans/core/overview.md`. Children become a
    `families/{id}/children` subcollection; events keep `childId`.
-2. RevenueCat: replace `PurchaseService` internals; entitlement id `pro`.
-3. AppRefer: attach attribution to the invite link in `care_team_screen.dart`.
-4. Gleap: wire the Settings support row.
+2. RevenueCat: implement `PurchaseService` against the SDK (entitlement
+   `pro`, product ids in `ProductIds`); plans come from offerings so price
+   strings are store-driven.
+3. AppRefer: override `InviteService.decorateLink` with the tracked link.
+4. Gleap: wire the Settings support row (email fallback already live).

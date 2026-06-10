@@ -10,6 +10,7 @@ import '../../core/purchases/purchase_service.dart';
 import '../../core/util/formats.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/caregiver.dart';
+import '../../domain/services/invite_service.dart';
 
 /// Free tier covers the core duo (owner + one caregiver). Growing the team
 /// beyond that is the BabyRelay Family upgrade moment.
@@ -302,8 +303,8 @@ class _InviteSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.relay;
     final text = Theme.of(context).textTheme;
-    final code = repo.state.inviteCode;
-    final link = 'babyrelay.app/join/$code';
+    final invite = const InviteService().buildInvite(repo.state.inviteCode);
+    final code = invite.code;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -314,7 +315,7 @@ class _InviteSheet extends StatelessWidget {
             Text('Invite a caregiver', style: text.titleLarge),
             const SizedBox(height: 4),
             Text(
-              'They scan this or enter the code in their app.',
+              'Share this code or copy the invite link.',
               style: text.bodyMedium,
             ),
             const SizedBox(height: 18),
@@ -342,12 +343,7 @@ class _InviteSheet extends StatelessWidget {
             FilledButton.icon(
               onPressed: () async {
                 analytics.logEvent('caregiver_invite_sent', {'method': 'link'});
-                await Clipboard.setData(
-                  ClipboardData(
-                    text:
-                        'Join me on BabyRelay so we both see the baby\'s day: https://$link',
-                  ),
-                );
+                await Clipboard.setData(ClipboardData(text: invite.shareText));
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Invite link copied')),
@@ -355,7 +351,7 @@ class _InviteSheet extends StatelessWidget {
                 }
               },
               icon: const Icon(Icons.link),
-              label: Text(link),
+              label: Text(invite.displayLink),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -367,7 +363,7 @@ class _InviteSheet extends StatelessWidget {
               label: const Text('Generate a new code'),
             ),
             Divider(color: c.outline, height: 28),
-            // Demo-build stand-in for the real join flow: the second device
+            // Local-first stand-in for the real join flow: the second device
             // would enter the code; here we add them directly so the shared
             // timeline can be exercised end to end.
             TextButton.icon(
@@ -384,7 +380,7 @@ class _InviteSheet extends StatelessWidget {
                 }
               },
               icon: const Icon(Icons.person_add_alt, size: 18),
-              label: const Text('They\'re here with me — add directly'),
+              label: const Text('Add caregiver on this device'),
             ),
           ],
         ),

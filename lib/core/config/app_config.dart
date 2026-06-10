@@ -1,0 +1,80 @@
+/// Central build-time configuration.
+///
+/// Provider credentials are NEVER checked into the repo. Each one arrives as
+/// a `--dart-define` at build time (or stays empty, in which case the app
+/// runs fully local and the related feature shows a graceful disabled state):
+///
+/// ```sh
+/// flutter build ios \
+///   --dart-define=REVENUECAT_API_KEY=appl_... \
+///   --dart-define=GLEAP_SDK_KEY=... \
+///   --dart-define=APPREFER_LINK_ID=...
+/// ```
+///
+/// Firebase is configured by its platform files (GoogleService-Info.plist /
+/// google-services.json), so it gets a boolean define instead of a key.
+abstract final class AppConfig {
+  static const String appVersion = '0.1.0';
+
+  /// Always-available support channel; the Gleap widget replaces this as the
+  /// primary path once [gleapSdkKey] is provided.
+  static const String supportEmail = 'support@ruvixlabs.com';
+
+  /// Host for caregiver invite links (`https://<host>/join/<code>`). The
+  /// universal-link handler ships with the Firebase backend integration.
+  static const String inviteLinkHost = 'babyrelay.app';
+
+  // --- Provider wiring (empty ⇒ not configured, app stays local-only) ----
+
+  static const bool firebaseConfigured = bool.fromEnvironment(
+    'FIREBASE_CONFIGURED',
+  );
+  static const String revenueCatApiKey = String.fromEnvironment(
+    'REVENUECAT_API_KEY',
+  );
+  static const String gleapSdkKey = String.fromEnvironment('GLEAP_SDK_KEY');
+  static const String appReferLinkId = String.fromEnvironment(
+    'APPREFER_LINK_ID',
+  );
+}
+
+/// One production service the app integrates with, and whether this build
+/// has what it needs to turn that integration on.
+class Integration {
+  const Integration({
+    required this.name,
+    required this.detail,
+    required this.configured,
+  });
+
+  final String name;
+  final String detail;
+  final bool configured;
+}
+
+/// Snapshot of every provider seam, for the Settings status list and for
+/// startup decisions (what to initialize vs. leave in local mode).
+abstract final class Integrations {
+  static const List<Integration> all = [
+    Integration(
+      name: 'Firebase',
+      detail: 'Auth, Firestore sync, Analytics, Crashlytics, Messaging',
+      configured: AppConfig.firebaseConfigured,
+    ),
+    Integration(
+      name: 'RevenueCat',
+      detail: 'Subscriptions behind the `pro` entitlement',
+      configured: AppConfig.revenueCatApiKey != '',
+    ),
+    Integration(
+      name: 'AppRefer',
+      detail: 'Attribution on caregiver invite links',
+      configured: AppConfig.appReferLinkId != '',
+    ),
+    Integration(
+      name: 'Gleap',
+      detail: 'In-app support chat',
+      configured: AppConfig.gleapSdkKey != '',
+    ),
+  ];
+}

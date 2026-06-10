@@ -62,10 +62,38 @@ void main() {
     },
   );
 
+  test('persisted JSON carries the schema version and round-trips', () async {
+    await onboard();
+    await repo.logFeed(FeedKind.bottle);
+
+    final raw = await store.read('babyrelay.family.v1');
+    final json = jsonDecode(raw!) as Map<String, dynamic>;
+    expect(json['schemaVersion'], FamilyState.schemaVersion);
+
+    final reloaded = FamilyRepository(store);
+    await reloaded.load();
+    expect(reloaded.state.events.single.childId, repo.state.selectedChildId);
+  });
+
   test(
-    'legacy single-child v1 payload migrates to children + childIds',
+    'payload from a newer schema version starts fresh, not corrupt',
     () async {
-      final legacy = {
+      await store.write(
+        'babyrelay.family.v1',
+        jsonEncode({'schemaVersion': FamilyState.schemaVersion + 1}),
+      );
+      await repo.load();
+      expect(repo.state.onboarded, isFalse);
+      expect(repo.state.children, isEmpty);
+    },
+  );
+
+  test(
+    'unrecognized payload shapes start fresh (no pre-release migration)',
+    () async {
+      // Pre-release single-child shape: no children list, events without
+      // childId. The app never shipped, so this is treated as corrupt data.
+      final preRelease = {
         'baby': {
           'nickname': 'Mae',
           'dob': DateTime(2025, 11, 1).toIso8601String(),
@@ -73,7 +101,6 @@ void main() {
           'bedtimeMinutes': 1140,
           'napsPerDayEstimate': 3,
         },
-        'caregivers': <Object>[],
         'events': [
           {
             'id': 'e1',
@@ -84,20 +111,26 @@ void main() {
             'feedKind': 'bottle',
           },
         ],
-        'currentCaregiverId': 'c1',
-        'inviteCode': 'ABCDEF',
         'onboarded': true,
       };
-      await store.write('babyrelay.family.v1', jsonEncode(legacy));
+      await store.write('babyrelay.family.v1', jsonEncode(preRelease));
       await repo.load();
 
-      expect(repo.state.children, hasLength(1));
-      final child = repo.state.children.first;
-      expect(child.id, isNotEmpty);
-      expect(repo.state.selectedChildId, child.id);
-      expect(repo.state.events.single.childId, child.id);
+      expect(repo.state.onboarded, isFalse);
+      expect(repo.state.children, isEmpty);
+      expect(repo.state.events, isEmpty);
     },
   );
+
+  test('exportJson wraps the data in a versioned envelope', () async {
+    await onboard();
+    final export = jsonDecode(repo.exportJson()) as Map<String, dynamic>;
+    expect(export['app'], 'BabyRelay');
+    expect(export['schemaVersion'], FamilyState.schemaVersion);
+    expect(export['exportedAt'], isNotNull);
+    final family = export['family'] as Map<String, dynamic>;
+    expect(family['children'], hasLength(1));
+  });
 
   test('addChild selects the new child; selectChild switches back', () async {
     await onboard();

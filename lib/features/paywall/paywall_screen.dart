@@ -28,20 +28,35 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _purchase() async {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
-    final plan = PurchaseService.plans.firstWhere((p) => p.id == _selected);
+    final plan = purchases.plans.firstWhere((p) => p.id == _selected);
     analytics.logEvent('purchase_started', {'plan': plan.id.name});
-    final result = await purchases.purchase(plan);
+    final outcome = await purchases.purchase(plan);
     if (!mounted) return;
-    if (result == PurchaseResult.success) {
-      analytics.logEvent('purchase_completed', {'plan': plan.id.name});
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Welcome to BabyRelay Family — trial started'),
-        ),
-      );
-      Navigator.of(context).pop();
-    } else {
-      analytics.logEvent('purchase_failed', {'plan': plan.id.name});
+    switch (outcome) {
+      case PurchaseOutcome.success:
+        analytics.logEvent('purchase_completed', {'plan': plan.id.name});
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Welcome to BabyRelay Family — trial started'),
+          ),
+        );
+        Navigator.of(context).pop();
+        break;
+      case PurchaseOutcome.cancelled:
+        // Backing out of the store sheet is not an error; stay quiet.
+        analytics.logEvent('purchase_cancelled', {'plan': plan.id.name});
+        break;
+      case PurchaseOutcome.failed:
+        analytics.logEvent('purchase_failed', {'plan': plan.id.name});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              purchases.lastErrorMessage ??
+                  'The purchase could not be completed. Please try again.',
+            ),
+          ),
+        );
+        break;
     }
   }
 
@@ -49,17 +64,34 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
     analytics.logEvent('restore_tapped');
-    final restored = await purchases.restore();
+    final outcome = await purchases.restore();
     if (!mounted) return;
-    if (restored) analytics.logEvent('restore_completed');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          restored ? 'Purchases restored' : 'No previous purchase found',
-        ),
-      ),
-    );
-    if (restored) Navigator.of(context).pop();
+    switch (outcome) {
+      case RestoreOutcome.restored:
+        analytics.logEvent('restore_completed');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Purchases restored')));
+        Navigator.of(context).pop();
+        break;
+      case RestoreOutcome.nothingToRestore:
+        analytics.logEvent('restore_empty');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No previous purchase found')),
+        );
+        break;
+      case RestoreOutcome.failed:
+        analytics.logEvent('restore_failed');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              purchases.lastErrorMessage ??
+                  'Could not reach the store. Please try again.',
+            ),
+          ),
+        );
+        break;
+    }
   }
 
   @override
@@ -130,7 +162,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     label: 'Export and share summaries',
                   ),
                   const SizedBox(height: 20),
-                  for (final plan in PurchaseService.plans) ...[
+                  for (final plan in purchases.plans) ...[
                     _PlanTile(
                       plan: plan,
                       selected: _selected == plan.id,

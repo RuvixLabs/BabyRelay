@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/analytics/analytics_service.dart';
+import '../../core/config/app_config.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
 import '../../core/purchases/purchase_service.dart';
@@ -64,22 +66,26 @@ class SettingsScreen extends StatelessWidget {
                   subtitle: 'Same care team, their own timeline',
                   onTap: () => startAddChildFlow(context),
                 ),
-                Divider(height: 1, indent: 60, color: c.outline),
-                _SettingsRow(
-                  icon: Icons.auto_fix_high,
-                  iconColor: c.sun,
-                  title: 'Load sample day',
-                  subtitle: 'Fill today with believable demo data',
-                  onTap: () async {
-                    await repo.loadSampleDay();
-                    analytics.logEvent('sample_day_loaded');
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Sample day loaded')),
-                      );
-                    }
-                  },
-                ),
+                // Demo seeding is a development tool; release builds never
+                // show it.
+                if (kDebugMode) ...[
+                  Divider(height: 1, indent: 60, color: c.outline),
+                  _SettingsRow(
+                    icon: Icons.auto_fix_high,
+                    iconColor: c.sun,
+                    title: 'Load sample day (debug)',
+                    subtitle: 'Fill today with believable demo data',
+                    onTap: () async {
+                      await repo.loadSampleDay();
+                      analytics.logEvent('sample_day_loaded');
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sample day loaded')),
+                        );
+                      }
+                    },
+                  ),
+                ],
               ],
             ),
           ),
@@ -105,13 +111,15 @@ class SettingsScreen extends StatelessWidget {
                       : RelayChip('Upgrade', color: c.clay),
                   onTap: () => context.push('/paywall'),
                 ),
-                if (purchases.isPro) ...[
+                if (kDebugMode &&
+                    purchases.isPro &&
+                    purchases is LocalPurchaseService) ...[
                   Divider(height: 1, indent: 60, color: c.outline),
                   _SettingsRow(
                     icon: Icons.refresh,
                     iconColor: c.inkSoft,
-                    title: 'Reset entitlement (demo)',
-                    subtitle: 'Clears the mock subscription state',
+                    title: 'Reset entitlement (debug)',
+                    subtitle: 'Back to the free tier to re-test the paywall',
                     onTap: () => purchases.clearEntitlement(),
                   ),
                 ],
@@ -171,49 +179,48 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.support_agent,
               iconColor: c.dusk,
               title: 'Contact support',
-              subtitle: 'In-app support arrives with the Gleap integration',
-              onTap: () => _showPlaceholder(
-                context,
-                'Gleap',
-                'The support widget connects here once the Gleap SDK key is configured.',
+              subtitle: 'Email ${AppConfig.supportEmail}',
+              onTap: () async {
+                analytics.logEvent('support_contacted', {'method': 'email'});
+                await Clipboard.setData(
+                  const ClipboardData(text: AppConfig.supportEmail),
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Support email copied — we usually reply within a day',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+          // Provider wiring status is developer-facing; users never need it.
+          if (kDebugMode) ...[
+            const SizedBox(height: 22),
+            const SectionLabel('Connected services (debug)'),
+            RelayCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'This build runs fully on-device. Each service switches on '
+                    'when its key is supplied via --dart-define:',
+                    style: text.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  for (final integration in Integrations.all)
+                    _IntegrationRow(integration),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 22),
-          const SectionLabel('Integrations (demo build)'),
-          RelayCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'This build runs fully on-device. Production services plug in behind existing seams:',
-                  style: text.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                const _IntegrationRow(
-                  'Firebase Auth · Firestore · Analytics · Crashlytics · Messaging',
-                  'Repositories and the analytics wrapper are ready for it',
-                ),
-                const _IntegrationRow(
-                  'RevenueCat',
-                  'PurchaseService mirrors the entitlement API (`pro`)',
-                ),
-                const _IntegrationRow(
-                  'AppRefer',
-                  'Invite links will carry attribution',
-                ),
-                const _IntegrationRow('Gleap', 'Support entry point above'),
-                const _IntegrationRow(
-                  'AppStore Copilot',
-                  'Store metadata pipeline',
-                ),
-              ],
-            ),
-          ),
+          ],
           const SizedBox(height: 22),
           Center(
             child: Text(
-              'BabyRelay 0.1.0 · prototype\nGuidance is scheduling support, not medical advice.',
+              'BabyRelay ${AppConfig.appVersion}\nGuidance is scheduling support, not medical advice.',
               textAlign: TextAlign.center,
               style: text.bodyMedium?.copyWith(color: c.inkFaint, fontSize: 13),
             ),
@@ -282,22 +289,6 @@ class SettingsScreen extends StatelessWidget {
       await repo.deleteAllData();
       analytics.logEvent('data_deleted');
     }
-  }
-
-  void _showPlaceholder(BuildContext context, String name, String body) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(name),
-        content: Text(body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -425,10 +416,9 @@ class _SettingsRow extends StatelessWidget {
 }
 
 class _IntegrationRow extends StatelessWidget {
-  const _IntegrationRow(this.name, this.detail);
+  const _IntegrationRow(this.integration);
 
-  final String name;
-  final String detail;
+  final Integration integration;
 
   @override
   Widget build(BuildContext context) {
@@ -441,9 +431,11 @@ class _IntegrationRow extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 5),
             child: Icon(
-              Icons.radio_button_unchecked,
+              integration.configured
+                  ? Icons.check_circle
+                  : Icons.radio_button_unchecked,
               size: 12,
-              color: c.inkFaint,
+              color: integration.configured ? c.sage : c.inkFaint,
             ),
           ),
           const SizedBox(width: 10),
@@ -452,13 +444,13 @@ class _IntegrationRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  integration.name,
                   style: Theme.of(
                     context,
                   ).textTheme.titleMedium?.copyWith(fontSize: 15),
                 ),
                 Text(
-                  detail,
+                  integration.detail,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyMedium?.copyWith(fontSize: 13.5),
@@ -466,7 +458,10 @@ class _IntegrationRow extends StatelessWidget {
               ],
             ),
           ),
-          RelayChip('Not connected', color: c.inkSoft),
+          RelayChip(
+            integration.configured ? 'Configured' : 'Not configured',
+            color: integration.configured ? c.sage : c.inkSoft,
+          ),
         ],
       ),
     );

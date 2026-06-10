@@ -9,12 +9,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Future<(FamilyRepository, PurchaseService)> buildDeps({
+  Future<(FamilyRepository, LocalPurchaseService)> buildDeps({
     bool onboarded = false,
   }) async {
     final store = InMemoryStore();
     final repo = FamilyRepository(store);
-    final purchases = PurchaseService(store);
+    final purchases = LocalPurchaseService(store, actionDelay: Duration.zero);
     if (onboarded) {
       await repo.completeOnboarding(
         firstChild: BabyProfile(
@@ -183,7 +183,7 @@ void main() {
     },
   );
 
-  testWidgets('settings shows privacy and integration placeholders', (
+  testWidgets('settings shows privacy rows and integration statuses', (
     tester,
   ) async {
     final (repo, purchases) = await buildDeps(onboarded: true);
@@ -195,7 +195,67 @@ void main() {
 
     expect(find.text('Delete all data'), findsOneWidget);
     expect(find.text('Export my data'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('RevenueCat'), 200);
+    await tester.scrollUntilVisible(find.text('Contact support'), 200);
+    expect(find.text('Contact support'), findsOneWidget);
+    // No provider keys in this test build → every seam reads not configured.
+    await tester.scrollUntilVisible(find.text('Gleap'), 200);
     expect(find.text('RevenueCat'), findsOneWidget);
+    expect(find.text('Not configured'), findsNWidgets(4));
+  });
+
+  testWidgets('paywall purchase flow covers success, cancel, and failure', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    await repo.addCaregiver('Sam');
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    Future<void> openPaywall() async {
+      await tester.tap(find.text('Care team'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Invite a caregiver'));
+      await tester.pumpAndSettle();
+    }
+
+    // Cancelled: stays on the paywall, still free, no error copy.
+    await openPaywall();
+    purchases.nextPurchaseOutcome = PurchaseOutcome.cancelled;
+    await tester.tap(find.text('Start 7-day free trial'));
+    await tester.pumpAndSettle();
+    expect(purchases.isPro, isFalse);
+    expect(find.text('Start 7-day free trial'), findsOneWidget);
+
+    // Failed: stays free and surfaces the error.
+    purchases.nextPurchaseOutcome = PurchaseOutcome.failed;
+    await tester.tap(find.text('Start 7-day free trial'));
+    await tester.pumpAndSettle();
+    expect(purchases.isPro, isFalse);
+    expect(find.textContaining('could not be completed'), findsOneWidget);
+
+    // Success: entitlement granted and the paywall dismisses.
+    await tester.tap(find.text('Start 7-day free trial'));
+    await tester.pumpAndSettle();
+    expect(purchases.isPro, isTrue);
+    expect(find.text('Start 7-day free trial'), findsNothing);
+  });
+
+  testWidgets('restore with no purchase reports nothing to restore', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    await repo.addCaregiver('Sam');
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Care team'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Invite a caregiver'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Restore purchases'));
+    await tester.pumpAndSettle();
+    expect(purchases.isPro, isFalse);
+    expect(find.text('No previous purchase found'), findsOneWidget);
   });
 }
