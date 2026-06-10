@@ -41,6 +41,8 @@ without an App Store / Play destination.
   - `babyrelay-revenuecat-password`
 - Test Store public SDK key vault service:
   - `babyrelay-revenuecat-test-sdk-key`
+- App Store public SDK key vault service:
+  - `babyrelay-revenuecat-ios-sdk-key`
 - RevenueCat webhook secret vault service:
   - `babyrelay-apprefer-revenuecat-webhook-secret`
 
@@ -50,7 +52,13 @@ flow, but that is not blocking catalog edits.
 
 Live RevenueCat readback:
 
-- App config: Test Store app `appf68d685da8`
+- Test Store app: `appf68d685da8`
+- App Store app: `app70e3a91be4`
+  - Name: `BabyRelay (App Store)`
+  - Bundle ID: `com.ruvixlabs.babyrelay`
+  - In-app purchase key: configured with Ruvix key ID `9CYKZWD35Y`
+  - App Store Connect API key: configured with Ruvix key ID `D88WNB6D69`
+  - Server-to-server notification token exists in RevenueCat
 - Active entitlement: `pro`
 - Products:
   - `babyrelay_pro_monthly` (`P1M`)
@@ -65,13 +73,24 @@ RevenueCat initially created an accidental entitlement identifier
 `BabyRelay Pro`; the two products were moved to `pro`, and the accidental
 entitlement is archived with no products attached.
 
-Remaining RevenueCat/App Store blocker:
+## App Store Connect
 
-- A real App Store app configuration for bundle ID `com.ruvixlabs.babyrelay`
-  is blocked until Ruvix Labs has an App Store in-app purchase key available
-  for RevenueCat (`.p8` key file, key ID, issuer ID). RevenueCat rejects the
-  real App Store configuration without those three values. Do not reuse the
-  GymStreak Labs subscription key.
-- After the real App Store configuration exists, replace the Test Store key at
-  build time with the App Store public SDK key and wire AppRefer purchase
-  forwarding via RevenueCat webhook for sandbox and production events.
+- Ruvix bundle ID: `7PA3RQ369P`
+- Bundle identifier: `com.ruvixlabs.babyrelay`
+- In-App Purchase capability: enabled
+- ASC app record: not created yet. The `asc` API-key profile can manage bundle
+  IDs and API readback, but `asc apps create` requires Apple ID login/2FA. The
+  Ruvix browser profile is not currently logged into App Store Connect.
+
+Remaining App Store / subscription blockers:
+
+- Create the App Store Connect app record for `BabyRelay` / `com.ruvixlabs.babyrelay`
+  using a Ruvix Apple ID session.
+- Create App Store subscription products matching the RevenueCat product IDs:
+  `babyrelay_pro_monthly` and `babyrelay_pro_annual`.
+- Set the RevenueCat Apple server notification URL on the ASC app for both
+  production and sandbox, version `V2`, then read it back from ASC.
+- Move the app build from the Test Store SDK key to
+  `babyrelay-revenuecat-ios-sdk-key` once the real store products exist.
+- Wire AppRefer purchase forwarding via RevenueCat webhook for sandbox and
+  production events.
