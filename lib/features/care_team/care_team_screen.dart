@@ -44,7 +44,9 @@ class CareTeamScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         children: [
           Text(
-            'Everyone caring for ${state.baby?.nickname ?? 'your baby'} sees the same timeline, live.',
+            state.children.length > 1
+                ? 'Everyone here sees every child\'s timeline, live.'
+                : 'Everyone caring for ${state.selectedChild?.nickname ?? 'your baby'} sees the same timeline, live.',
             style: text.bodyMedium,
           ),
           const SizedBox(height: 20),
@@ -74,11 +76,34 @@ class CareTeamScreen extends StatelessWidget {
             label: const Text('Invite a caregiver'),
           ),
           if (!purchases.isPro && active.length >= kFreeCaregiverLimit) ...[
-            const SizedBox(height: 8),
-            Text(
-              'Unlimited caregivers is part of BabyRelay Family.',
-              textAlign: TextAlign.center,
-              style: text.bodyMedium?.copyWith(color: c.inkFaint),
+            const SizedBox(height: 10),
+            RelayCard(
+              padding: const EdgeInsets.all(16),
+              color: c.claySoft,
+              borderColor: c.clay.withValues(alpha: 0.3),
+              onTap: () => context.push('/paywall'),
+              child: Row(
+                children: [
+                  IconSquare(
+                    icon: Icons.workspace_premium_outlined,
+                    color: c.clayDeep,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Growing care team?', style: text.titleMedium),
+                        Text(
+                          'Unlimited caregivers and children with BabyRelay Family.',
+                          style: text.bodyMedium?.copyWith(fontSize: 13.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: c.clayDeep),
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 24),
@@ -309,7 +334,7 @@ class _InviteSheet extends StatelessWidget {
             Text(
               code.split('').join(' '),
               style: text.displayMedium?.copyWith(
-                letterSpacing: 6,
+                letterSpacing: 0,
                 fontSize: 34,
               ),
             ),

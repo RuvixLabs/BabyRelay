@@ -4,6 +4,7 @@ import 'package:babyrelay/core/purchases/purchase_service.dart';
 import 'package:babyrelay/data/family_repository.dart';
 import 'package:babyrelay/data/local_store.dart';
 import 'package:babyrelay/domain/models/baby_profile.dart';
+import 'package:babyrelay/domain/models/care_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,7 +17,8 @@ void main() {
     final purchases = PurchaseService(store);
     if (onboarded) {
       await repo.completeOnboarding(
-        baby: BabyProfile(
+        firstChild: BabyProfile(
+          id: '',
           nickname: 'Mae',
           dob: DateTime.now().subtract(const Duration(days: 210)),
           wakeTimeMinutes: 7 * 60,
@@ -27,6 +29,19 @@ void main() {
       );
     }
     return (repo, purchases);
+  }
+
+  Future<BabyProfile> addSibling(FamilyRepository repo) {
+    return repo.addChild(
+      BabyProfile(
+        id: '',
+        nickname: 'Theo',
+        dob: DateTime.now().subtract(const Duration(days: 480)),
+        wakeTimeMinutes: 7 * 60,
+        bedtimeMinutes: 19 * 60 + 30,
+        napsPerDayEstimate: 1,
+      ),
+    );
   }
 
   Widget app(FamilyRepository repo, PurchaseService purchases) => BabyRelayApp(
@@ -40,7 +55,7 @@ void main() {
     await tester.pumpWidget(app(repo, purchases));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('One baby.'), findsOneWidget);
+    expect(find.textContaining('Every caregiver.'), findsOneWidget);
     expect(find.text('Get started'), findsOneWidget);
   });
 
@@ -68,6 +83,52 @@ void main() {
     expect(repo.state.events.where((e) => e.isSleep), hasLength(1));
   });
 
+  testWidgets('child switcher swaps Today to the selected child', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    final mae = repo.state.selectedChild!;
+    await addSibling(repo);
+    await repo.selectChild(mae.id);
+    // Distinct logs per child.
+    await repo.logFeed(FeedKind.bottle, childId: mae.id);
+    final theoId = repo.state.children.firstWhere((c) => c.id != mae.id).id;
+    await repo.startSleep(childId: theoId);
+
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    // Header shows Mae; the switcher strip shows both children.
+    expect(find.text('Mae'), findsWidgets);
+    expect(find.text('Theo'), findsOneWidget);
+    expect(find.text('Bottle', skipOffstage: false), findsOneWidget);
+
+    // Tap Theo's pill → Today re-scopes: his ongoing sleep, not Mae's feed.
+    await tester.tap(find.text('Theo'));
+    await tester.pumpAndSettle();
+    expect(repo.state.selectedChildId, theoId);
+    expect(repo.state.isAsleep, isTrue);
+    expect(find.text('Bottle', skipOffstage: false), findsNothing);
+    // Sleep button now offers to log the wake-up.
+    expect(find.text('Awake'), findsOneWidget);
+  });
+
+  testWidgets('child switcher sheet lists children and add-child row', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    await addSibling(repo);
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    // The header name (chevron) opens the family sheet.
+    await tester.tap(find.byIcon(Icons.expand_more_rounded));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your children'), findsOneWidget);
+    expect(find.text('Add a child'), findsOneWidget);
+  });
+
   testWidgets('handoff opens from Today and shows summary', (tester) async {
     final (repo, purchases) = await buildDeps(onboarded: true);
     await tester.pumpWidget(app(repo, purchases));
@@ -76,7 +137,7 @@ void main() {
     await tester.tap(find.text('Handoff to next caregiver'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Handoff for Mae'), findsOneWidget);
+    expect(find.textContaining('HANDOFF FOR MAE'), findsOneWidget);
     expect(find.text('Share handoff'), findsOneWidget);
     expect(find.text('Copy as text'), findsOneWidget);
   });
@@ -101,6 +162,26 @@ void main() {
     // Over the free limit → paywall.
     expect(find.text('Start 7-day free trial'), findsOneWidget);
   });
+
+  testWidgets(
+    'settings lists children and add-child gates on paywall for free tier',
+    (tester) async {
+      final (repo, purchases) = await buildDeps(onboarded: true);
+      await tester.pumpWidget(app(repo, purchases));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Settings'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mae'), findsOneWidget);
+      expect(find.text('Add a child'), findsOneWidget);
+
+      // Free tier already has one child → paywall.
+      await tester.tap(find.text('Add a child'));
+      await tester.pumpAndSettle();
+      expect(find.text('Start 7-day free trial'), findsOneWidget);
+    },
+  );
 
   testWidgets('settings shows privacy and integration placeholders', (
     tester,

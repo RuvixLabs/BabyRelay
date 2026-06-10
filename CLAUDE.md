@@ -7,8 +7,11 @@ implementation knowledge for the next worker.
 ## What exists (MVP, local-only)
 
 Full Flutter MVP: onboarding → Today (one-tap sleep, quick logs, timeline,
-next-up guidance) → handoff sheet → care team invites → paywall → settings.
-No backend; everything persists to SharedPreferences as JSON.
+next-up guidance, child switcher) → handoff sheet → care team invites →
+paywall → settings. **Multi-child**: a family has any number of children;
+every care event is scoped to a `childId` and the UI focuses one selected
+child at a time. No backend; everything persists to SharedPreferences as
+JSON.
 
 ## Key files
 
@@ -19,11 +22,52 @@ No backend; everything persists to SharedPreferences as JSON.
 | Design system | `lib/core/design/relay_theme.dart` (RelayColors ThemeExtension), `relay_widgets.dart` |
 | Shared state | `lib/data/family_repository.dart` (ChangeNotifier, persisted) |
 | Persistence seam | `lib/data/local_store.dart` (swap for Firestore later) |
+| Child switcher / add-child | `lib/features/children/child_switcher.dart`, `child_form_sheet.dart` |
 | Prediction engine | `lib/domain/engine/sleep_prediction_engine.dart` (pure Dart) |
 | Handoff text | `lib/domain/services/handoff_service.dart` (pure Dart) |
 | Nap derivation | `lib/domain/services/day_context_builder.dart` |
 | Mock RevenueCat | `lib/core/purchases/purchase_service.dart` |
 | Analytics allowlist | `lib/core/analytics/analytics_service.dart` |
+
+## Multi-child model
+
+- `FamilyState.children: List<BabyProfile>` + `selectedChildId`. Each
+  `BabyProfile` has an `id` and a stable `colorIndex` into the avatar
+  palette. `CareEvent.childId` scopes every event.
+- Repository mutations (`startSleep`, `logFeed`, …) default to the selected
+  child; all take an optional `childId`. Sleep state is per child — two
+  children can sleep simultaneously; `overlappingSleeps` only matches the
+  same child.
+- `recentNapCounts`, `eventsOn`, the engine, and handoff are all per-child.
+- **Migration**: `FamilyState.fromJson` accepts the legacy v1 shape
+  (`{'baby': {...}}` + events without `childId`) and converts it to a
+  one-child family (`child_legacy` id). Don't break this when touching the
+  JSON shape.
+- Free tier: 1 child + owner + 1 caregiver. `kFreeChildLimit` in
+  `child_switcher.dart`, `kFreeCaregiverLimit` in `care_team_screen.dart`;
+  both gate on `/paywall`. `startAddChildFlow` is the single entry point for
+  adding a child (used by the switcher sheet and Settings).
+- "Load sample day" seeds the selected child's day AND a demo sibling
+  ("Theo") so the switcher is demoable; tests rely on that.
+
+## Design language v2 ("warm editorial nursery")
+
+- `RelayColors` carries the full palette including hero gradients:
+  `nightHigh/nightLow/onNight/onNightSoft` (sleep surfaces, starfield) and
+  `dawnHigh/dawnLow` (awake next-up hero). Avoid flat beige-on-beige — hero
+  moments should use these gradients.
+- Display font is **Fraunces** (variable TTF in `assets/fonts/`, OFL license
+  alongside). Only `displayMedium/displaySmall/headlineMedium` use it, via
+  `FontVariation` (wght 590, opsz 50, SOFT 30) — body text stays on the
+  system font. Don't use bare `fontWeight` with Fraunces; set the `wght`
+  variation instead or it renders thin.
+- Custom painters in `relay_widgets.dart`: `StarFieldPainter` (night hero,
+  uses saveLayer for the crescent moon cut-out) and `SunArcPainter` (dawn
+  hero). `PressableScale` is the standard tap feedback for cards/buttons.
+- `ChildAvatar` shows a moon badge when that child is asleep — the switcher
+  reads at a glance.
+- Timeline is a time-rail (time column · rail with markers · content ·
+  caregiver dot), not a list of identical cards.
 
 ## Gotchas / decisions
 
@@ -35,8 +79,6 @@ No backend; everything persists to SharedPreferences as JSON.
 - "Day sleep" = sleep starting 06:00–18:59; everything else is night sleep and
   is excluded from nap counts (`DayContextBuilder.isDaySleep` and
   `FamilyRepository._isDaySleep` must stay in sync).
-- Free tier = owner + 1 caregiver. The invite flow gates on `/paywall` beyond
-  that (`kFreeCaregiverLimit` in `care_team_screen.dart`).
 - The invite QR is a deterministic decorative glyph (`_CodeGlyphPainter`), not
   a scannable QR — swap for a real QR lib with the deep-link integration.
 - The care-team "add directly" button is the demo stand-in for the real join
@@ -46,19 +88,24 @@ No backend; everything persists to SharedPreferences as JSON.
 - iOS is iPhone-only portrait-only (`TARGETED_DEVICE_FAMILY = 1`,
   `UIRequiresFullScreen`, portrait orientations only in Info.plist).
 - Analytics: only allowlisted event names; params must be enum-like tokens
-  (asserts in debug). Never log names/notes.
+  (asserts in debug). Never log names/notes. Child events are
+  `child_added/child_switched/child_removed/child_profile_edited` — no child
+  ids or names in params.
 
 ## Tests
 
-`flutter test` — 35 tests: engine (windows, short nap, bedtime compression,
-drift clamp, transitions), handoff text, repository (merge/overlap, nap
-counts, persistence round-trip, deletion), and widget smoke tests for the
-core flows (`test/app_flow_test.dart`).
+`flutter test` — engine (windows, short nap, bedtime compression, drift
+clamp, transitions), handoff text, repository (multi-child add/switch/remove,
+event isolation per child, legacy v1 migration, merge/overlap per child, nap
+counts per child, persistence round-trip, deletion), and widget smoke tests
+for the core flows including child switching and the add-child paywall gate
+(`test/app_flow_test.dart`).
 
 ## Integration plan (when credentials exist)
 
 1. Firebase: implement Firestore-backed `FamilyRepository` behind the same
-   API; model in `docs/plans/core/overview.md`.
+   API; model in `docs/plans/core/overview.md`. Children become a
+   `families/{id}/children` subcollection; events keep `childId`.
 2. RevenueCat: replace `PurchaseService` internals; entitlement id `pro`.
 3. AppRefer: attach attribution to the invite link in `care_team_screen.dart`.
 4. Gleap: wire the Settings support row.

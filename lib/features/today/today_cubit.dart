@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../data/family_repository.dart';
 import '../../domain/engine/sleep_prediction_engine.dart';
+import '../../domain/models/baby_profile.dart';
 import '../../domain/models/care_event.dart';
 import '../../domain/services/day_context_builder.dart';
 
@@ -26,6 +27,8 @@ class TodayState extends Equatable {
   /// While asleep: where the next window would land if the baby woke now.
   final NextUpPrediction? predictionIfWakesNow;
 
+  BabyProfile? get child => family.selectedChild;
+  List<BabyProfile> get children => family.children;
   bool get isAsleep => family.isAsleep;
   CareEvent? get ongoingSleep => family.ongoingSleep;
   List<CareEvent> get todayEvents => family.eventsOn(now);
@@ -57,19 +60,20 @@ class TodayCubit extends Cubit<TodayState> {
   void _recompute() {
     final family = _repo.state;
     final now = DateTime.now();
-    final baby = family.baby;
-    if (baby == null) {
+    final child = family.selectedChild;
+    if (child == null) {
       emit(TodayState(family: family, now: now));
       return;
     }
-    final recentCounts = _repo.recentNapCounts(now: now);
+    final events = family.eventsForChild(child.id);
+    final recentCounts = _repo.recentNapCounts(now: now, childId: child.id);
     NextUpPrediction? prediction;
     NextUpPrediction? ifWakesNow;
-    if (family.isAsleep) {
+    if (family.isChildAsleep(child.id)) {
       ifWakesNow = _engine.predict(
         _dayBuilder.build(
-          baby: baby,
-          events: family.events,
+          baby: child,
+          events: events,
           now: now,
           recentNapCounts: recentCounts,
           assumeAwakeNow: true,
@@ -78,8 +82,8 @@ class TodayCubit extends Cubit<TodayState> {
     } else {
       prediction = _engine.predict(
         _dayBuilder.build(
-          baby: baby,
-          events: family.events,
+          baby: child,
+          events: events,
           now: now,
           recentNapCounts: recentCounts,
         ),
@@ -93,6 +97,11 @@ class TodayCubit extends Cubit<TodayState> {
         predictionIfWakesNow: ifWakesNow,
       ),
     );
+  }
+
+  Future<void> selectChild(String childId) async {
+    await _repo.selectChild(childId);
+    _analytics.logEvent('child_switched');
   }
 
   Future<void> toggleSleep() async {

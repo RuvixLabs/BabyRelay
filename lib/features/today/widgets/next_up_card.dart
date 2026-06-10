@@ -7,11 +7,13 @@ import '../../../domain/engine/sleep_prediction_engine.dart';
 import '../../../domain/models/care_event.dart';
 
 /// The hero card: what's next, in plain language, with the "why" one line
-/// below. While the baby sleeps it becomes a calm dusk-toned sleep card.
+/// below. Awake = soft dawn gradient with a low sun; asleep = deep dusk
+/// gradient with a starfield, so the emotional register flips with the baby.
 class NextUpCard extends StatelessWidget {
   const NextUpCard({
     super.key,
     required this.now,
+    this.childName,
     this.prediction,
     this.ongoingSleep,
     this.predictionIfWakesNow,
@@ -20,6 +22,7 @@ class NextUpCard extends StatelessWidget {
   });
 
   final DateTime now;
+  final String? childName;
   final NextUpPrediction? prediction;
   final CareEvent? ongoingSleep;
   final NextUpPrediction? predictionIfWakesNow;
@@ -33,33 +36,58 @@ class NextUpCard extends StatelessWidget {
 
     if (ongoingSleep != null) {
       final mins = now.difference(ongoingSleep!.startAt).inMinutes;
-      return RelayCard(
-        color: c.duskSoft,
-        borderColor: c.dusk.withValues(alpha: 0.25),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.nightlight_round, size: 18, color: c.dusk),
-                const SizedBox(width: 8),
-                Text('ASLEEP', style: text.labelSmall?.copyWith(color: c.dusk)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              mins < 1
-                  ? 'Just fell asleep'
-                  : 'Sleeping for ${formatDurationMinutes(mins)}',
-              style: text.headlineMedium,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Went down at ${formatTime(ongoingSleep!.startAt)}.'
-              '${predictionIfWakesNow != null ? ' If they wake now, the next window opens around ${formatTime(predictionIfWakesNow!.windowStart)}.' : ''}',
-              style: text.bodyMedium,
-            ),
-          ],
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 350),
+        child: Container(
+          key: const ValueKey('asleep'),
+          decoration: BoxDecoration(
+            gradient: c.nightGradient,
+            borderRadius: BorderRadius.circular(26),
+            boxShadow: [
+              BoxShadow(
+                color: c.nightLow.withValues(alpha: 0.35),
+                blurRadius: 22,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(26),
+                  child: CustomPaint(
+                    painter: StarFieldPainter(color: c.onNightSoft),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ASLEEP',
+                      style: text.labelSmall?.copyWith(color: c.onNightSoft),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      mins < 1
+                          ? 'Just fell asleep'
+                          : formatDurationMinutes(mins),
+                      style: text.displaySmall?.copyWith(color: c.onNight),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Down at ${formatTime(ongoingSleep!.startAt)}.'
+                      '${predictionIfWakesNow != null ? ' If ${childName ?? 'they'} wakes now, the next window opens around ${formatTime(predictionIfWakesNow!.windowStart)}.' : ''}',
+                      style: text.bodyMedium?.copyWith(color: c.onNightSoft),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -67,9 +95,18 @@ class NextUpCard extends StatelessWidget {
     final p = prediction;
     if (p == null) {
       return RelayCard(
-        child: Text(
-          'Log a nap to start next-up guidance.',
-          style: text.bodyMedium,
+        padding: const EdgeInsets.all(22),
+        child: Row(
+          children: [
+            IconSquare(icon: Icons.wb_twilight, color: c.sun),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'Log a nap to start next-up guidance.',
+                style: text.bodyMedium,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -83,40 +120,57 @@ class NextUpCard extends StatelessWidget {
 
     return Column(
       children: [
-        RelayCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        Container(
+          key: const ValueKey('awake'),
+          decoration: BoxDecoration(
+            gradient: c.dawnGradient,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: c.sun.withValues(alpha: 0.22)),
+            boxShadow: [
+              BoxShadow(
+                color: c.ink.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Stack(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    isBedtime ? Icons.bedtime_outlined : Icons.wb_twilight,
-                    size: 18,
-                    color: c.clayDeep,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'NEXT UP · $title'.toUpperCase(),
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelSmall?.copyWith(color: c.clayDeep),
-                  ),
-                  const Spacer(),
-                  if (overdue)
-                    RelayChip('Window passed', color: c.sun)
-                  else
-                    RelayChip(relative, color: c.sage),
-                ],
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(26),
+                  child: CustomPaint(painter: SunArcPainter(color: c.sun)),
+                ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                windowLabel,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                p.explanation,
-                style: Theme.of(context).textTheme.bodyMedium,
+              Padding(
+                padding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'NEXT UP · $title'.toUpperCase(),
+                          style: text.labelSmall?.copyWith(color: c.clayDeep),
+                        ),
+                        const Spacer(),
+                        if (overdue)
+                          RelayChip('Window passed', color: c.clayDeep)
+                        else
+                          RelayChip(relative, color: c.sage),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(windowLabel, style: text.displaySmall),
+                    const SizedBox(height: 8),
+                    Text(
+                      p.explanation,
+                      style: text.bodyMedium?.copyWith(
+                        color: Color.lerp(c.inkSoft, c.ink, 0.2),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

@@ -64,6 +64,13 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Fraunces (SIL OFL 1.1, license alongside the asset) is the display face —
+  # warm editorial serif for headlines; body text stays on the system font.
+  fonts:
+    - family: Fraunces
+      fonts:
+        - asset: assets/fonts/Fraunces-Variable.ttf
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
