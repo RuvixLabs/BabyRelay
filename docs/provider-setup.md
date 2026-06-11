@@ -83,6 +83,7 @@ entitlement is archived with no products attached.
 - ASC SKU: `BabyRelay`
 - Apple server notifications: production and sandbox URLs are set from
   RevenueCat, both read back as version `V2`.
+- Subscription groups: none yet (`0` groups read back from ASC).
 
 Remaining App Store / subscription blockers:
 
