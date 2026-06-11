@@ -242,6 +242,12 @@ Core events:
 onboarding_started
 onboarding_step_viewed
 onboarding_completed
+onboarding_rating_viewed
+onboarding_rating_positive
+onboarding_rating_skipped
+native_review_available
+native_review_requested
+native_review_failed
 baby_profile_created
 care_event_logged
 care_event_edited
@@ -289,7 +295,7 @@ Premium: `BabyRelay Family`
 - export/share summaries
 
 Paywall placements:
-- Soft paywall after onboarding.
+- Native rating gate after onboarding, then soft paywall.
 - Hard gate on inviting a second caregiver.
 - Launch-offer copy by default, with trial copy on the standard annual/monthly
   plans.

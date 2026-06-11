@@ -9,8 +9,9 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 
 ## Implemented (local-first, shippable)
 
-- **Core product**: onboarding → Today (one-tap sleep, quick logs, time-rail
-  timeline, next-up guidance) → handoff sheet → care team → settings.
+- **Core product**: onboarding → native rating gate → soft paywall → Today
+  (one-tap sleep, quick logs, time-rail timeline, next-up guidance) →
+  handoff sheet → care team → settings.
 - **Multi-child**: unlimited children per family (free tier: 1 child,
   owner + 1 caregiver), per-child events, sleep state, nap counts, handoff.
 - **Persistence**: versioned JSON schema (`FamilyState.schemaVersion = 1`) in
@@ -37,7 +38,8 @@ Provider creation status is tracked in `docs/provider-setup.md`.
   `Reset entitlement`) that never appear in release builds.
 - **Platform**: iPhone-only, portrait-only.
 - **Tests**: engine, handoff, repository (schema, isolation, merge),
-  purchases (all outcomes), invites, and widget flows incl. paywall
+  purchases (all outcomes), invites, and widget flows incl. onboarding rating
+  gate + paywall
   success/cancel/fail/restore.
 
 ## Live Provider Status

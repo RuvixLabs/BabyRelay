@@ -59,6 +59,47 @@ void main() {
     expect(find.text('Get started'), findsOneWidget);
   });
 
+  testWidgets('onboarding finishes with native rating gate before paywall', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps();
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Mae');
+    await tester.pump();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Sara');
+    await tester.pump();
+    await tester.tap(find.text('Create our timeline'));
+    await tester.pumpAndSettle();
+
+    expect(repo.state.onboarded, isTrue);
+    expect(find.text('Is BabyRelay already feeling helpful?'), findsOneWidget);
+    expect(find.text('Yes, love it'), findsOneWidget);
+    expect(find.text('Needs work'), findsOneWidget);
+    expect(find.text('Maybe later'), findsOneWidget);
+
+    await tester.tap(find.text('Maybe later'));
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Claim annual offer'), findsOneWidget);
+    expect(find.text('Offer ends in'), findsOneWidget);
+    expect(find.text('1:30'), findsOneWidget);
+  });
+
   testWidgets('onboarded user lands on Today and can log sleep one-tap', (
     tester,
   ) async {

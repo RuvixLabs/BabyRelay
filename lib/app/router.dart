@@ -5,6 +5,7 @@ import '../data/family_repository.dart';
 import '../features/care_team/care_team_screen.dart';
 import '../features/handoff/handoff_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/onboarding/rating_request_screen.dart';
 import '../features/paywall/paywall_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/today/today_screen.dart';
@@ -25,6 +26,10 @@ GoRouter buildRouter(FamilyRepository familyRepository) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/rating-request',
+        builder: (context, state) => const RatingRequestScreen(),
       ),
       GoRoute(
         path: '/handoff',
