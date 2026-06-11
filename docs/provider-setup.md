@@ -1,6 +1,6 @@
 # Provider Setup
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 ## Firebase
 
@@ -78,18 +78,16 @@ entitlement is archived with no products attached.
 - Ruvix bundle ID: `7PA3RQ369P`
 - Bundle identifier: `com.ruvixlabs.babyrelay`
 - In-App Purchase capability: enabled
-- ASC app record: not created yet. The `asc` API-key profile can manage bundle
-  IDs and API readback, but `asc apps create` requires Apple ID login/2FA. The
-  Ruvix browser profile is not currently logged into App Store Connect.
+- ASC app ID: `6779147183`
+- ASC app name: `BabyRelay : Shared Baby Care`
+- ASC SKU: `BabyRelay`
+- Apple server notifications: production and sandbox URLs are set from
+  RevenueCat, both read back as version `V2`.
 
 Remaining App Store / subscription blockers:
 
-- Create the App Store Connect app record for `BabyRelay` / `com.ruvixlabs.babyrelay`
-  using a Ruvix Apple ID session.
 - Create App Store subscription products matching the RevenueCat product IDs:
   `babyrelay_pro_monthly` and `babyrelay_pro_annual`.
-- Set the RevenueCat Apple server notification URL on the ASC app for both
-  production and sandbox, version `V2`, then read it back from ASC.
 - Move the app build from the Test Store SDK key to
   `babyrelay-revenuecat-ios-sdk-key` once the real store products exist.
 - Wire AppRefer purchase forwarding via RevenueCat webhook for sandbox and
