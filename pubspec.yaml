@@ -84,6 +84,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+    - assets/images/generated/babyrelay_onboarding_hero.png
     - assets/images/generated/babyrelay_paywall_hero.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

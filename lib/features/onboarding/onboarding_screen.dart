@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
-import '../../core/design/relay_widgets.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/baby_profile.dart';
 
@@ -258,78 +257,61 @@ class _WelcomeStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.relay;
     final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Night-sky hero: the 2am moment the app exists for.
-          Container(
-            height: 140,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: c.nightGradient,
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: c.nightLow.withValues(alpha: 0.35),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxHeight < 560;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _WelcomeHeroIllustration(height: compact ? 142 : 214),
+              SizedBox(height: compact ? 16 : 24),
+              Text(
+                'BABYRELAY',
+                style: text.labelSmall?.copyWith(
+                  color: c.clayDeep,
+                  letterSpacing: 0,
                 ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(28),
-                    child: CustomPaint(
-                      painter: StarFieldPainter(
-                        color: c.onNightSoft,
-                        density: 34,
-                      ),
-                    ),
-                  ),
+              ),
+              SizedBox(height: compact ? 8 : 10),
+              Text(
+                'Every caregiver.\nEvery child.\nZero guesswork.',
+                style: compact ? text.displaySmall : text.displayMedium,
+              ),
+              SizedBox(height: compact ? 12 : 16),
+              Text(
+                'BabyRelay keeps parents, partners, grandparents, and nannies on the same page — who did what, what\'s next, and for which little one.',
+                style: (compact ? text.bodyMedium : text.bodyLarge)?.copyWith(
+                  color: c.inkSoft,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.swap_horiz_rounded,
-                          color: c.onNight,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'BABYRELAY',
-                          style: text.labelSmall?.copyWith(
-                            color: c.onNightSoft,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: 28),
-          Text(
-            'Every caregiver.\nEvery child.\nZero guesswork.',
-            style: text.displayMedium,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'BabyRelay keeps parents, partners, grandparents, and nannies on the same page — who did what, what\'s next, and for which little one.',
-            style: text.bodyLarge?.copyWith(color: c.inkSoft),
-          ),
-        ],
+        );
+      },
+    );
+  }
+}
+
+class _WelcomeHeroIllustration extends StatelessWidget {
+  const _WelcomeHeroIllustration({required this.height});
+
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 390),
+        child: Image.asset(
+          'assets/images/generated/babyrelay_onboarding_hero.png',
+          height: height,
+          fit: BoxFit.contain,
+          semanticLabel:
+              'Illustration of a sleeping baby with shared caregiver care symbols',
+        ),
       ),
     );
   }
