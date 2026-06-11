@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:babyrelay/data/family_repository.dart';
 import 'package:babyrelay/data/local_store.dart';
 import 'package:babyrelay/domain/models/baby_profile.dart';
 import 'package:babyrelay/domain/models/care_event.dart';
+import 'package:babyrelay/domain/models/caregiver.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -61,6 +63,115 @@ void main() {
       expect(reloaded.state.selectedChild!.nickname, 'Mae');
     },
   );
+
+  test(
+    'sync adapter assigns a production family id and saves onboarding',
+    () async {
+      final sync = FakeFamilySyncAdapter();
+      repo = FamilyRepository(store, sync: sync);
+
+      await onboard();
+
+      expect(repo.state.familyId, 'family_1');
+      expect(repo.state.currentCaregiverId, sync.userId);
+      expect(repo.state.currentCaregiver!.id, sync.userId);
+      expect(sync.savedStates, hasLength(1));
+      expect(sync.savedStates.single.familyId, 'family_1');
+      expect(sync.previousInviteCodes.single, isEmpty);
+    },
+  );
+
+  test('join-by-code adopts synced family and persists it locally', () async {
+    final child = BabyProfile(
+      id: 'baby_1',
+      nickname: 'Mae',
+      dob: DateTime.now().subtract(const Duration(days: 210)),
+      wakeTimeMinutes: 7 * 60,
+      bedtimeMinutes: 19 * 60,
+      napsPerDayEstimate: 3,
+    );
+    final owner = Caregiver(
+      id: 'owner_1',
+      name: 'Sara',
+      role: CaregiverRole.owner,
+      colorIndex: 0,
+      joinedAt: DateTime.now(),
+    );
+    final sync = FakeFamilySyncAdapter(
+      joinedTemplate: FamilyState(
+        familyId: 'family_remote',
+        children: [child],
+        selectedChildId: child.id,
+        caregivers: [owner],
+        currentCaregiverId: owner.id,
+        inviteCode: 'ABC123',
+        onboarded: true,
+      ),
+    );
+    repo = FamilyRepository(store, sync: sync);
+
+    await repo.joinFamilyByInviteCode(
+      code: 'ABC123',
+      caregiverName: 'Alex',
+      allowOverFreeCaregiverLimit: false,
+    );
+
+    expect(sync.joinedCodes, ['ABC123']);
+    expect(repo.state.familyId, 'family_remote');
+    expect(repo.state.currentCaregiverId, sync.userId);
+    expect(repo.state.activeCaregivers.map((c) => c.name), contains('Alex'));
+    expect(await store.read('babyrelay.family.v1'), contains('family_remote'));
+  });
+
+  test('join-by-code rejects extra free caregivers for a full team', () async {
+    final child = BabyProfile(
+      id: 'baby_1',
+      nickname: 'Mae',
+      dob: DateTime.now().subtract(const Duration(days: 210)),
+      wakeTimeMinutes: 7 * 60,
+      bedtimeMinutes: 19 * 60,
+      napsPerDayEstimate: 3,
+    );
+    Caregiver caregiver(String id, String name, CaregiverRole role) =>
+        Caregiver(
+          id: id,
+          name: name,
+          role: role,
+          colorIndex: role == CaregiverRole.owner ? 0 : 1,
+          joinedAt: DateTime.now(),
+        );
+    final sync = FakeFamilySyncAdapter(
+      joinedTemplate: FamilyState(
+        familyId: 'family_remote',
+        children: [child],
+        selectedChildId: child.id,
+        caregivers: [
+          caregiver('owner_1', 'Sara', CaregiverRole.owner),
+          caregiver('caregiver_1', 'Sam', CaregiverRole.caregiver),
+        ],
+        currentCaregiverId: 'owner_1',
+        inviteCode: 'ABC123',
+        onboarded: true,
+      ),
+    );
+    repo = FamilyRepository(store, sync: sync);
+
+    expect(
+      () => repo.joinFamilyByInviteCode(
+        code: 'ABC123',
+        caregiverName: 'Alex',
+        allowOverFreeCaregiverLimit: false,
+      ),
+      throwsStateError,
+    );
+
+    await repo.joinFamilyByInviteCode(
+      code: 'ABC123',
+      caregiverName: 'Alex',
+      allowOverFreeCaregiverLimit: true,
+    );
+    expect(repo.state.activeCaregivers.map((c) => c.name), contains('Alex'));
+  });
 
   test('persisted JSON carries the schema version and round-trips', () async {
     await onboard();
@@ -334,4 +445,63 @@ void main() {
     expect(repo.state.events, isEmpty);
     expect(await store.read('babyrelay.family.v1'), isNull);
   });
+}
+
+class FakeFamilySyncAdapter implements FamilySyncAdapter {
+  FakeFamilySyncAdapter({this.joinedTemplate});
+
+  final FamilyState? joinedTemplate;
+  final savedStates = <FamilyState>[];
+  final previousInviteCodes = <String>[];
+  final joinedCodes = <String>[];
+  final _controller = StreamController<FamilyState>.broadcast();
+  int _familyCounter = 0;
+
+  @override
+  String get userId => 'sync-user';
+
+  @override
+  String newFamilyId() => 'family_${++_familyCounter}';
+
+  @override
+  Stream<FamilyState> watchFamily(String familyId) => _controller.stream;
+
+  @override
+  Future<void> saveFamily(
+    FamilyState state, {
+    String? previousInviteCode,
+  }) async {
+    savedStates.add(state);
+    previousInviteCodes.add(previousInviteCode ?? '');
+  }
+
+  @override
+  Future<FamilyState> joinFamilyByInviteCode({
+    required String code,
+    required Caregiver caregiver,
+    required int freeCaregiverLimit,
+    required bool allowOverFreeCaregiverLimit,
+  }) async {
+    joinedCodes.add(code);
+    final template = joinedTemplate ?? const FamilyState();
+    final wouldIncreaseActiveMembers = !template.caregivers.any(
+      (c) => c.id == caregiver.id && c.isActive,
+    );
+    if (!allowOverFreeCaregiverLimit &&
+        wouldIncreaseActiveMembers &&
+        template.activeCaregivers.length >= freeCaregiverLimit) {
+      throw StateError('This care team is full on the free plan.');
+    }
+    return template.copyWith(
+      caregivers: [...template.caregivers, caregiver],
+      currentCaregiverId: caregiver.id,
+      onboarded: true,
+    );
+  }
+
+  @override
+  Future<void> deleteFamily(FamilyState state) async {}
+
+  @override
+  Future<void> dispose() => _controller.close();
 }

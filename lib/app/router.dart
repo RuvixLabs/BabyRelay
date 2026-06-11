@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/family_repository.dart';
 import '../features/care_team/care_team_screen.dart';
 import '../features/handoff/handoff_screen.dart';
+import '../features/join/join_family_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/onboarding/rating_request_screen.dart';
 import '../features/paywall/paywall_screen.dart';
@@ -18,7 +19,8 @@ GoRouter buildRouter(FamilyRepository familyRepository) {
     redirect: (context, state) {
       final onboarded = familyRepository.state.onboarded;
       final onOnboarding = state.matchedLocation == '/onboarding';
-      if (!onboarded && !onOnboarding) return '/onboarding';
+      final onJoin = state.matchedLocation.startsWith('/join');
+      if (!onboarded && !onOnboarding && !onJoin) return '/onboarding';
       if (onboarded && onOnboarding) return '/today';
       return null;
     },
@@ -26,6 +28,15 @@ GoRouter buildRouter(FamilyRepository familyRepository) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/join',
+        builder: (context, state) => const JoinFamilyScreen(),
+      ),
+      GoRoute(
+        path: '/join/:code',
+        builder: (context, state) =>
+            JoinFamilyScreen(initialCode: state.pathParameters['code']),
       ),
       GoRoute(
         path: '/rating-request',

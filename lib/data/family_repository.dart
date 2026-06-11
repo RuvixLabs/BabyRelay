@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -20,6 +21,7 @@ class FamilyState {
   static const int schemaVersion = 1;
 
   const FamilyState({
+    this.familyId = '',
     this.children = const [],
     this.selectedChildId = '',
     this.caregivers = const [],
@@ -29,6 +31,8 @@ class FamilyState {
     this.onboarded = false,
   });
 
+  /// Firestore family document id when production sync is configured.
+  final String familyId;
   final List<BabyProfile> children;
   final String selectedChildId;
   final List<Caregiver> caregivers;
@@ -104,6 +108,7 @@ class FamilyState {
   }
 
   FamilyState copyWith({
+    String? familyId,
     List<BabyProfile>? children,
     String? selectedChildId,
     List<Caregiver>? caregivers,
@@ -113,6 +118,7 @@ class FamilyState {
     bool? onboarded,
   }) {
     return FamilyState(
+      familyId: familyId ?? this.familyId,
       children: children ?? this.children,
       selectedChildId: selectedChildId ?? this.selectedChildId,
       caregivers: caregivers ?? this.caregivers,
@@ -125,6 +131,7 @@ class FamilyState {
 
   Map<String, dynamic> toJson() => {
     'schemaVersion': schemaVersion,
+    'familyId': familyId,
     'children': children.map((c) => c.toJson()).toList(),
     'selectedChildId': selectedChildId,
     'caregivers': caregivers.map((c) => c.toJson()).toList(),
@@ -160,6 +167,7 @@ class FamilyState {
     }
 
     return FamilyState(
+      familyId: json['familyId'] as String? ?? '',
       children: children,
       selectedChildId: selectedChildId,
       caregivers: rawCaregivers
@@ -173,19 +181,52 @@ class FamilyState {
   }
 }
 
+/// Production sync adapter for the local-first family repository.
+///
+/// The UI talks to [FamilyRepository] only. Firebase plugs in through this
+/// surface so local tests, previews, and App Review-safe fallback behavior keep
+/// working when provider keys are absent.
+abstract class FamilySyncAdapter {
+  String get userId;
+
+  String newFamilyId();
+
+  Stream<FamilyState> watchFamily(String familyId);
+
+  Future<void> saveFamily(FamilyState state, {String? previousInviteCode});
+
+  Future<FamilyState> joinFamilyByInviteCode({
+    required String code,
+    required Caregiver caregiver,
+    required int freeCaregiverLimit,
+    required bool allowOverFreeCaregiverLimit,
+  });
+
+  Future<void> deleteFamily(FamilyState state);
+
+  Future<void> dispose() async {}
+}
+
 /// Local-first repository for the shared family state.
 ///
 /// This is the seam where Firestore lands later: same mutation API, but
 /// writes go to `families/{familyId}/...` and the change stream comes from
 /// snapshots instead of [notifyListeners].
 class FamilyRepository extends ChangeNotifier {
-  FamilyRepository(this._store);
+  FamilyRepository(this._store, {FamilySyncAdapter? sync}) : _sync = sync;
 
+  static const int freeCaregiverLimit = 2;
   static const _storageKey = 'babyrelay.family.v1';
   final LocalStore _store;
+  FamilySyncAdapter? _sync;
+  StreamSubscription<FamilyState>? _remoteSubscription;
+  String? _watchedFamilyId;
+  bool _applyingRemote = false;
 
   FamilyState _state = const FamilyState();
   FamilyState get state => _state;
+  bool get syncConfigured => _sync != null;
+  String? get syncUserId => _sync?.userId;
 
   int _idCounter = 0;
 
@@ -201,10 +242,84 @@ class FamilyRepository extends ChangeNotifier {
     }
   }
 
+  Future<void> attachSync(FamilySyncAdapter sync) async {
+    _sync = sync;
+    final current = _state.currentCaregiver;
+    if (_state.onboarded &&
+        current?.isOwner == true &&
+        current!.id != sync.userId) {
+      await _commit(_rekeyCaregiver(_state, from: current.id, to: sync.userId));
+      return;
+    }
+    if (_state.onboarded && _state.familyId.isNotEmpty) {
+      await sync.saveFamily(_state);
+      _watchFamily(_state.familyId);
+    }
+  }
+
+  FamilyState _rekeyCaregiver(
+    FamilyState state, {
+    required String from,
+    required String to,
+  }) {
+    if (from == to) return state;
+    return state.copyWith(
+      caregivers: state.caregivers
+          .map((c) => c.id == from ? c.copyWith(id: to) : c)
+          .toList(),
+      currentCaregiverId: state.currentCaregiverId == from
+          ? to
+          : state.currentCaregiverId,
+      events: state.events
+          .map(
+            (event) => event.copyWith(
+              loggedById: event.loggedById == from ? to : event.loggedById,
+              editedByIds: event.editedByIds
+                  .map((id) => id == from ? to : id)
+                  .toSet()
+                  .toList(),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  void _watchFamily(String familyId) {
+    final sync = _sync;
+    if (sync == null || familyId.isEmpty || _watchedFamilyId == familyId) {
+      return;
+    }
+    unawaited(_remoteSubscription?.cancel());
+    _watchedFamilyId = familyId;
+    _remoteSubscription = sync.watchFamily(familyId).listen((remote) async {
+      if (_applyingRemote) return;
+      _applyingRemote = true;
+      try {
+        _state = remote;
+        notifyListeners();
+        await _store.write(_storageKey, jsonEncode(remote.toJson()));
+      } finally {
+        _applyingRemote = false;
+      }
+    });
+  }
+
   Future<void> _commit(FamilyState next) async {
-    _state = next;
+    final previousInviteCode = _state.inviteCode;
+    final sync = _sync;
+    var committed = next;
+    if (committed.onboarded && committed.familyId.isEmpty) {
+      committed = committed.copyWith(
+        familyId: sync?.newFamilyId() ?? _newId('f'),
+      );
+    }
+    _state = committed;
     notifyListeners();
-    await _store.write(_storageKey, jsonEncode(next.toJson()));
+    await _store.write(_storageKey, jsonEncode(committed.toJson()));
+    if (!_applyingRemote && sync != null && committed.familyId.isNotEmpty) {
+      await sync.saveFamily(committed, previousInviteCode: previousInviteCode);
+      _watchFamily(committed.familyId);
+    }
   }
 
   String _newId(String prefix) =>
@@ -219,7 +334,7 @@ class FamilyRepository extends ChangeNotifier {
     required BabyProfile firstChild,
     required String primaryCaregiverName,
   }) async {
-    final ownerId = _newId('c');
+    final ownerId = _sync?.userId ?? _newId('c');
     final owner = Caregiver(
       id: ownerId,
       name: primaryCaregiverName.trim().isEmpty
@@ -575,6 +690,42 @@ class FamilyRepository extends ChangeNotifier {
     await _commit(_state.copyWith(inviteCode: InviteService.generateCode()));
   }
 
+  Future<void> joinFamilyByInviteCode({
+    required String code,
+    required String caregiverName,
+    required bool allowOverFreeCaregiverLimit,
+  }) async {
+    final sync = _sync;
+    if (sync == null) {
+      throw StateError('Family sync is not configured for this build.');
+    }
+    final now = DateTime.now();
+    final caregiver = Caregiver(
+      id: sync.userId,
+      name: caregiverName.trim().isEmpty ? 'Caregiver' : caregiverName.trim(),
+      role: CaregiverRole.caregiver,
+      colorIndex: _state.caregivers.length % 6,
+      joinedAt: now,
+      lastActiveAt: now,
+    );
+    final joined = await sync.joinFamilyByInviteCode(
+      code: code,
+      caregiver: caregiver,
+      freeCaregiverLimit: freeCaregiverLimit,
+      allowOverFreeCaregiverLimit: allowOverFreeCaregiverLimit,
+    );
+    await _commit(
+      joined.copyWith(
+        currentCaregiverId: caregiver.id,
+        onboarded: true,
+        selectedChildId:
+            joined.selectedChildId.isEmpty && joined.children.isNotEmpty
+            ? joined.children.first.id
+            : joined.selectedChildId,
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Privacy / data control
 
@@ -589,9 +740,14 @@ class FamilyRepository extends ChangeNotifier {
   });
 
   Future<void> deleteAllData() async {
+    final sync = _sync;
+    final stateToDelete = _state;
     _state = const FamilyState();
     notifyListeners();
     await _store.delete(_storageKey);
+    if (sync != null && stateToDelete.currentCaregiver?.isOwner == true) {
+      await sync.deleteFamily(stateToDelete);
+    }
   }
 
   /// Seeds a believable sample day so the app can be previewed without
@@ -712,6 +868,13 @@ class FamilyRepository extends ChangeNotifier {
     await _commit(
       _state.copyWith(events: all, caregivers: caregivers, children: children),
     );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_remoteSubscription?.cancel());
+    unawaited(_sync?.dispose());
+    super.dispose();
   }
 }
 

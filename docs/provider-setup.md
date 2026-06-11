@@ -120,11 +120,25 @@ entitlement is archived with no products attached.
 
 Remaining App Store / subscription blockers:
 
-- Implement the RevenueCat-backed `PurchaseService` and build with
-  `babyrelay-revenuecat-ios-sdk-key`.
+- Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
+  smoke against the real offering.
 - Submit the subscriptions with the App Store version and a build; do not use a
   standalone subscription submission path for first-time products.
-- Run a sandbox purchase smoke after the build can fetch the real RevenueCat
-  offering.
 - Wire AppRefer purchase forwarding via RevenueCat webhook for sandbox and
   production events.
+
+## App code wiring
+
+- Firebase SDK packages are installed. `main.dart` initializes Firebase,
+  Crashlytics, Analytics, Messaging, anonymous Auth, and Firestore sync when
+  `--dart-define=FIREBASE_CONFIGURED=true` is present.
+- Firestore rules are committed in `firestore.rules` but still need to be
+  deployed to `babyrelay-ruvix`.
+- RevenueCat SDK is installed. `RevenueCatPurchaseService` reads current and
+  `special_offer` offerings, maps the three App Store product IDs, and unlocks
+  entitlement `pro`.
+- Gleap SDK is installed. Settings opens in-app support when
+  `GLEAP_SDK_KEY` is supplied, otherwise it falls back to the support email.
+- App tracking transparency is installed. `APPREFER_LINK_ID=babyrelay-meta`
+  enables the ATT request seam; AppRefer redirecting still needs the live store
+  destination URL.

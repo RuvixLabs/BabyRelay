@@ -10,10 +10,11 @@ plain-language handoff summary for the next caregiver.
 
 ## Status
 
-Local MVP/prototype. Runs fully on-device with local persistence — no
-credentials needed. Firebase, RevenueCat, AppRefer, Gleap, and AppStore
-Copilot plug in behind existing service seams (see `lib/main.dart` and
-Settings → Integrations in the app).
+Release-candidate app. Runs fully on-device with local persistence when no
+credentials are supplied, and switches on Firebase sync, RevenueCat purchases,
+Gleap support, and the AppRefer/ATT seam through build-time defines (see
+`lib/main.dart`, `lib/core/config/app_config.dart`, and Settings →
+Integrations in debug builds).
 
 ## Commands
 
@@ -32,16 +33,18 @@ dart format lib test
 
 ```text
 lib/
-  main.dart                 # composition root (local stores; Firebase later)
+  main.dart                 # composition root (Firebase/RevenueCat/Gleap seams)
   app/                      # MaterialApp.router, go_router routes, nav shell
   core/
     analytics/              # privacy-safe allowlisted analytics wrapper
     design/                 # RelayTheme (warm light + night dark), shared widgets
-    purchases/              # PurchaseService — mock of RevenueCat entitlement `pro`
+    purchases/              # PurchaseService — local + RevenueCat entitlement `pro`
+    support/                # Gleap support wrapper with email fallback
     util/                   # formatting helpers
   data/
     local_store.dart        # key-value seam (SharedPreferences / in-memory)
-    family_repository.dart  # shared family state: baby, caregivers, events
+    family_repository.dart  # local-first family state and sync adapter seam
+    firestore_family_sync.dart # Firebase Auth + Firestore implementation
   domain/
     models/                 # CareEvent, Caregiver, BabyProfile (pure Dart)
     engine/                 # SleepPredictionEngine — deterministic wake windows
@@ -59,10 +62,12 @@ no Flutter imports — so guidance stays deterministic and explainable.
 
 ## iOS defaults
 
-iPhone-only (`TARGETED_DEVICE_FAMILY = 1`), portrait-only,
+iPhone-only (`TARGETED_DEVICE_FAMILY = 1`), portrait-only, iOS 15+,
 `UIRequiresFullScreen = true`.
 
 ## Docs
 
 - `AGENTS.md` — agent/project instructions
+- `docs/production-readiness.md` — provider wiring, build defines, release blockers
+- `docs/provider-setup.md` — live Firebase/RevenueCat/AppRefer/ASC readback
 - `docs/plans/core/overview.md` — MVP direction, rules engine spec, Firestore model

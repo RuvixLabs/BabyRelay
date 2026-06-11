@@ -9,6 +9,7 @@ import '../../core/config/app_config.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
 import '../../core/purchases/purchase_service.dart';
+import '../../core/support/support_service.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/baby_profile.dart';
 import '../children/child_form_sheet.dart';
@@ -22,6 +23,7 @@ class SettingsScreen extends StatelessWidget {
     final repo = context.watch<FamilyRepository>();
     final purchases = context.watch<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
+    final support = context.read<SupportService>();
     final c = context.relay;
     final text = Theme.of(context).textTheme;
     final state = repo.state;
@@ -182,8 +184,17 @@ class SettingsScreen extends StatelessWidget {
               icon: Icons.support_agent,
               iconColor: c.dusk,
               title: 'Contact support',
-              subtitle: 'Email ${AppConfig.supportEmail}',
+              subtitle: support.configured
+                  ? 'Message us in the app'
+                  : 'Email ${AppConfig.supportEmail}',
               onTap: () async {
+                final opened = await support.openConversation(
+                  userId: repo.syncUserId,
+                );
+                if (opened) {
+                  analytics.logEvent('support_contacted', {'method': 'gleap'});
+                  return;
+                }
                 analytics.logEvent('support_contacted', {'method': 'email'});
                 await Clipboard.setData(
                   const ClipboardData(text: AppConfig.supportEmail),

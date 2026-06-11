@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
@@ -14,7 +15,7 @@ import '../../domain/services/invite_service.dart';
 
 /// Free tier covers the core duo (owner + one caregiver). Growing the team
 /// beyond that is the BabyRelay Family upgrade moment.
-const int kFreeCaregiverLimit = 2;
+const int kFreeCaregiverLimit = FamilyRepository.freeCaregiverLimit;
 
 class CareTeamScreen extends StatelessWidget {
   const CareTeamScreen({super.key});
@@ -326,9 +327,17 @@ class _InviteSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: c.outline),
               ),
-              child: CustomPaint(
-                size: const Size(160, 160),
-                painter: _CodeGlyphPainter(code: code, color: c.ink),
+              child: QrImageView(
+                data: invite.url.toString(),
+                size: 160,
+                padding: EdgeInsets.zero,
+                backgroundColor: c.surfaceRaised,
+                eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: c.ink),
+                dataModuleStyle: QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: c.ink,
+                ),
+                semanticsLabel: 'BabyRelay caregiver invite QR code',
               ),
             ),
             const SizedBox(height: 16),
@@ -415,84 +424,4 @@ class _InviteSheet extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Deterministic QR-style glyph derived from the invite code. Not a scannable
-/// QR (the real one ships with the deep-link integration) but reads as one and
-/// keeps the sheet feeling complete.
-class _CodeGlyphPainter extends CustomPainter {
-  _CodeGlyphPainter({required this.code, required this.color});
-
-  final String code;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const grid = 11;
-    final cell = size.width / grid;
-    final paint = Paint()..color = color;
-
-    int seed = 0;
-    for (final unit in code.codeUnits) {
-      seed = (seed * 31 + unit) & 0x7fffffff;
-    }
-
-    int next() {
-      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-      return seed;
-    }
-
-    // Symmetric module pattern (mirrored left/right) so it looks designed.
-    for (var y = 0; y < grid; y++) {
-      for (var x = 0; x <= grid ~/ 2; x++) {
-        final filled = next() % 5 < 2;
-        if (!filled) continue;
-        final rect = Rect.fromLTWH(x * cell, y * cell, cell - 1.5, cell - 1.5);
-        final mirrored = Rect.fromLTWH(
-          (grid - 1 - x) * cell,
-          y * cell,
-          cell - 1.5,
-          cell - 1.5,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(2)),
-          paint,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(mirrored, const Radius.circular(2)),
-          paint,
-        );
-      }
-    }
-
-    // Corner finder squares, like a real QR.
-    for (final corner in [
-      Offset.zero,
-      Offset(size.width - 3 * cell, 0),
-      Offset(0, size.height - 3 * cell),
-    ]) {
-      final outer = Rect.fromLTWH(corner.dx, corner.dy, cell * 3, cell * 3);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(outer, const Radius.circular(4)),
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = cell * 0.6,
-      );
-      final inner = Rect.fromLTWH(
-        corner.dx + cell,
-        corner.dy + cell,
-        cell,
-        cell,
-      );
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(inner, const Radius.circular(2)),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CodeGlyphPainter oldDelegate) =>
-      oldDelegate.code != code || oldDelegate.color != color;
 }

@@ -12,6 +12,20 @@ abstract final class ProductIds {
   static const String specialAnnual = 'babyrelay_pro_special_annual';
   static const String monthly = 'babyrelay_pro_monthly';
   static const String annual = 'babyrelay_pro_annual';
+
+  static const byPlan = {
+    PlanId.specialAnnual: specialAnnual,
+    PlanId.annual: annual,
+    PlanId.monthly: monthly,
+  };
+
+  static PlanId? planFor(String? productId) {
+    if (productId == null) return null;
+    for (final entry in byPlan.entries) {
+      if (entry.value == productId) return entry.key;
+    }
+    return null;
+  }
 }
 
 class Plan {
@@ -56,6 +70,39 @@ enum RestoreOutcome { restored, nothingToRestore, failed }
 /// provided (entitlement id: [entitlementId]).
 abstract class PurchaseService extends ChangeNotifier {
   static const entitlementId = 'pro';
+  static const fallbackPlans = [
+    Plan(
+      id: PlanId.specialAnnual,
+      productId: ProductIds.specialAnnual,
+      title: 'Special annual',
+      priceLabel: '\$29.99',
+      periodLabel: 'per year',
+      trialDays: 0,
+      originalPriceLabel: '\$59.99',
+      countdownSeconds: 90,
+      badge: 'Save 50%',
+      subline: 'Limited family launch offer',
+      isSpecialOffer: true,
+    ),
+    Plan(
+      id: PlanId.annual,
+      productId: ProductIds.annual,
+      title: 'Annual',
+      priceLabel: '\$59.99',
+      periodLabel: 'per year',
+      trialDays: 7,
+      badge: '7-day trial',
+      subline: 'About \$5 a month',
+    ),
+    Plan(
+      id: PlanId.monthly,
+      productId: ProductIds.monthly,
+      title: 'Monthly',
+      priceLabel: '\$9.99',
+      periodLabel: 'per month',
+      trialDays: 7,
+    ),
+  ];
 
   bool get isPro;
   PlanId? get activePlan;
@@ -116,39 +163,7 @@ class LocalPurchaseService extends PurchaseService {
   String? get lastErrorMessage => _lastErrorMessage;
 
   @override
-  List<Plan> get plans => const [
-    Plan(
-      id: PlanId.specialAnnual,
-      productId: ProductIds.specialAnnual,
-      title: 'Special annual',
-      priceLabel: '\$29.99',
-      periodLabel: 'per year',
-      trialDays: 0,
-      originalPriceLabel: '\$59.99',
-      countdownSeconds: 90,
-      badge: 'Save 50%',
-      subline: 'Limited family launch offer',
-      isSpecialOffer: true,
-    ),
-    Plan(
-      id: PlanId.annual,
-      productId: ProductIds.annual,
-      title: 'Annual',
-      priceLabel: '\$59.99',
-      periodLabel: 'per year',
-      trialDays: 7,
-      badge: '7-day trial',
-      subline: 'About \$5 a month',
-    ),
-    Plan(
-      id: PlanId.monthly,
-      productId: ProductIds.monthly,
-      title: 'Monthly',
-      priceLabel: '\$9.99',
-      periodLabel: 'per month',
-      trialDays: 7,
-    ),
-  ];
+  List<Plan> get plans => PurchaseService.fallbackPlans;
 
   @override
   Future<void> load() async {

@@ -164,6 +164,12 @@ Future care modules can add deterministic guidance for feeds, medication reminde
 
 Family is the subscription and access unit.
 
+Implementation note, June 2026: the current release-candidate app ships a
+local-first snapshot sync (`families/{familyId}` with `state`, `memberIds`,
+`ownerId`, `inviteCode`, plus `inviteCodes/{code}` for lookups). The
+subcollection model below is the intended scale-up shape once the first beta
+proves the workflows and we split high-write event data out of the snapshot.
+
 ```text
 families/{familyId}
   createdBy: uid

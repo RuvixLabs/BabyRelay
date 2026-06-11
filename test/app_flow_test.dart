@@ -1,6 +1,8 @@
 import 'package:babyrelay/app/app.dart';
 import 'package:babyrelay/core/analytics/analytics_service.dart';
+import 'package:babyrelay/core/attribution/attribution_service.dart';
 import 'package:babyrelay/core/purchases/purchase_service.dart';
+import 'package:babyrelay/core/support/support_service.dart';
 import 'package:babyrelay/data/family_repository.dart';
 import 'package:babyrelay/data/local_store.dart';
 import 'package:babyrelay/domain/models/baby_profile.dart';
@@ -48,6 +50,8 @@ void main() {
     familyRepository: repo,
     purchaseService: purchases,
     analytics: AnalyticsService(),
+    supportService: SupportService.disabled(),
+    attributionService: AttributionService(configured: false),
   );
 
   testWidgets('fresh install lands on onboarding', (tester) async {
@@ -57,6 +61,21 @@ void main() {
 
     expect(find.textContaining('Every caregiver.'), findsOneWidget);
     expect(find.text('Get started'), findsOneWidget);
+  });
+
+  testWidgets('new caregiver can reach join screen before onboarding', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps();
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Join with a code'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Join a care team'), findsOneWidget);
+    expect(find.text('Set up a new family instead'), findsOneWidget);
+    expect(find.textContaining('local preview'), findsOneWidget);
   });
 
   testWidgets('onboarding finishes with native rating gate before paywall', (

@@ -35,6 +35,7 @@ class Caregiver extends Equatable {
   }
 
   Caregiver copyWith({
+    String? id,
     String? name,
     CaregiverRole? role,
     DateTime? removedAt,
@@ -42,7 +43,7 @@ class Caregiver extends Equatable {
     DateTime? lastActiveAt,
   }) {
     return Caregiver(
-      id: id,
+      id: id ?? this.id,
       name: name ?? this.name,
       role: role ?? this.role,
       colorIndex: colorIndex,

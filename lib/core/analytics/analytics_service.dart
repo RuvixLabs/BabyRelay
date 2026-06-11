@@ -68,8 +68,11 @@ class AnalyticsService {
     if (kDebugMode) {
       debugPrint('[analytics] $name ${params ?? {}}');
     }
-    // TODO(firebase): FirebaseAnalytics.instance.logEvent(name: name, parameters: params);
+    sendEvent(name, params);
   }
+
+  @protected
+  void sendEvent(String name, Map<String, Object>? params) {}
 
   bool _paramsAreSafe(Map<String, Object>? params) {
     if (params == null) return true;

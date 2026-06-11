@@ -167,6 +167,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           : 'Continue',
                     ),
                   ),
+                  if (_step == 0)
+                    TextButton.icon(
+                      onPressed: () => context.go('/join'),
+                      icon: const Icon(Icons.group_add_outlined, size: 18),
+                      label: const Text('Join with a code'),
+                    ),
                   if (_step == _stepCount - 1)
                     Padding(
                       padding: const EdgeInsets.only(top: 6),

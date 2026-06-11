@@ -1,42 +1,49 @@
-# BabyRelay — Production Readiness
+# BabyRelay - Production Readiness
 
-State of the app as a release candidate, split into what is **done and local**
-versus what is **blocked on credentials / live providers**. No secrets live in
-this repo; every provider key arrives at build time via `--dart-define`
-(see `lib/core/config/app_config.dart`).
+State of the app as a release candidate. The app remains local-first when
+provider keys are absent, and switches on production services at runtime when
+the build supplies the expected `--dart-define` values. No secrets live in this
+repo (see `lib/core/config/app_config.dart`).
 
 Provider creation status is tracked in `docs/provider-setup.md`.
 
-## Implemented (local-first, shippable)
+## Implemented
 
 - **Core product**: onboarding → native rating gate → soft paywall → Today
   (one-tap sleep, quick logs, time-rail timeline, next-up guidance) →
   handoff sheet → care team → settings.
 - **Multi-child**: unlimited children per family (free tier: 1 child,
   owner + 1 caregiver), per-child events, sleep state, nap counts, handoff.
-- **Persistence**: versioned JSON schema (`FamilyState.schemaVersion = 1`) in
-  SharedPreferences behind the `LocalStore` seam. The app never shipped, so
-  v1 IS the clean multi-child shape - there is **no pre-launch migration code**.
-  Unknown/newer/corrupt payloads start fresh instead of crashing.
-- **Subscriptions**: `PurchaseService` (abstract) + `LocalPurchaseService`.
-  Full purchase/restore UX with distinct success / cancelled / failed /
-  nothing-to-restore states, error copy, busy guard, persisted entitlement,
-  and test hooks (`nextPurchaseOutcome`, `failNextRestore`, zero
-  `actionDelay`). Product-id placeholders: `babyrelay_pro_special_annual`,
-  `babyrelay_pro_monthly`,
+- **Persistence + sync seam**: versioned JSON schema
+  (`FamilyState.schemaVersion = 1`) in SharedPreferences behind `LocalStore`,
+  plus optional `FamilySyncAdapter`. The app never shipped, so v1 IS the clean
+  multi-child shape - there is **no pre-launch migration code**. Unknown/newer
+  or corrupt payloads start fresh instead of crashing.
+- **Firebase sync**: `FirestoreFamilySyncAdapter` signs in anonymously, stores
+  the family snapshot at `families/{familyId}`, maintains `inviteCodes/{code}`,
+  watches remote changes, persists them locally, and supports join-by-code.
+  `firestore.rules` ships with invite-aware family read/update rules.
+- **Subscriptions**: `PurchaseService` (abstract) + `LocalPurchaseService` +
+  `RevenueCatPurchaseService`. Purchase/restore UX covers success, cancelled,
+  failed, and nothing-to-restore states, with busy guards and store-driven
+  prices when offerings are available. Product IDs:
+  `babyrelay_pro_special_annual`, `babyrelay_pro_monthly`,
   `babyrelay_pro_annual`; entitlement `pro`.
 - **Invites**: pure-Dart `InviteService` — unambiguous 6-char codes,
-  deterministic `https://babyrelay.app/join/<code>` payload + share text.
-  The QR in the invite sheet is a **decorative glyph**, not scannable; the
-  real QR ships with the deep-link handler.
+  deterministic `https://babyrelay.app/join/<code>` payload, share text, and a
+  scannable QR code in the invite sheet.
 - **Analytics**: allowlist-only event names, enum-like params asserted in
-  debug, no child/caregiver names ever logged. Debug-log sink today.
+  debug, no child/caregiver names ever logged. Debug-log sink locally; Firebase
+  Analytics sink when Firebase is configured.
+- **Crash/support/attribution**: Crashlytics and FCM init with Firebase,
+  Gleap-backed in-app support with email fallback, and an AppRefer/ATT startup
+  seam controlled by `APPREFER_LINK_ID`.
 - **Privacy**: versioned export envelope (app, appVersion, schemaVersion,
   exportedAt), confirmed destructive deletes (per-child and all-data).
 - **Settings**: integration status list (per-provider configured/not, debug
   builds only), support email row, debug-only demo rows (`Load sample day`,
   `Reset entitlement`) that never appear in release builds.
-- **Platform**: iPhone-only, portrait-only.
+- **Platform**: iPhone-only, portrait-only, iOS 15+.
 - **Tests**: engine, handoff, repository (schema, isolation, merge),
   purchases (all outcomes), invites, and widget flows incl. onboarding rating
   gate + paywall
@@ -51,22 +58,35 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 | RevenueCat | Test Store + App Store catalog mapped | Project `26c4f023`; Test Store app `appf68d685da8`; App Store app `app70e3a91be4`; App Store SDK key stored in `mc-vault`; Ruvix in-app purchase key and ASC API key are configured. Apple server notification URL is set in ASC for production and sandbox as V2. App Store monthly/annual products are imported, attached to `pro`, and included in the current `default` offering packages alongside Test Store products. App Store special annual product `babyrelay_pro_special_annual` is attached to `pro` in separate `special_offer` offering package `special_annual`. Account email still needs confirmation. |
 | App Store Connect | App record + subscriptions created | App ID `6779147183`, name `BabyRelay : Shared Baby Care`, SKU `BabyRelay`; subscription group `22150100`; special annual `6779256297` at `$29.99`, monthly `6779156238` at `$9.99`, annual `6779156833` at `$59.99`; standard monthly/annual have 7-day free trials and review screenshots, while special annual has no trial and its launch-offer screenshot uploaded. All currently read `MISSING_METADATA`, so they still need to be submitted with the App Store version/build. |
 
+## Build Defines
+
+```bash
+flutter build ios --release \
+  --dart-define=FIREBASE_CONFIGURED=true \
+  --dart-define=REVENUECAT_API_KEY=<from mc-vault: babyrelay-revenuecat-ios-sdk-key> \
+  --dart-define=GLEAP_SDK_KEY=<from mc-vault> \
+  --dart-define=APPREFER_LINK_ID=babyrelay-meta
+```
+
+If a define is omitted, that service remains disabled and the app keeps its
+local fallback behavior.
+
 ## Remaining Provider Work
 
 | Follow-up | Needs | Where it lands |
 |---|---|---|
-| Firebase Auth + Firestore sync | Add Flutter Firebase packages + repository implementation | Firestore-backed `FamilyRepository` behind the same API; model in `docs/plans/core/overview.md`; set `--dart-define=FIREBASE_CONFIGURED=true` |
-| Firebase Analytics/Crashlytics/Messaging | Add Flutter Firebase packages + runtime init | Sink inside `AnalyticsService.logEvent`; crash + push init in `main.dart` |
-| RevenueCat SDK + sandbox purchase | Add RevenueCat Flutter SDK implementation and run a sandbox purchase smoke against the real offering | RevenueCat-backed `PurchaseService`; entitlement `pro`; build-time SDK key service `babyrelay-revenuecat-ios-sdk-key` |
-| Real join flow | Firebase + universal links | Replace the local on-device add path in `care_team_screen.dart`; scannable QR from `InvitePayload.url` |
-| AppRefer attribution | App Store URL + `APPREFER_LINK_ID=babyrelay-meta` | Override `InviteService.decorateLink` |
-| Gleap support chat | `GLEAP_SDK_KEY` | Settings support row (email fallback already live) |
-| App Store assets/metadata | App screenshots, copy, privacy/nutrition, build, and review information | AppStore Copilot pipeline |
+| Deploy Firestore rules | Ruvix Firebase CLI/gcloud context selected, then `firebase -P babyrelay-ruvix deploy --only firestore:rules` | `firestore.rules` |
+| Universal/deep links | Apple associated domains + web route for `babyrelay.app/join/<code>` | Join links open the app directly instead of only showing the code |
+| RevenueCat sandbox purchase | TestFlight/sandbox build with the App Store SDK key | Validate current/special offerings and entitlement `pro` end to end |
+| AppRefer redirect | Real App Store URL once the listing exists | `trk.apprefer.com` can redirect; optional future wrapping in `InviteService.decorateLink` |
+| App Store assets/metadata | Store screenshots, privacy/nutrition, build, and review information | AppStore Copilot pipeline |
 
 ## Pre-submission checklist (when credentials exist)
 
-1. Wire the providers above; flip each Settings status to Configured.
-2. Replace local price labels with store-driven offerings (RevenueCat).
+1. Deploy Firestore rules and confirm anonymous join-by-code in a production
+   Firebase build.
+2. Run a RevenueCat sandbox purchase and restore with the live App Store
+   offering.
 3. Run `flutter analyze` + `flutter test`; full `app-presubmission` skill.
 4. Verify free-tier gates (2nd child, 3rd caregiver) against App Review
    guidelines with the live paywall.
