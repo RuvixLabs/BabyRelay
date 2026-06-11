@@ -125,7 +125,7 @@ class LocalPurchaseService extends PurchaseService {
       periodLabel: 'per year',
       trialDays: 0,
       originalPriceLabel: '\$59.99',
-      countdownSeconds: 900,
+      countdownSeconds: 90,
       badge: 'Save 50%',
       subline: 'Limited family launch offer',
       isSpecialOffer: true,

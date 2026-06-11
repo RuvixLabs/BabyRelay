@@ -162,7 +162,7 @@ void main() {
     // Over the free limit → paywall.
     expect(find.text('Claim annual offer'), findsOneWidget);
     expect(find.text('Offer ends in'), findsOneWidget);
-    expect(find.text('15:00'), findsOneWidget);
+    expect(find.text('1:30'), findsOneWidget);
   });
 
   testWidgets(

@@ -72,7 +72,7 @@ Live RevenueCat readback:
     `babyrelay_pro_annual`
 - Special offer offering: `special_offer` (`ofrngdfa887bf9a`), not current
   - Metadata: `title=Special Offer`, `badge_text=BEST VALUE`,
-    `countdown_seconds=900`
+    `countdown_seconds=90`
   - `special_annual` package (`pkge0daa9fb60f`) -> App Store
     `babyrelay_pro_special_annual`
 - No lifetime product is active.
@@ -109,9 +109,9 @@ entitlement is archived with no products attached.
   captured from the real Flutter paywall at `1206x2622`. The current screenshot
   includes the visible launch-offer timer and is uploaded to all three
   subscriptions:
-  - Special annual: `dc5c8a56-eb95-41ad-a6b8-6c2ca3b4fa94`
-  - Annual: `c6a3f0c9-ba61-4fb3-aad3-b1ea6032e98d`
-  - Monthly: `ed18905d-859e-4885-9215-8be09b1d4798`
+  - Special annual: `e0323cd6-0cc3-4f4f-b936-feee23f629c8`
+  - Annual: `e66325c4-9dec-4025-8bcd-491eeafd5755`
+  - Monthly: `4eecee8b-68a0-4c29-9fb5-39bf4b6943f3`
 - Current ASC product state: all subscriptions still read back
   `MISSING_METADATA`. Product localization, pricing, availability, free trials,
   group localization, and review screenshots are present; first-time
