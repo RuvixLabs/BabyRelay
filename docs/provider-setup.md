@@ -65,9 +65,14 @@ Live RevenueCat readback:
   - `babyrelay_pro_annual` (`P1Y`)
 - Default offering: `default`
 - Packages:
-  - `$rc_monthly` -> `babyrelay_pro_monthly`
-  - `$rc_annual` -> `babyrelay_pro_annual`
+  - `$rc_monthly` -> Test Store `babyrelay_pro_monthly` and App Store
+    `babyrelay_pro_monthly`
+  - `$rc_annual` -> Test Store `babyrelay_pro_annual` and App Store
+    `babyrelay_pro_annual`
 - No lifetime product is active.
+- App Store products imported into RevenueCat:
+  - Monthly: `prod7eca500296`, `babyrelay_pro_monthly`, attached to `pro`
+  - Annual: `prod5e1be41b9d`, `babyrelay_pro_annual`, attached to `pro`
 
 RevenueCat initially created an accidental entitlement identifier
 `BabyRelay Pro`; the two products were moved to `pro`, and the accidental
@@ -83,13 +88,28 @@ entitlement is archived with no products attached.
 - ASC SKU: `BabyRelay`
 - Apple server notifications: production and sandbox URLs are set from
   RevenueCat, both read back as version `V2`.
-- Subscription groups: none yet (`0` groups read back from ASC).
+- Subscription group: `22150100`, `BabyRelay Family`, localized `en-US`
+- Subscriptions:
+  - Monthly: `6779156238`, product ID `babyrelay_pro_monthly`, period
+    `ONE_MONTH`, USA price `$9.99`, 7-day free trial in `175` territories
+  - Annual: `6779156833`, product ID `babyrelay_pro_annual`, period
+    `ONE_YEAR`, USA price `$59.99`, 7-day free trial in `175` territories
+- Review screenshot: `artifacts/app_store_review/babyrelay_paywall_review.png`
+  captured from the real Flutter paywall at `1206x2622` and uploaded to both
+  subscriptions.
+- Current ASC product state: both subscriptions still read back
+  `MISSING_METADATA`. Product localization, pricing, availability, free trials,
+  group localization, and review screenshots are present; first-time
+  subscriptions still need to travel with the App Store version submission, not
+  standalone submission.
 
 Remaining App Store / subscription blockers:
 
-- Create App Store subscription products matching the RevenueCat product IDs:
-  `babyrelay_pro_monthly` and `babyrelay_pro_annual`.
-- Move the app build from the Test Store SDK key to
-  `babyrelay-revenuecat-ios-sdk-key` once the real store products exist.
+- Implement the RevenueCat-backed `PurchaseService` and build with
+  `babyrelay-revenuecat-ios-sdk-key`.
+- Submit the subscriptions with the App Store version and a build; do not use a
+  standalone subscription submission path for first-time products.
+- Run a sandbox purchase smoke after the build can fetch the real RevenueCat
+  offering.
 - Wire AppRefer purchase forwarding via RevenueCat webhook for sandbox and
   production events.

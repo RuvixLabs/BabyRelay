@@ -45,8 +45,8 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 |---|---|---|
 | Firebase | Created | Project `babyrelay-ruvix`; iOS app `com.ruvixlabs.babyrelay`; Firestore `(default)` in `nam5`; plist is bundled in the iOS target. |
 | AppRefer | Created | App `app_16e4ca28f81`; link `babyrelay-meta`; live/test SDK keys stored in `mc-vault`. Needs store destination URL before `trk.apprefer.com` can redirect. |
-| RevenueCat | Test Store catalog + App Store app config created | Project `26c4f023`; Test Store app `appf68d685da8`; App Store app `app70e3a91be4`; App Store SDK key stored in `mc-vault`; Ruvix in-app purchase key and ASC API key are configured. Apple server notification URL is set in ASC for production and sandbox as V2. Test Store products/offering still exist; real App Store products need ASC products before production purchase smoke. Account email still needs confirmation. |
-| App Store Connect | App record created | App ID `6779147183`, name `BabyRelay : Shared Baby Care`, SKU `BabyRelay`; Bundle ID `7PA3RQ369P` for `com.ruvixlabs.babyrelay` exists with In-App Purchase capability. Subscription products still need creation. |
+| RevenueCat | Test Store + App Store catalog mapped | Project `26c4f023`; Test Store app `appf68d685da8`; App Store app `app70e3a91be4`; App Store SDK key stored in `mc-vault`; Ruvix in-app purchase key and ASC API key are configured. Apple server notification URL is set in ASC for production and sandbox as V2. App Store monthly/annual products are imported, attached to `pro`, and included in the current `default` offering packages alongside Test Store products. Account email still needs confirmation. |
+| App Store Connect | App record + subscriptions created | App ID `6779147183`, name `BabyRelay : Shared Baby Care`, SKU `BabyRelay`; subscription group `22150100`; monthly `6779156238` at `$9.99`, annual `6779156833` at `$59.99`; both have 7-day free trials in 175 territories and review screenshots uploaded. Both currently read `MISSING_METADATA`, so they still need to be submitted with the App Store version/build. |
 
 ## Remaining Provider Work
 
@@ -54,11 +54,11 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 |---|---|---|
 | Firebase Auth + Firestore sync | Add Flutter Firebase packages + repository implementation | Firestore-backed `FamilyRepository` behind the same API; model in `docs/plans/core/overview.md`; set `--dart-define=FIREBASE_CONFIGURED=true` |
 | Firebase Analytics/Crashlytics/Messaging | Add Flutter Firebase packages + runtime init | Sink inside `AnalyticsService.logEvent`; crash + push init in `main.dart` |
-| RevenueCat / ASC subscriptions | Create subscription products matching `ProductIds`, then map real App Store products/offering | RevenueCat-backed `PurchaseService` implementation; entitlement `pro`; build-time SDK key service `babyrelay-revenuecat-ios-sdk-key` |
+| RevenueCat SDK + sandbox purchase | Add RevenueCat Flutter SDK implementation and run a sandbox purchase smoke against the real offering | RevenueCat-backed `PurchaseService`; entitlement `pro`; build-time SDK key service `babyrelay-revenuecat-ios-sdk-key` |
 | Real join flow | Firebase + universal links | Replace the local on-device add path in `care_team_screen.dart`; scannable QR from `InvitePayload.url` |
 | AppRefer attribution | App Store URL + `APPREFER_LINK_ID=babyrelay-meta` | Override `InviteService.decorateLink` |
 | Gleap support chat | `GLEAP_SDK_KEY` | Settings support row (email fallback already live) |
-| App Store assets/metadata | Screenshots, copy, privacy/nutrition, and review information | AppStore Copilot pipeline |
+| App Store assets/metadata | App screenshots, copy, privacy/nutrition, build, and review information | AppStore Copilot pipeline |
 
 ## Pre-submission checklist (when credentials exist)
 
