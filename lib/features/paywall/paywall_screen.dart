@@ -102,109 +102,85 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8, top: 4),
-                child: IconButton(
-                  icon: Icon(Icons.close, color: c.inkSoft),
-                  onPressed: () => Navigator.of(context).pop(),
+            Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(24, 10, 24, 18),
+                    children: [
+                      const _PaywallHero(),
+                      const SizedBox(height: 10),
+                      Text(
+                        'The whole care team,\non the same page',
+                        textAlign: TextAlign.center,
+                        style: text.headlineMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'BabyRelay Family keeps every caregiver in sync — try it free for 7 days.',
+                        textAlign: TextAlign.center,
+                        style: text.bodyMedium,
+                      ),
+                      const SizedBox(height: 18),
+                      for (final plan in purchases.plans) ...[
+                        _PlanTile(
+                          plan: plan,
+                          selected: _selected == plan.id,
+                          onTap: () {
+                            setState(() => _selected = plan.id);
+                            context.read<AnalyticsService>().logEvent(
+                              'plan_selected',
+                              {'plan': plan.id.name},
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                      const SizedBox(height: 6),
+                      const _FeatureGrid(),
+                    ],
+                  ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
+                  child: Column(
+                    children: [
+                      FilledButton(
+                        onPressed: purchases.busy ? null : _purchase,
+                        child: purchases.busy
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text('Start 7-day free trial'),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _selected == PlanId.annual
+                            ? 'Free for 7 days, then \$59.99/year. Cancel anytime.'
+                            : 'Free for 7 days, then \$9.99/month. Cancel anytime.',
+                        style: text.bodyMedium?.copyWith(fontSize: 13),
+                      ),
+                      TextButton(
+                        onPressed: purchases.busy ? null : _restore,
+                        child: const Text('Restore purchases'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                children: [
-                  // Warm illustration moment: overlapping caregiver circles.
-                  SizedBox(height: 84, child: _CareCircles()),
-                  const SizedBox(height: 20),
-                  Text(
-                    'The whole care team,\non the same page',
-                    textAlign: TextAlign.center,
-                    style: text.headlineMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'BabyRelay Family keeps every caregiver in sync — try it free for 7 days.',
-                    textAlign: TextAlign.center,
-                    style: text.bodyMedium,
-                  ),
-                  const SizedBox(height: 22),
-                  const _ValueProp(
-                    icon: Icons.group_add_outlined,
-                    label: 'Unlimited caregivers',
-                  ),
-                  const _ValueProp(
-                    icon: Icons.child_care_outlined,
-                    label: 'Every child, their own timeline',
-                  ),
-                  const _ValueProp(
-                    icon: Icons.swap_horiz_rounded,
-                    label: 'Shareable handoff sheets',
-                  ),
-                  const _ValueProp(
-                    icon: Icons.notifications_active_outlined,
-                    label: 'Cross-caregiver notifications',
-                  ),
-                  const _ValueProp(
-                    icon: Icons.history,
-                    label: 'Full history, beyond today',
-                  ),
-                  const _ValueProp(
-                    icon: Icons.route_outlined,
-                    label: 'Nap transition guidance',
-                  ),
-                  const _ValueProp(
-                    icon: Icons.ios_share,
-                    label: 'Export and share summaries',
-                  ),
-                  const SizedBox(height: 20),
-                  for (final plan in purchases.plans) ...[
-                    _PlanTile(
-                      plan: plan,
-                      selected: _selected == plan.id,
-                      onTap: () {
-                        setState(() => _selected = plan.id);
-                        context.read<AnalyticsService>().logEvent(
-                          'plan_selected',
-                          {'plan': plan.id.name},
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                  ],
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
-              child: Column(
-                children: [
-                  FilledButton(
-                    onPressed: purchases.busy ? null : _purchase,
-                    child: purchases.busy
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2.5),
-                          )
-                        : const Text('Start 7-day free trial'),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _selected == PlanId.annual
-                        ? 'Free for 7 days, then \$59.99/year. Cancel anytime.'
-                        : 'Free for 7 days, then \$9.99/month. Cancel anytime.',
-                    style: text.bodyMedium?.copyWith(fontSize: 13),
-                  ),
-                  TextButton(
-                    onPressed: purchases.busy ? null : _restore,
-                    child: const Text('Restore purchases'),
-                  ),
-                ],
+            Positioned(
+              top: 0,
+              right: 8,
+              child: IconButton(
+                icon: Icon(Icons.close, color: c.inkSoft),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ),
           ],
@@ -214,31 +190,84 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 }
 
-class _ValueProp extends StatelessWidget {
-  const _ValueProp({required this.icon, required this.label});
+class _PaywallHero extends StatelessWidget {
+  const _PaywallHero();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 128,
+      child: Image.asset(
+        'assets/images/generated/babyrelay_paywall_hero.png',
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
+      ),
+    );
+  }
+}
+
+class _FeatureGrid extends StatelessWidget {
+  const _FeatureGrid();
+
+  static const _features = [
+    _Feature(Icons.group_add_outlined, 'Care team'),
+    _Feature(Icons.child_care_outlined, 'Child timelines'),
+    _Feature(Icons.swap_horiz_rounded, 'Handoff notes'),
+    _Feature(Icons.notifications_active_outlined, 'Shared alerts'),
+    _Feature(Icons.history, 'Full history'),
+    _Feature(Icons.route_outlined, 'Nap guidance'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final feature in _features) _FeatureChip(feature: feature),
+      ],
+    );
+  }
+}
+
+class _Feature {
+  const _Feature(this.icon, this.label);
 
   final IconData icon;
   final String label;
+}
+
+class _FeatureChip extends StatelessWidget {
+  const _FeatureChip({required this.feature});
+
+  final _Feature feature;
 
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
+    final text = Theme.of(context).textTheme;
+    return Container(
+      width: (MediaQuery.sizeOf(context).width - 56) / 2,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: c.surface.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.outline),
+      ),
       child: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: c.sage.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 18, color: c.sage),
-          ),
-          const SizedBox(width: 12),
+          Icon(feature.icon, color: c.sage, size: 17),
+          const SizedBox(width: 8),
           Expanded(
-            child: Text(label, style: Theme.of(context).textTheme.bodyLarge),
+            child: Text(
+              feature.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: text.bodyMedium?.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -266,7 +295,7 @@ class _PlanTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         decoration: BoxDecoration(
           color: selected ? c.clay.withValues(alpha: 0.10) : c.surface,
           borderRadius: BorderRadius.circular(20),
@@ -288,7 +317,9 @@ class _PlanTile extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(plan.title, style: text.titleMedium),
+                      Flexible(
+                        child: Text(plan.title, style: text.titleMedium),
+                      ),
                       if (plan.badge != null) ...[
                         const SizedBox(width: 8),
                         Container(
@@ -313,7 +344,10 @@ class _PlanTile extends StatelessWidget {
                     ],
                   ),
                   if (plan.subline != null)
-                    Text(plan.subline!, style: text.bodyMedium),
+                    Text(
+                      plan.subline!,
+                      style: text.bodyMedium?.copyWith(fontSize: 13),
+                    ),
                 ],
               ),
             ),
@@ -327,52 +361,6 @@ class _PlanTile extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Overlapping warm circles standing in for the care team — no asset needed.
-class _CareCircles extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final c = context.relay;
-    final colors = c.avatarPalette;
-    return Center(
-      child: SizedBox(
-        width: 200,
-        height: 84,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            for (var i = 0; i < 4; i++)
-              Positioned(
-                left: 20.0 + i * 40,
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: colors[i % colors.length].withValues(alpha: 0.22),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colors[i % colors.length],
-                      width: 2,
-                    ),
-                  ),
-                  child: Icon(
-                    [
-                      Icons.favorite,
-                      Icons.nightlight_round,
-                      Icons.local_drink_outlined,
-                      Icons.swap_horiz_rounded,
-                    ][i],
-                    color: colors[i % colors.length],
-                    size: 24,
-                  ),
-                ),
-              ),
           ],
         ),
       ),
