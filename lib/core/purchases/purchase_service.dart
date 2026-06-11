@@ -23,6 +23,7 @@ class Plan {
     required this.periodLabel,
     required this.trialDays,
     this.originalPriceLabel,
+    this.countdownSeconds,
     this.badge,
     this.subline,
     this.isSpecialOffer = false,
@@ -35,6 +36,7 @@ class Plan {
   final String periodLabel;
   final int trialDays;
   final String? originalPriceLabel;
+  final int? countdownSeconds;
   final String? badge;
   final String? subline;
   final bool isSpecialOffer;
@@ -123,6 +125,7 @@ class LocalPurchaseService extends PurchaseService {
       periodLabel: 'per year',
       trialDays: 0,
       originalPriceLabel: '\$59.99',
+      countdownSeconds: 900,
       badge: 'Save 50%',
       subline: 'Limited family launch offer',
       isSpecialOffer: true,

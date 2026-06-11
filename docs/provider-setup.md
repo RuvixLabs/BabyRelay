@@ -107,10 +107,11 @@ entitlement is archived with no products attached.
     `ONE_YEAR`, USA price `$59.99`, 7-day free trial in `175` territories
 - Review screenshot: `artifacts/app_store_review/babyrelay_paywall_review.png`
   captured from the real Flutter paywall at `1206x2622`. The current screenshot
-  is uploaded to the special annual subscription
-  (`53623d56-b137-4639-9310-d45760b8c6f7`); monthly and annual already have
-  review screenshots, and ASC returned `Screenshot already exists` when
-  re-uploading the same asset.
+  includes the visible launch-offer timer and is uploaded to all three
+  subscriptions:
+  - Special annual: `dc5c8a56-eb95-41ad-a6b8-6c2ca3b4fa94`
+  - Annual: `c6a3f0c9-ba61-4fb3-aad3-b1ea6032e98d`
+  - Monthly: `ed18905d-859e-4885-9215-8be09b1d4798`
 - Current ASC product state: all subscriptions still read back
   `MISSING_METADATA`. Product localization, pricing, availability, free trials,
   group localization, and review screenshots are present; first-time

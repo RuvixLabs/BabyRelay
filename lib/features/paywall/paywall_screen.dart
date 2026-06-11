@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,8 +7,8 @@ import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/purchases/purchase_service.dart';
 
-/// Trial-first family paywall. Calm and honest: price and trial terms are
-/// stated plainly, close is always available, no fake urgency.
+/// Family paywall. Calm and honest: price, trial terms, and the limited launch
+/// offer window are stated plainly, and close is always available.
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
 
@@ -16,6 +18,10 @@ class PaywallScreen extends StatefulWidget {
 
 class _PaywallScreenState extends State<PaywallScreen> {
   PlanId _selected = PlanId.specialAnnual;
+  Timer? _countdownTimer;
+  DateTime? _specialOfferEndsAt;
+  int _offerRemainingSeconds = 0;
+  bool _timerConfigured = false;
 
   @override
   void initState() {
@@ -23,6 +29,47 @@ class _PaywallScreenState extends State<PaywallScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) context.read<AnalyticsService>().logEvent('paywall_viewed');
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_timerConfigured) return;
+    _timerConfigured = true;
+
+    final purchases = context.read<PurchaseService>();
+    Plan? specialPlan;
+    for (final plan in purchases.plans) {
+      if (plan.isSpecialOffer && plan.countdownSeconds != null) {
+        specialPlan = plan;
+        break;
+      }
+    }
+    final seconds = specialPlan?.countdownSeconds ?? 0;
+    if (seconds <= 0) return;
+
+    _offerRemainingSeconds = seconds;
+    _specialOfferEndsAt = DateTime.now().add(Duration(seconds: seconds));
+    _countdownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _tickOfferTimer(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _tickOfferTimer() {
+    final endsAt = _specialOfferEndsAt;
+    if (!mounted || endsAt == null) return;
+
+    final next = endsAt.difference(DateTime.now()).inSeconds.clamp(0, 86400);
+    if (next == _offerRemainingSeconds) return;
+    setState(() => _offerRemainingSeconds = next);
+    if (next == 0) _countdownTimer?.cancel();
   }
 
   Future<void> _purchase() async {
@@ -132,6 +179,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         _PlanTile(
                           plan: plan,
                           selected: _selected == plan.id,
+                          offerRemainingSeconds: plan.isSpecialOffer
+                              ? _offerRemainingSeconds
+                              : null,
                           onTap: () {
                             setState(() => _selected = plan.id);
                             context.read<AnalyticsService>().logEvent(
@@ -294,11 +344,13 @@ class _PlanTile extends StatelessWidget {
   const _PlanTile({
     required this.plan,
     required this.selected,
+    this.offerRemainingSeconds,
     required this.onTap,
   });
 
   final Plan plan;
   final bool selected;
+  final int? offerRemainingSeconds;
   final VoidCallback onTap;
 
   @override
@@ -394,6 +446,10 @@ class _PlanTile extends StatelessWidget {
                         color: plan.isSpecialOffer ? c.onNightSoft : null,
                       ),
                     ),
+                  if (plan.isSpecialOffer && offerRemainingSeconds != null) ...[
+                    const SizedBox(height: 8),
+                    _OfferTimerPill(seconds: offerRemainingSeconds!),
+                  ],
                 ],
               ),
             ),
@@ -427,6 +483,57 @@ class _PlanTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _OfferTimerPill extends StatelessWidget {
+  const _OfferTimerPill({required this.seconds});
+
+  final int seconds;
+
+  String get _label {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.relay;
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: c.sun.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.timer_outlined, size: 15, color: c.sun),
+          const SizedBox(width: 6),
+          Text(
+            'Offer ends in',
+            style: text.bodyMedium?.copyWith(
+              color: c.onNightSoft,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            _label,
+            style: text.bodyMedium?.copyWith(
+              color: c.onNight,
+              fontSize: 12.5,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
       ),
     );
   }

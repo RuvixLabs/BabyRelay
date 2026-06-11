@@ -25,6 +25,7 @@ void main() {
     expect(specialAnnual().productId, ProductIds.specialAnnual);
     expect(specialAnnual().isSpecialOffer, isTrue);
     expect(specialAnnual().trialDays, 0);
+    expect(specialAnnual().countdownSeconds, 900);
     expect(PurchaseService.entitlementId, 'pro');
   });
 
