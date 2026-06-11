@@ -61,6 +61,7 @@ Live RevenueCat readback:
   - Server-to-server notification token exists in RevenueCat
 - Active entitlement: `pro`
 - Products:
+  - `babyrelay_pro_special_annual` (`P1Y`, App Store special offer)
   - `babyrelay_pro_monthly` (`P1M`)
   - `babyrelay_pro_annual` (`P1Y`)
 - Default offering: `default`
@@ -69,8 +70,15 @@ Live RevenueCat readback:
     `babyrelay_pro_monthly`
   - `$rc_annual` -> Test Store `babyrelay_pro_annual` and App Store
     `babyrelay_pro_annual`
+- Special offer offering: `special_offer` (`ofrngdfa887bf9a`), not current
+  - Metadata: `title=Special Offer`, `badge_text=BEST VALUE`,
+    `countdown_seconds=900`
+  - `special_annual` package (`pkge0daa9fb60f`) -> App Store
+    `babyrelay_pro_special_annual`
 - No lifetime product is active.
 - App Store products imported into RevenueCat:
+  - Special annual: `prod43e81fc3ea`, `babyrelay_pro_special_annual`, attached
+    to `pro`
   - Monthly: `prod7eca500296`, `babyrelay_pro_monthly`, attached to `pro`
   - Annual: `prod5e1be41b9d`, `babyrelay_pro_annual`, attached to `pro`
 
@@ -90,14 +98,20 @@ entitlement is archived with no products attached.
   RevenueCat, both read back as version `V2`.
 - Subscription group: `22150100`, `BabyRelay Family`, localized `en-US`
 - Subscriptions:
+  - Special annual: `6779256297`, product ID
+    `babyrelay_pro_special_annual`, period `ONE_YEAR`, USA price `$29.99`,
+    no free trial, available in `50` territories
   - Monthly: `6779156238`, product ID `babyrelay_pro_monthly`, period
     `ONE_MONTH`, USA price `$9.99`, 7-day free trial in `175` territories
   - Annual: `6779156833`, product ID `babyrelay_pro_annual`, period
     `ONE_YEAR`, USA price `$59.99`, 7-day free trial in `175` territories
 - Review screenshot: `artifacts/app_store_review/babyrelay_paywall_review.png`
-  captured from the real Flutter paywall at `1206x2622` and uploaded to both
-  subscriptions.
-- Current ASC product state: both subscriptions still read back
+  captured from the real Flutter paywall at `1206x2622`. The current screenshot
+  is uploaded to the special annual subscription
+  (`53623d56-b137-4639-9310-d45760b8c6f7`); monthly and annual already have
+  review screenshots, and ASC returned `Screenshot already exists` when
+  re-uploading the same asset.
+- Current ASC product state: all subscriptions still read back
   `MISSING_METADATA`. Product localization, pricing, availability, free trials,
   group localization, and review screenshots are present; first-time
   subscriptions still need to travel with the App Store version submission, not

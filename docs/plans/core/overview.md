@@ -108,7 +108,8 @@ Onboarding should seed the deterministic guidance model.
 
 ### Paywall
 
-RevenueCat-backed, trial-first.
+RevenueCat-backed, with a limited annual launch offer ahead of the standard
+trial plans.
 
 The paid story is:
 - unlimited caregivers
@@ -290,11 +291,12 @@ Premium: `BabyRelay Family`
 Paywall placements:
 - Soft paywall after onboarding.
 - Hard gate on inviting a second caregiver.
-- Trial-first copy.
+- Launch-offer copy by default, with trial copy on the standard annual/monthly
+  plans.
 
 RevenueCat:
 - entitlement: `pro`
-- products: monthly and annual
+- products: special annual, annual, and monthly
 - do not hardcode store product IDs in business logic
 
 ## 4-Week Build Plan
@@ -407,4 +409,3 @@ The product must prove this in under 20 seconds:
 4. The handoff sheet explains the day in plain language.
 
 That is the ad, the product, and the retention mechanic.
-

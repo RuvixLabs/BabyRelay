@@ -102,9 +102,12 @@ class SettingsScreen extends StatelessWidget {
                       ? 'BabyRelay Family${purchases.inTrial ? ' · trial' : ''}'
                       : 'Free plan',
                   subtitle: purchases.isPro
-                      ? (purchases.activePlan == PlanId.annual
-                            ? 'Annual · \$59.99/yr'
-                            : 'Monthly · \$9.99/mo')
+                      ? switch (purchases.activePlan) {
+                          PlanId.specialAnnual => 'Special annual · \$29.99/yr',
+                          PlanId.annual => 'Annual · \$59.99/yr',
+                          PlanId.monthly => 'Monthly · \$9.99/mo',
+                          null => 'BabyRelay Family',
+                        }
                       : 'First child + one extra caregiver',
                   trailing: purchases.isPro
                       ? RelayChip('Active', color: c.sage)

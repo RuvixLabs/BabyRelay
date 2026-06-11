@@ -15,7 +15,7 @@ class PaywallScreen extends StatefulWidget {
 }
 
 class _PaywallScreenState extends State<PaywallScreen> {
-  PlanId _selected = PlanId.annual;
+  PlanId _selected = PlanId.specialAnnual;
 
   @override
   void initState() {
@@ -36,8 +36,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
       case PurchaseOutcome.success:
         analytics.logEvent('purchase_completed', {'plan': plan.id.name});
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Welcome to BabyRelay Family — trial started'),
+          SnackBar(
+            content: Text(
+              plan.trialDays > 0
+                  ? 'Welcome to BabyRelay Family — trial started'
+                  : 'Welcome to BabyRelay Family',
+            ),
           ),
         );
         Navigator.of(context).pop();
@@ -119,7 +123,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'BabyRelay Family keeps every caregiver in sync — try it free for 7 days.',
+                        'BabyRelay Family keeps every caregiver in sync — choose the launch offer or start with a trial.',
                         textAlign: TextAlign.center,
                         style: text.bodyMedium,
                       ),
@@ -157,13 +161,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
                                   strokeWidth: 2.5,
                                 ),
                               )
-                            : const Text('Start 7-day free trial'),
+                            : Text(_ctaLabel(purchases)),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        _selected == PlanId.annual
-                            ? 'Free for 7 days, then \$59.99/year. Cancel anytime.'
-                            : 'Free for 7 days, then \$9.99/month. Cancel anytime.',
+                        _billingCopy(purchases),
                         style: text.bodyMedium?.copyWith(fontSize: 13),
                       ),
                       TextButton(
@@ -187,6 +189,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ),
       ),
     );
+  }
+
+  String _ctaLabel(PurchaseService purchases) {
+    final plan = purchases.plans.firstWhere((p) => p.id == _selected);
+    return plan.trialDays > 0 ? 'Start 7-day free trial' : 'Claim annual offer';
+  }
+
+  String _billingCopy(PurchaseService purchases) {
+    final plan = purchases.plans.firstWhere((p) => p.id == _selected);
+    if (plan.trialDays > 0) {
+      return 'Free for ${plan.trialDays} days, then ${plan.priceLabel}${plan.id == PlanId.monthly ? '/month' : '/year'}. Cancel anytime.';
+    }
+    return '${plan.priceLabel}/year today. Cancel anytime.';
   }
 }
 
@@ -297,18 +312,39 @@ class _PlanTile extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         decoration: BoxDecoration(
-          color: selected ? c.clay.withValues(alpha: 0.10) : c.surface,
+          color: plan.isSpecialOffer
+              ? c.nightLow
+              : selected
+              ? c.clay.withValues(alpha: 0.10)
+              : c.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? c.clay : c.outline,
+            color: plan.isSpecialOffer
+                ? c.sun
+                : selected
+                ? c.clay
+                : c.outline,
             width: selected ? 2 : 1,
           ),
+          boxShadow: plan.isSpecialOffer
+              ? [
+                  BoxShadow(
+                    color: c.sun.withValues(alpha: selected ? 0.25 : 0.12),
+                    blurRadius: selected ? 24 : 14,
+                    offset: const Offset(0, 10),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
             Icon(
               selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: selected ? c.clayDeep : c.inkFaint,
+              color: plan.isSpecialOffer
+                  ? c.sun
+                  : selected
+                  ? c.clayDeep
+                  : c.inkFaint,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -318,7 +354,12 @@ class _PlanTile extends StatelessWidget {
                   Row(
                     children: [
                       Flexible(
-                        child: Text(plan.title, style: text.titleMedium),
+                        child: Text(
+                          plan.title,
+                          style: text.titleMedium?.copyWith(
+                            color: plan.isSpecialOffer ? c.onNight : null,
+                          ),
+                        ),
                       ),
                       if (plan.badge != null) ...[
                         const SizedBox(width: 8),
@@ -328,13 +369,15 @@ class _PlanTile extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: c.sage,
+                            color: plan.isSpecialOffer ? c.sun : c.sage,
                             borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
                             plan.badge!,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: plan.isSpecialOffer
+                                  ? c.nightLow
+                                  : Colors.white,
                               fontSize: 11.5,
                               fontWeight: FontWeight.w700,
                             ),
@@ -346,7 +389,10 @@ class _PlanTile extends StatelessWidget {
                   if (plan.subline != null)
                     Text(
                       plan.subline!,
-                      style: text.bodyMedium?.copyWith(fontSize: 13),
+                      style: text.bodyMedium?.copyWith(
+                        fontSize: 13,
+                        color: plan.isSpecialOffer ? c.onNightSoft : null,
+                      ),
                     ),
                 ],
               ),
@@ -354,10 +400,28 @@ class _PlanTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(plan.priceLabel, style: text.titleMedium),
+                if (plan.originalPriceLabel != null)
+                  Text(
+                    plan.originalPriceLabel!,
+                    style: text.bodyMedium?.copyWith(
+                      fontSize: 12,
+                      color: c.onNightSoft,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: c.onNightSoft,
+                    ),
+                  ),
+                Text(
+                  plan.priceLabel,
+                  style: text.titleMedium?.copyWith(
+                    color: plan.isSpecialOffer ? c.onNight : null,
+                  ),
+                ),
                 Text(
                   plan.periodLabel,
-                  style: text.bodyMedium?.copyWith(fontSize: 13),
+                  style: text.bodyMedium?.copyWith(
+                    fontSize: 13,
+                    color: plan.isSpecialOffer ? c.onNightSoft : null,
+                  ),
                 ),
               ],
             ),

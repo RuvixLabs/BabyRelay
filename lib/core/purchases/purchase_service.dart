@@ -4,12 +4,12 @@ import 'package:flutter/foundation.dart';
 
 import '../../data/local_store.dart';
 
-enum PlanId { monthly, annual }
+enum PlanId { specialAnnual, annual, monthly }
 
-/// Store product identifiers. These are repo-local placeholders until the
-/// products exist in App Store Connect; the RevenueCat offering maps them to
-/// [PlanId]s, so nothing else in the app touches raw product ids.
+/// Store product identifiers. The RevenueCat offering maps them to [PlanId]s,
+/// so nothing else in the app touches raw product ids.
 abstract final class ProductIds {
+  static const String specialAnnual = 'babyrelay_pro_special_annual';
   static const String monthly = 'babyrelay_pro_monthly';
   static const String annual = 'babyrelay_pro_annual';
 }
@@ -22,8 +22,10 @@ class Plan {
     required this.priceLabel,
     required this.periodLabel,
     required this.trialDays,
+    this.originalPriceLabel,
     this.badge,
     this.subline,
+    this.isSpecialOffer = false,
   });
 
   final PlanId id;
@@ -32,8 +34,10 @@ class Plan {
   final String priceLabel;
   final String periodLabel;
   final int trialDays;
+  final String? originalPriceLabel;
   final String? badge;
   final String? subline;
+  final bool isSpecialOffer;
 }
 
 /// Outcome of a purchase attempt. `cancelled` is the user backing out of the
@@ -112,13 +116,25 @@ class LocalPurchaseService extends PurchaseService {
   @override
   List<Plan> get plans => const [
     Plan(
+      id: PlanId.specialAnnual,
+      productId: ProductIds.specialAnnual,
+      title: 'Special annual',
+      priceLabel: '\$29.99',
+      periodLabel: 'per year',
+      trialDays: 0,
+      originalPriceLabel: '\$59.99',
+      badge: 'Save 50%',
+      subline: 'Limited family launch offer',
+      isSpecialOffer: true,
+    ),
+    Plan(
       id: PlanId.annual,
       productId: ProductIds.annual,
       title: 'Annual',
       priceLabel: '\$59.99',
       periodLabel: 'per year',
       trialDays: 7,
-      badge: 'Save 50%',
+      badge: '7-day trial',
       subline: 'About \$5 a month',
     ),
     Plan(
@@ -185,7 +201,9 @@ class LocalPurchaseService extends PurchaseService {
         case PurchaseOutcome.success:
           _isPro = true;
           _activePlan = plan.id;
-          _trialEndsAt = DateTime.now().add(Duration(days: plan.trialDays));
+          _trialEndsAt = plan.trialDays > 0
+              ? DateTime.now().add(Duration(days: plan.trialDays))
+              : null;
           _lastErrorMessage = null;
           await _persist();
           break;

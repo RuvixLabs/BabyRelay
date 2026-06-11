@@ -110,10 +110,10 @@ The MVP is implemented and runs fully on-device (no credentials):
   transition detection from `docs/plans/core/overview.md`. Pure Dart, tested.
 - `lib/domain/services/handoff_service.dart` generates the plain-language
   handoff summary. Pure Dart, tested.
-- `PurchaseService` mocks RevenueCat (`pro` entitlement, monthly/annual with
-  7-day trial). `AnalyticsService` enforces the allowlist + no-PII rule.
+- `PurchaseService` mocks RevenueCat (`pro` entitlement, special annual launch
+  offer plus monthly/annual trial plans). `AnalyticsService` enforces the
+  allowlist + no-PII rule.
 - Free tier allows owner + 1 caregiver; inviting beyond that gates on the
   paywall.
 - Settings has a "Load sample day" action that seeds a believable demo day.
-
 

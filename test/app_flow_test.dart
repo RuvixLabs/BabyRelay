@@ -160,7 +160,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Over the free limit → paywall.
-    expect(find.text('Start 7-day free trial'), findsOneWidget);
+    expect(find.text('Claim annual offer'), findsOneWidget);
   });
 
   testWidgets(
@@ -179,7 +179,7 @@ void main() {
       // Free tier already has one child → paywall.
       await tester.tap(find.text('Add a child'));
       await tester.pumpAndSettle();
-      expect(find.text('Start 7-day free trial'), findsOneWidget);
+      expect(find.text('Claim annual offer'), findsOneWidget);
     },
   );
 
@@ -221,23 +221,23 @@ void main() {
     // Cancelled: stays on the paywall, still free, no error copy.
     await openPaywall();
     purchases.nextPurchaseOutcome = PurchaseOutcome.cancelled;
-    await tester.tap(find.text('Start 7-day free trial'));
+    await tester.tap(find.text('Claim annual offer'));
     await tester.pumpAndSettle();
     expect(purchases.isPro, isFalse);
-    expect(find.text('Start 7-day free trial'), findsOneWidget);
+    expect(find.text('Claim annual offer'), findsOneWidget);
 
     // Failed: stays free and surfaces the error.
     purchases.nextPurchaseOutcome = PurchaseOutcome.failed;
-    await tester.tap(find.text('Start 7-day free trial'));
+    await tester.tap(find.text('Claim annual offer'));
     await tester.pumpAndSettle();
     expect(purchases.isPro, isFalse);
     expect(find.textContaining('could not be completed'), findsOneWidget);
 
     // Success: entitlement granted and the paywall dismisses.
-    await tester.tap(find.text('Start 7-day free trial'));
+    await tester.tap(find.text('Claim annual offer'));
     await tester.pumpAndSettle();
     expect(purchases.isPro, isTrue);
-    expect(find.text('Start 7-day free trial'), findsNothing);
+    expect(find.text('Claim annual offer'), findsNothing);
   });
 
   testWidgets('restore with no purchase reports nothing to restore', (

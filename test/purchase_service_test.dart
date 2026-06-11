@@ -11,12 +11,30 @@ void main() {
     purchases = LocalPurchaseService(store, actionDelay: Duration.zero);
   });
 
+  Plan specialAnnual() =>
+      purchases.plans.firstWhere((p) => p.id == PlanId.specialAnnual);
   Plan annual() => purchases.plans.firstWhere((p) => p.id == PlanId.annual);
 
-  test('catalog exposes both plans with product ids', () {
-    expect(purchases.plans.map((p) => p.id), [PlanId.annual, PlanId.monthly]);
+  test('catalog exposes offer, annual, and monthly plans with product ids', () {
+    expect(purchases.plans.map((p) => p.id), [
+      PlanId.specialAnnual,
+      PlanId.annual,
+      PlanId.monthly,
+    ]);
     expect(purchases.plans.map((p) => p.productId), everyElement(isNotEmpty));
+    expect(specialAnnual().productId, ProductIds.specialAnnual);
+    expect(specialAnnual().isSpecialOffer, isTrue);
+    expect(specialAnnual().trialDays, 0);
     expect(PurchaseService.entitlementId, 'pro');
+  });
+
+  test('special annual purchase grants pro without a trial', () async {
+    final outcome = await purchases.purchase(specialAnnual());
+    expect(outcome, PurchaseOutcome.success);
+    expect(purchases.isPro, isTrue);
+    expect(purchases.activePlan, PlanId.specialAnnual);
+    expect(purchases.inTrial, isFalse);
+    expect(purchases.trialEndsAt, isNull);
   });
 
   test('successful purchase grants pro with a trial and persists', () async {
