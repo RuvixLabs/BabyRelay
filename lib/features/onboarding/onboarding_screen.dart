@@ -266,7 +266,7 @@ class _WelcomeStep extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _WelcomeHeroIllustration(height: compact ? 142 : 214),
+              _WelcomeHeroIllustration(height: compact ? 150 : 230),
               SizedBox(height: compact ? 16 : 24),
               Text(
                 'BABYRELAY',
@@ -306,7 +306,7 @@ class _WelcomeHeroIllustration extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 390),
         child: Image.asset(
-          'assets/images/generated/babyrelay_onboarding_hero.png',
+          'assets/images/generated/babyrelay_onboarding_hero_v2.png',
           height: height,
           fit: BoxFit.contain,
           semanticLabel:
