@@ -73,5 +73,11 @@ Description count: 1216 / 4000.
   It is uploaded to a separate AppStore Co-Pilot storage path for review, but
   is not promoted over the current staged set and is not pushed live to App
   Store Connect.
+- The approved follow-up `gpt-image-2` v3 pop-out set is now promoted/staged in
+  AppStore Co-Pilot for `APP_IPHONE_69` / `en-US` with local screenshot
+  changes:
+  `artifacts/app_store_screenshots/gpt-image-2-story-v3-popouts/2026-06-16/iphone_69/`.
+  It replaces the earlier staged screenshot set inside AppStore Co-Pilot but
+  has not been pushed live to App Store Connect.
 - The copy intentionally avoids medical, safe-sleep, or sleep-training outcome
   promises.

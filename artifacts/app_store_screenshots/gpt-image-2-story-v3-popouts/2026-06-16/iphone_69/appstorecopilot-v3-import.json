@@ -1,0 +1,82 @@
+{
+  "projectId": "irq0wa833wWMRsASUxfK",
+  "displayType": "APP_IPHONE_69",
+  "locale": "en-US",
+  "importedAt": "2026-06-16T20:26:24.586Z",
+  "screenshotsImported": 6,
+  "syncStatus": "local_changes",
+  "uploaded": [
+    {
+      "position": 0,
+      "file": "01_shared_log_popout.jpg",
+      "headline": "One shared log for every caregiver.",
+      "subtitle": "Parents, partners, grandparents, and nannies see the same day.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/01_shared_log_popout.jpg",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/01_shared_log_popout.jpg",
+      "sizeBytes": 313990,
+      "width": 1320,
+      "height": 2868,
+      "heroMechanic": "floating child-chip row plus caregiver portrait medallions"
+    },
+    {
+      "position": 1,
+      "file": "02_shared_timeline_popout.jpg",
+      "headline": "Log once. Everyone is updated.",
+      "subtitle": "Sleep, feeds, diapers, notes, and wakes stay in one shared timeline.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/02_shared_timeline_popout.jpg",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/02_shared_timeline_popout.jpg",
+      "sizeBytes": 309871,
+      "width": 1320,
+      "height": 2868,
+      "heroMechanic": "floating shared timeline row with caregiver dots"
+    },
+    {
+      "position": 2,
+      "file": "03_handoff_guesswork_popout.jpg",
+      "headline": "No more handoff guesswork.",
+      "subtitle": "See the last nap, feed, change, and note before you take over.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/03_handoff_guesswork_popout.jpg",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/03_handoff_guesswork_popout.jpg",
+      "sizeBytes": 359029,
+      "width": 1320,
+      "height": 2868,
+      "heroMechanic": "handoff summary card breaking out of the phone"
+    },
+    {
+      "position": 3,
+      "file": "04_child_timelines_split.jpg",
+      "headline": "Every child stays separate.",
+      "subtitle": "Switch siblings without mixing naps, feeds, or notes.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/04_child_timelines_split.jpg",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/04_child_timelines_split.jpg",
+      "sizeBytes": 295268,
+      "width": 1320,
+      "height": 2868,
+      "heroMechanic": "split sibling timeline ribbons plus active child chip pop-out"
+    },
+    {
+      "position": 4,
+      "file": "05_send_day_action.jpg",
+      "headline": "Send the day in seconds.",
+      "subtitle": "A ready-to-share summary turns care history into context.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/05_send_day_action.jpg",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/05_send_day_action.jpg",
+      "sizeBytes": 339369,
+      "width": 1320,
+      "height": 2868,
+      "heroMechanic": "share handoff button pop-out with receive cue"
+    },
+    {
+      "position": 5,
+      "file": "06_care_team_web.jpg",
+      "headline": "Build your baby care team.",
+      "subtitle": "Invite helpers so every update stays shared.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/06_care_team_web.jpg",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/6.9/06_care_team_web.jpg",
+      "sizeBytes": 288135,
+      "width": 1320,
+      "height": 2868,
+      "heroMechanic": "caregiver portrait web plus invite button pop-out"
+    }
+  ]
+}

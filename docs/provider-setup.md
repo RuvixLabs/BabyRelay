@@ -131,6 +131,12 @@ Live AppStore Co-Pilot readback:
   secret API key is stored yet. AppStore Co-Pilot's RevenueCat management tools
   will need a `babyrelay-revenuecat-secret-key` vault entry and project field
   before they can manage/read the RevenueCat catalog directly.
+- The approved GPT-image-2 v3 App Store screenshot set is staged in
+  AppStore Co-Pilot for `APP_IPHONE_69` / `en-US` with `syncStatus:
+  local_changes`:
+  `artifacts/app_store_screenshots/gpt-image-2-story-v3-popouts/2026-06-16/iphone_69/`.
+  The six stored AppStore Co-Pilot URLs were read back with HTTP 200. The set
+  has not been pushed to App Store Connect yet.
 
 ## App Store Connect
 
