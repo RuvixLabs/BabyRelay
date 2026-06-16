@@ -1,0 +1,133 @@
+[
+  {
+    "id": "01_amber_crib_spotlight",
+    "name": "Amber crib spotlight",
+    "headline": "Know what happened. Know what’s next.",
+    "subhead": "A shared baby log that makes the next care moment obvious.",
+    "background": "warm amber crib-side spotlight, deep cocoa corners, soft bassinet shadow shapes, a small crescent moon glow, premium night-nursery atmosphere",
+    "taskId": "c9ee6f662ad894d70dd61734938217b9",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/01_amber_crib_spotlight.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/01_amber_crib_spotlight.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "01_midnight_spotlight_phone",
+    "tabBarConstraint": "No visible bottom navigation/tab bar; no Today/Care team/Settings bottom labels.",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Use it as product truth for the visible BabyRelay UI content.\nSECOND IMAGE: the previous \"01 Midnight spotlight\" style reference. Match its full-screen impact, large product UI, high contrast, and dimensional pop-out treatment, but create a new background concept.\n\nVERY IMPORTANT CHANGE FROM THE REFERENCE: do NOT show the bottom app tab bar/navigation at all. The reference and raw screen may contain bottom navigation, but this new concept must remove it from view. There must be no visible bottom navigation bar, no Today/Care team/Settings labels, and no bottom tab icons anywhere. Achieve this by cropping/framing the phone higher, letting foreground cards cover the lower navigation area, or letting the phone continue below the bottom edge. The visible product UI should focus on the top header, next-up card, asleep button, quick action buttons, and timeline start only.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Know what happened. Know what’s next.\"\nSUBHEAD TEXT (verbatim): \"A shared baby log that makes the next care moment obvious.\"\nBACKGROUND DIRECTION: Amber crib spotlight — warm amber crib-side spotlight, deep cocoa corners, soft bassinet shadow shapes, a small crescent moon glow, premium night-nursery atmosphere.\n\nCOMPOSITION REQUIREMENTS: Fill the frame like the reference. Make the iPhone/product UI large, bright, and visually prominent. Let the next-up card and quick action buttons pop forward with soft depth. Keep the full concept portrait-shaped, polished, and readable. Keep the headline large and readable at the top.\n\nSTRICT CONSTRAINTS: no bottom tab bar/navigation, no Today/Care team/Settings bottom labels, no paywall, no subscription offer, no fake ratings, no fake awards, no App Store badges, no medical claims, no sleep-training promises, no QR code. Do not invent app features beyond the BabyRelay care log/timeline/next-up guidance shown in the raw screen."
+  },
+  {
+    "id": "02_indigo_moon_wall",
+    "name": "Indigo moon wall",
+    "headline": "Know what happened. Know what’s next.",
+    "subhead": "Sleep, feeds, notes, and handoffs stay clear at 2am.",
+    "background": "rich indigo nursery wall with dimensional moon phases and subtle hand-painted stars, warm cream rim light behind the phone, high contrast but calming",
+    "taskId": "047260e7d61a533e1655072854229955",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/02_indigo_moon_wall.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/02_indigo_moon_wall.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "01_midnight_spotlight_phone",
+    "tabBarConstraint": "No visible bottom navigation/tab bar; no Today/Care team/Settings bottom labels.",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Use it as product truth for the visible BabyRelay UI content.\nSECOND IMAGE: the previous \"01 Midnight spotlight\" style reference. Match its full-screen impact, large product UI, high contrast, and dimensional pop-out treatment, but create a new background concept.\n\nVERY IMPORTANT CHANGE FROM THE REFERENCE: do NOT show the bottom app tab bar/navigation at all. The reference and raw screen may contain bottom navigation, but this new concept must remove it from view. There must be no visible bottom navigation bar, no Today/Care team/Settings labels, and no bottom tab icons anywhere. Achieve this by cropping/framing the phone higher, letting foreground cards cover the lower navigation area, or letting the phone continue below the bottom edge. The visible product UI should focus on the top header, next-up card, asleep button, quick action buttons, and timeline start only.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Know what happened. Know what’s next.\"\nSUBHEAD TEXT (verbatim): \"Sleep, feeds, notes, and handoffs stay clear at 2am.\"\nBACKGROUND DIRECTION: Indigo moon wall — rich indigo nursery wall with dimensional moon phases and subtle hand-painted stars, warm cream rim light behind the phone, high contrast but calming.\n\nCOMPOSITION REQUIREMENTS: Fill the frame like the reference. Make the iPhone/product UI large, bright, and visually prominent. Let the next-up card and quick action buttons pop forward with soft depth. Keep the full concept portrait-shaped, polished, and readable. Keep the headline large and readable at the top.\n\nSTRICT CONSTRAINTS: no bottom tab bar/navigation, no Today/Care team/Settings bottom labels, no paywall, no subscription offer, no fake ratings, no fake awards, no App Store badges, no medical claims, no sleep-training promises, no QR code. Do not invent app features beyond the BabyRelay care log/timeline/next-up guidance shown in the raw screen."
+  },
+  {
+    "id": "03_sage_paper_night",
+    "name": "Sage paper night",
+    "headline": "Tiny moments. Shared clearly.",
+    "subhead": "Log once and everyone knows what changed.",
+    "background": "matte sage-and-charcoal paper craft night scene, layered cut-paper moon, warm cream paper grain, softly lit product-table feel, elegant editorial parenting magazine mood",
+    "taskId": "70cb563f84f487af43e426b30ee10bc8",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/03_sage_paper_night.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/03_sage_paper_night.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "01_midnight_spotlight_phone",
+    "tabBarConstraint": "No visible bottom navigation/tab bar; no Today/Care team/Settings bottom labels.",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Use it as product truth for the visible BabyRelay UI content.\nSECOND IMAGE: the previous \"01 Midnight spotlight\" style reference. Match its full-screen impact, large product UI, high contrast, and dimensional pop-out treatment, but create a new background concept.\n\nVERY IMPORTANT CHANGE FROM THE REFERENCE: do NOT show the bottom app tab bar/navigation at all. The reference and raw screen may contain bottom navigation, but this new concept must remove it from view. There must be no visible bottom navigation bar, no Today/Care team/Settings labels, and no bottom tab icons anywhere. Achieve this by cropping/framing the phone higher, letting foreground cards cover the lower navigation area, or letting the phone continue below the bottom edge. The visible product UI should focus on the top header, next-up card, asleep button, quick action buttons, and timeline start only.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Tiny moments. Shared clearly.\"\nSUBHEAD TEXT (verbatim): \"Log once and everyone knows what changed.\"\nBACKGROUND DIRECTION: Sage paper night — matte sage-and-charcoal paper craft night scene, layered cut-paper moon, warm cream paper grain, softly lit product-table feel, elegant editorial parenting magazine mood.\n\nCOMPOSITION REQUIREMENTS: Fill the frame like the reference. Make the iPhone/product UI large, bright, and visually prominent. Let the next-up card and quick action buttons pop forward with soft depth. Keep the full concept portrait-shaped, polished, and readable. Keep the headline large and readable at the top.\n\nSTRICT CONSTRAINTS: no bottom tab bar/navigation, no Today/Care team/Settings bottom labels, no paywall, no subscription offer, no fake ratings, no fake awards, no App Store badges, no medical claims, no sleep-training promises, no QR code. Do not invent app features beyond the BabyRelay care log/timeline/next-up guidance shown in the raw screen."
+  },
+  {
+    "id": "04_bedside_lamp_depth",
+    "name": "Bedside lamp depth",
+    "headline": "Every caregiver sees the latest.",
+    "subhead": "The next nap, last feed, and notes stay in one calm view.",
+    "background": "cozy bedside lamp glow with blurred nursery shelf depth, dark plum shadows, amber halo, realistic product photography, tactile premium materials",
+    "taskId": "8939cdbaf19d44eeaa7c9cd80e9cfc73",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/04_bedside_lamp_depth.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/04_bedside_lamp_depth.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "01_midnight_spotlight_phone",
+    "tabBarConstraint": "No visible bottom navigation/tab bar; no Today/Care team/Settings bottom labels.",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Use it as product truth for the visible BabyRelay UI content.\nSECOND IMAGE: the previous \"01 Midnight spotlight\" style reference. Match its full-screen impact, large product UI, high contrast, and dimensional pop-out treatment, but create a new background concept.\n\nVERY IMPORTANT CHANGE FROM THE REFERENCE: do NOT show the bottom app tab bar/navigation at all. The reference and raw screen may contain bottom navigation, but this new concept must remove it from view. There must be no visible bottom navigation bar, no Today/Care team/Settings labels, and no bottom tab icons anywhere. Achieve this by cropping/framing the phone higher, letting foreground cards cover the lower navigation area, or letting the phone continue below the bottom edge. The visible product UI should focus on the top header, next-up card, asleep button, quick action buttons, and timeline start only.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Every caregiver sees the latest.\"\nSUBHEAD TEXT (verbatim): \"The next nap, last feed, and notes stay in one calm view.\"\nBACKGROUND DIRECTION: Bedside lamp depth — cozy bedside lamp glow with blurred nursery shelf depth, dark plum shadows, amber halo, realistic product photography, tactile premium materials.\n\nCOMPOSITION REQUIREMENTS: Fill the frame like the reference. Make the iPhone/product UI large, bright, and visually prominent. Let the next-up card and quick action buttons pop forward with soft depth. Keep the full concept portrait-shaped, polished, and readable. Keep the headline large and readable at the top.\n\nSTRICT CONSTRAINTS: no bottom tab bar/navigation, no Today/Care team/Settings bottom labels, no paywall, no subscription offer, no fake ratings, no fake awards, no App Store badges, no medical claims, no sleep-training promises, no QR code. Do not invent app features beyond the BabyRelay care log/timeline/next-up guidance shown in the raw screen."
+  },
+  {
+    "id": "05_dawn_rimlight_pop",
+    "name": "Dawn rimlight pop",
+    "headline": "Wake up already caught up.",
+    "subhead": "Morning handoffs start with a clear picture of the night.",
+    "background": "night-to-dawn gradient with peach rim light from below, deep navy upper field, soft horizon glow, phone and app cards popping forward like a premium launch poster",
+    "taskId": "c845ee5633756bf07d660f794730a39d",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/05_dawn_rimlight_pop.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/05_dawn_rimlight_pop.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "01_midnight_spotlight_phone",
+    "tabBarConstraint": "No visible bottom navigation/tab bar; no Today/Care team/Settings bottom labels.",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Use it as product truth for the visible BabyRelay UI content.\nSECOND IMAGE: the previous \"01 Midnight spotlight\" style reference. Match its full-screen impact, large product UI, high contrast, and dimensional pop-out treatment, but create a new background concept.\n\nVERY IMPORTANT CHANGE FROM THE REFERENCE: do NOT show the bottom app tab bar/navigation at all. The reference and raw screen may contain bottom navigation, but this new concept must remove it from view. There must be no visible bottom navigation bar, no Today/Care team/Settings labels, and no bottom tab icons anywhere. Achieve this by cropping/framing the phone higher, letting foreground cards cover the lower navigation area, or letting the phone continue below the bottom edge. The visible product UI should focus on the top header, next-up card, asleep button, quick action buttons, and timeline start only.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Wake up already caught up.\"\nSUBHEAD TEXT (verbatim): \"Morning handoffs start with a clear picture of the night.\"\nBACKGROUND DIRECTION: Dawn rimlight pop — night-to-dawn gradient with peach rim light from below, deep navy upper field, soft horizon glow, phone and app cards popping forward like a premium launch poster.\n\nCOMPOSITION REQUIREMENTS: Fill the frame like the reference. Make the iPhone/product UI large, bright, and visually prominent. Let the next-up card and quick action buttons pop forward with soft depth. Keep the full concept portrait-shaped, polished, and readable. Keep the headline large and readable at the top.\n\nSTRICT CONSTRAINTS: no bottom tab bar/navigation, no Today/Care team/Settings bottom labels, no paywall, no subscription offer, no fake ratings, no fake awards, no App Store badges, no medical claims, no sleep-training promises, no QR code. Do not invent app features beyond the BabyRelay care log/timeline/next-up guidance shown in the raw screen."
+  },
+  {
+    "id": "08_velvet_midnight_cards",
+    "name": "Velvet midnight cards",
+    "headline": "Know what happened. Know what’s next.",
+    "subhead": "Care cards stay clear without waking the room.",
+    "background": "velvet midnight gradient, warm floating care cards, cream light spill from below, cinematic product poster feeling",
+    "taskId": "a14127088b14d17a3ea83af5838beef9",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/08_velvet_midnight_cards.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/08_velvet_midnight_cards.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "01_midnight_spotlight_phone",
+    "tabBarConstraint": "Strict replacement: phone/screen must be cropped before bottom navigation."
+  }
+]
