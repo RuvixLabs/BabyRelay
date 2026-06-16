@@ -110,7 +110,10 @@ Live AppStore Co-Pilot readback:
 - en-US launch metadata is staged as AppStore Co-Pilot metadata history
   version 7. The repo copy is `docs/app-store-metadata.md`. Latest
   AppStore Co-Pilot compliance result has only the required privacy-policy
-  URL blockers remaining; metadata-copy warnings are cleared.
+  URL blockers remaining; metadata-copy warnings are cleared. Co-Pilot does
+  not currently see BabyRelay subscriptions because the subscription catalog
+  is not imported, so Terms/EULA legal docs are still required before
+  submission.
 - RevenueCat public SDK keys are in `mc-vault`, but no BabyRelay RevenueCat
   secret API key is stored yet. AppStore Co-Pilot's RevenueCat management tools
   will need a `babyrelay-revenuecat-secret-key` vault entry and project field

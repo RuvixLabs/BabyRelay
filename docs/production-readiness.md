@@ -81,7 +81,7 @@ local fallback behavior.
 | RevenueCat sandbox purchase | TestFlight/sandbox build with the App Store SDK key | Validate current/special offerings and entitlement `pro` end to end |
 | AppStore Co-Pilot RevenueCat secret | BabyRelay RevenueCat secret API key created/stored | Enables AppStore Co-Pilot RevenueCat catalog tools for project `irq0wa833wWMRsASUxfK` |
 | AppRefer redirect | Real App Store URL once the listing exists | `trk.apprefer.com` can redirect; optional future wrapping in `InviteService.decorateLink` |
-| App Store assets/metadata | en-US launch metadata is drafted in `docs/app-store-metadata.md` and staged in AppStore Co-Pilot project `irq0wa833wWMRsASUxfK` as history version 7. AppStore Co-Pilot compliance now has zero metadata-copy warnings/infos; the only remaining errors are the required privacy-policy URL checks. Still needs public legal URLs, privacy nutrition, store screenshots, build, review information, and live ASC publish. | AppStore Co-Pilot pipeline |
+| App Store assets/metadata | en-US launch metadata is drafted in `docs/app-store-metadata.md` and staged in AppStore Co-Pilot project `irq0wa833wWMRsASUxfK` as history version 7. AppStore Co-Pilot compliance now has zero metadata-copy warnings/infos; the only reported errors are the required privacy-policy URL checks. Because the BabyRelay subscription catalog is not imported into Co-Pilot yet, Terms/EULA still need to be created and published even though the checker did not flag them. Still needs public legal URLs, privacy nutrition, store screenshots, build, review information, and live ASC publish. | AppStore Co-Pilot pipeline |
 
 ## Pre-submission checklist (when credentials exist)
 
