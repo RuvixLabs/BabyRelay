@@ -9,7 +9,7 @@ App Store Connect review. Current scope is `en-US`.
 |---|---|---:|---:|
 | Name | BabyRelay: Shared Baby Care | 30 | 27 |
 | Subtitle | Baby Log & Care Sync | 30 | 20 |
-| Privacy Policy URL | TBD before submission | URL | - |
+| Privacy Policy URL | https://appstorecopilot.com/legal/3omln7px/privacy | URL | - |
 
 ## Version Metadata
 
