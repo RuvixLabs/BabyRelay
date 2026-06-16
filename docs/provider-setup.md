@@ -1,6 +1,6 @@
 # Provider Setup
 
-Last updated: 2026-06-11
+Last updated: 2026-06-16
 
 ## Firebase
 
@@ -86,6 +86,32 @@ RevenueCat initially created an accidental entitlement identifier
 `BabyRelay Pro`; the two products were moved to `pro`, and the accidental
 entitlement is archived with no products attached.
 
+## AppStore Co-Pilot
+
+- Owner: Ruvix user `joe@ruvixlabs.com`
+- Owner user ID: `GK524x5pDvUn8E55SSc6obfimjZ2`
+- Project ID: `irq0wa833wWMRsASUxfK`
+- Project name: `BabyRelay : Shared Baby Care`
+- Store type: `ios`
+- App Store app ID: `6779147183`
+- Primary locale: `en-US`
+
+Live AppStore Co-Pilot readback:
+
+- Project exists at
+  `users/GK524x5pDvUn8E55SSc6obfimjZ2/projects/irq0wa833wWMRsASUxfK`.
+- Ruvix account-level App Store credentials are present in AppStore Co-Pilot,
+  so the project can use the same credential inheritance model as the other
+  Ruvix iOS apps.
+- Firebase IDs are linked:
+  - Firebase project ID: `babyrelay-ruvix`
+  - Firebase iOS app ID: `1:500197010265:ios:3e9e3b96b065cb7b287a48`
+- RevenueCat project ID is linked: `26c4f023`.
+- RevenueCat public SDK keys are in `mc-vault`, but no BabyRelay RevenueCat
+  secret API key is stored yet. AppStore Co-Pilot's RevenueCat management tools
+  will need a `babyrelay-revenuecat-secret-key` vault entry and project field
+  before they can manage/read the RevenueCat catalog directly.
+
 ## App Store Connect
 
 - Ruvix bundle ID: `7PA3RQ369P`
@@ -122,6 +148,8 @@ Remaining App Store / subscription blockers:
 
 - Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
   smoke against the real offering.
+- Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
+  direct RevenueCat catalog management.
 - Submit the subscriptions with the App Store version and a build; do not use a
   standalone subscription submission path for first-time products.
 - Wire AppRefer purchase forwarding via RevenueCat webhook for sandbox and

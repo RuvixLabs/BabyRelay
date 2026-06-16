@@ -56,6 +56,7 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 | Firebase | Created | Project `babyrelay-ruvix`; iOS app `com.ruvixlabs.babyrelay`; Firestore `(default)` in `nam5`; plist is bundled in the iOS target. |
 | AppRefer | Created | App `app_16e4ca28f81`; link `babyrelay-meta`; live/test SDK keys stored in `mc-vault`. Needs store destination URL before `trk.apprefer.com` can redirect. |
 | RevenueCat | Test Store + App Store catalog mapped | Project `26c4f023`; Test Store app `appf68d685da8`; App Store app `app70e3a91be4`; App Store SDK key stored in `mc-vault`; Ruvix in-app purchase key and ASC API key are configured. Apple server notification URL is set in ASC for production and sandbox as V2. App Store monthly/annual products are imported, attached to `pro`, and included in the current `default` offering packages alongside Test Store products. App Store special annual product `babyrelay_pro_special_annual` is attached to `pro` in separate `special_offer` offering package `special_annual`. Account email still needs confirmation. |
+| AppStore Co-Pilot | Project created | Ruvix owner `joe@ruvixlabs.com`; project `irq0wa833wWMRsASUxfK`; iOS app ID `6779147183`; Firebase project/app IDs and RevenueCat project ID are linked. Ruvix account-level App Store credentials exist. RevenueCat direct catalog management still needs a BabyRelay RevenueCat secret API key. |
 | App Store Connect | App record + subscriptions created | App ID `6779147183`, name `BabyRelay : Shared Baby Care`, SKU `BabyRelay`; subscription group `22150100`; special annual `6779256297` at `$29.99`, monthly `6779156238` at `$9.99`, annual `6779156833` at `$59.99`; standard monthly/annual have 7-day free trials and review screenshots, while special annual has no trial and its launch-offer screenshot uploaded. All currently read `MISSING_METADATA`, so they still need to be submitted with the App Store version/build. |
 
 ## Build Defines
@@ -78,6 +79,7 @@ local fallback behavior.
 | Deploy Firestore rules | Ruvix Firebase CLI/gcloud context selected, then `firebase -P babyrelay-ruvix deploy --only firestore:rules` | `firestore.rules` |
 | Universal/deep links | Apple associated domains + web route for `babyrelay.app/join/<code>` | Join links open the app directly instead of only showing the code |
 | RevenueCat sandbox purchase | TestFlight/sandbox build with the App Store SDK key | Validate current/special offerings and entitlement `pro` end to end |
+| AppStore Co-Pilot RevenueCat secret | BabyRelay RevenueCat secret API key created/stored | Enables AppStore Co-Pilot RevenueCat catalog tools for project `irq0wa833wWMRsASUxfK` |
 | AppRefer redirect | Real App Store URL once the listing exists | `trk.apprefer.com` can redirect; optional future wrapping in `InviteService.decorateLink` |
 | App Store assets/metadata | Store screenshots, privacy/nutrition, build, and review information | AppStore Copilot pipeline |
 
