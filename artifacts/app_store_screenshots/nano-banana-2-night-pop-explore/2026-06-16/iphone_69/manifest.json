@@ -1,0 +1,134 @@
+[
+  {
+    "id": "01_midnight_spotlight_phone",
+    "name": "Midnight spotlight phone",
+    "headline": "Know what happened. Know what’s next.",
+    "subhead": "A shared baby log that makes the next care moment obvious.",
+    "style": "deep warm midnight background with a soft amber spotlight behind the iPhone, the phone fills most of the frame, UI cards appear dimensional and slightly lifted from the device, subtle crescent moon glow and tiny star details, premium calm night-shift mood",
+    "avoid": "no tiny centered phone, no low-contrast text, no excessive darkness, no cropped app UI, no paywall",
+    "taskId": "3b0b3553128eabd73aa82fe935b801a9",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/generated/01_midnight_spotlight_phone.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/final/01_midnight_spotlight_phone.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "previous direction 3 calm night shift",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay, using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Preserve it as product truth. Keep the in-phone UI recognizable, readable, and honest.\nSECOND IMAGE: the previous approved direction reference. Match its full-screen, high-contrast, UI-popping behavior, but create a new distinct concept.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Know what happened. Know what’s next.\"\nSUBHEAD TEXT (verbatim): \"A shared baby log that makes the next care moment obvious.\"\nSTYLE DIRECTION: Midnight spotlight phone — deep warm midnight background with a soft amber spotlight behind the iPhone, the phone fills most of the frame, UI cards appear dimensional and slightly lifted from the device, subtle crescent moon glow and tiny star details, premium calm night-shift mood.\n\nCOMPOSITION REQUIREMENTS: Fill the frame more like the reference. Make the iPhone/product UI large, dimensional, and prominent. The phone may be slightly angled or breaking the plane, but the full device and app screen must remain readable and App Store-safe. Use strong contrast and depth so the BabyRelay UI pops out. Keep the headline large and readable at the top.\n\nPRODUCT STORY: BabyRelay is a shared baby care log. It lets caregivers log sleep, feeds, diapers, notes, and night wakes, then shows next-up guidance and a timeline for the selected child.\n\nSTRICT CONSTRAINTS: no tiny centered phone, no low-contrast text, no excessive darkness, no cropped app UI, no paywall. Do not invent app features, fake ratings, awards, App Store badges, medical claims, sleep-training promises, subscription offers, or paywall content. Do not include the paywall screen."
+  },
+  {
+    "id": "02_lamp_glow_ui_popout",
+    "name": "Lamp-glow UI popout",
+    "headline": "Every caregiver sees the latest.",
+    "subhead": "Sleep, feeds, notes, and handoffs stay clear at 2am.",
+    "style": "cozy nursery lamp glow with cocoa and muted indigo gradients, large angled iPhone emerging from the lower frame, visible BabyRelay timeline and next-up cards pop out with soft rim light, editorial serif headline, intimate but polished",
+    "avoid": "no messy nursery, no cartoon baby, no fake medical promise, no badge clutter, no paywall",
+    "taskId": "cd6735ff6ea173f596fe0a6812ede77b",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/generated/02_lamp_glow_ui_popout.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/final/02_lamp_glow_ui_popout.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "previous direction 3 calm night shift",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay, using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Preserve it as product truth. Keep the in-phone UI recognizable, readable, and honest.\nSECOND IMAGE: the previous approved direction reference. Match its full-screen, high-contrast, UI-popping behavior, but create a new distinct concept.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Every caregiver sees the latest.\"\nSUBHEAD TEXT (verbatim): \"Sleep, feeds, notes, and handoffs stay clear at 2am.\"\nSTYLE DIRECTION: Lamp-glow UI popout — cozy nursery lamp glow with cocoa and muted indigo gradients, large angled iPhone emerging from the lower frame, visible BabyRelay timeline and next-up cards pop out with soft rim light, editorial serif headline, intimate but polished.\n\nCOMPOSITION REQUIREMENTS: Fill the frame more like the reference. Make the iPhone/product UI large, dimensional, and prominent. The phone may be slightly angled or breaking the plane, but the full device and app screen must remain readable and App Store-safe. Use strong contrast and depth so the BabyRelay UI pops out. Keep the headline large and readable at the top.\n\nPRODUCT STORY: BabyRelay is a shared baby care log. It lets caregivers log sleep, feeds, diapers, notes, and night wakes, then shows next-up guidance and a timeline for the selected child.\n\nSTRICT CONSTRAINTS: no messy nursery, no cartoon baby, no fake medical promise, no badge clutter, no paywall. Do not invent app features, fake ratings, awards, App Store badges, medical claims, sleep-training promises, subscription offers, or paywall content. Do not include the paywall screen."
+  },
+  {
+    "id": "03_dawn_after_night_shift",
+    "name": "Dawn after night shift",
+    "headline": "Wake up already caught up.",
+    "subhead": "Morning handoffs start with a clear picture of the night.",
+    "style": "dramatic night-to-dawn gradient, dark upper sky fading into warm peach at the bottom, oversized iPhone with product UI bright and readable, subtle floating care cards behind the phone, premium App Store composition that fills the whole frame",
+    "avoid": "no empty white space, no subscription/paywall content, no unrealistic sleep guarantee, no UI distortion",
+    "taskId": "8bfac97902298c8e05ea55aad41d14c9",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/generated/03_dawn_after_night_shift.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/final/03_dawn_after_night_shift.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "previous direction 3 calm night shift",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay, using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Preserve it as product truth. Keep the in-phone UI recognizable, readable, and honest.\nSECOND IMAGE: the previous approved direction reference. Match its full-screen, high-contrast, UI-popping behavior, but create a new distinct concept.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Wake up already caught up.\"\nSUBHEAD TEXT (verbatim): \"Morning handoffs start with a clear picture of the night.\"\nSTYLE DIRECTION: Dawn after night shift — dramatic night-to-dawn gradient, dark upper sky fading into warm peach at the bottom, oversized iPhone with product UI bright and readable, subtle floating care cards behind the phone, premium App Store composition that fills the whole frame.\n\nCOMPOSITION REQUIREMENTS: Fill the frame more like the reference. Make the iPhone/product UI large, dimensional, and prominent. The phone may be slightly angled or breaking the plane, but the full device and app screen must remain readable and App Store-safe. Use strong contrast and depth so the BabyRelay UI pops out. Keep the headline large and readable at the top.\n\nPRODUCT STORY: BabyRelay is a shared baby care log. It lets caregivers log sleep, feeds, diapers, notes, and night wakes, then shows next-up guidance and a timeline for the selected child.\n\nSTRICT CONSTRAINTS: no empty white space, no subscription/paywall content, no unrealistic sleep guarantee, no UI distortion. Do not invent app features, fake ratings, awards, App Store badges, medical claims, sleep-training promises, subscription offers, or paywall content. Do not include the paywall screen."
+  },
+  {
+    "id": "04_full_bleed_care_console",
+    "name": "Full-bleed care console",
+    "headline": "One calm place for baby care.",
+    "subhead": "The whole day turns into a timeline everyone can trust.",
+    "style": "full-bleed cinematic dark nursery palette, phone nearly edge-to-edge but fully visible, UI hierarchy glowing like a care console, understated paper labels and moon/sun marks around the device, high contrast, expensive product advertising feel",
+    "avoid": "no sci-fi dashboard, no tiny app screenshot, no overlaid unreadable labels, no fake metrics, no paywall",
+    "taskId": "0b279f307a9d499fe916239131c14cd2",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/generated/04_full_bleed_care_console.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/final/04_full_bleed_care_console.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "previous direction 3 calm night shift",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay, using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Preserve it as product truth. Keep the in-phone UI recognizable, readable, and honest.\nSECOND IMAGE: the previous approved direction reference. Match its full-screen, high-contrast, UI-popping behavior, but create a new distinct concept.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"One calm place for baby care.\"\nSUBHEAD TEXT (verbatim): \"The whole day turns into a timeline everyone can trust.\"\nSTYLE DIRECTION: Full-bleed care console — full-bleed cinematic dark nursery palette, phone nearly edge-to-edge but fully visible, UI hierarchy glowing like a care console, understated paper labels and moon/sun marks around the device, high contrast, expensive product advertising feel.\n\nCOMPOSITION REQUIREMENTS: Fill the frame more like the reference. Make the iPhone/product UI large, dimensional, and prominent. The phone may be slightly angled or breaking the plane, but the full device and app screen must remain readable and App Store-safe. Use strong contrast and depth so the BabyRelay UI pops out. Keep the headline large and readable at the top.\n\nPRODUCT STORY: BabyRelay is a shared baby care log. It lets caregivers log sleep, feeds, diapers, notes, and night wakes, then shows next-up guidance and a timeline for the selected child.\n\nSTRICT CONSTRAINTS: no sci-fi dashboard, no tiny app screenshot, no overlaid unreadable labels, no fake metrics, no paywall. Do not invent app features, fake ratings, awards, App Store badges, medical claims, sleep-training promises, subscription offers, or paywall content. Do not include the paywall screen."
+  },
+  {
+    "id": "05_soft_3d_handoff_layers",
+    "name": "Soft 3D handoff layers",
+    "headline": "The handoff writes itself.",
+    "subhead": "Quick logs become the context the next caregiver needs.",
+    "style": "dark warm 3D paper-layer scene with baby care cards rising around a large iPhone, soft shadows, moonlit nursery table, product UI prominent and crisp, visible depth without clutter, strong foreground/background separation",
+    "avoid": "no QR code, no social feed look, no fake people/faces, no clutter covering the phone, no paywall",
+    "taskId": "25a07d152e2ae8b176be187bea3b42ce",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/generated/05_soft_3d_handoff_layers.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/final/05_soft_3d_handoff_layers.png",
+    "generatedSize": {
+      "width": 1408,
+      "height": 3040
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "previous direction 3 calm night shift",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay, using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Preserve it as product truth. Keep the in-phone UI recognizable, readable, and honest.\nSECOND IMAGE: the previous approved direction reference. Match its full-screen, high-contrast, UI-popping behavior, but create a new distinct concept.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"The handoff writes itself.\"\nSUBHEAD TEXT (verbatim): \"Quick logs become the context the next caregiver needs.\"\nSTYLE DIRECTION: Soft 3D handoff layers — dark warm 3D paper-layer scene with baby care cards rising around a large iPhone, soft shadows, moonlit nursery table, product UI prominent and crisp, visible depth without clutter, strong foreground/background separation.\n\nCOMPOSITION REQUIREMENTS: Fill the frame more like the reference. Make the iPhone/product UI large, dimensional, and prominent. The phone may be slightly angled or breaking the plane, but the full device and app screen must remain readable and App Store-safe. Use strong contrast and depth so the BabyRelay UI pops out. Keep the headline large and readable at the top.\n\nPRODUCT STORY: BabyRelay is a shared baby care log. It lets caregivers log sleep, feeds, diapers, notes, and night wakes, then shows next-up guidance and a timeline for the selected child.\n\nSTRICT CONSTRAINTS: no QR code, no social feed look, no fake people/faces, no clutter covering the phone, no paywall. Do not invent app features, fake ratings, awards, App Store badges, medical claims, sleep-training promises, subscription offers, or paywall content. Do not include the paywall screen."
+  },
+  {
+    "id": "06_big_phone_small_world",
+    "name": "Big phone small world",
+    "headline": "Tiny moments. Shared clearly.",
+    "subhead": "Log once and everyone knows what changed.",
+    "style": "oversized iPhone as the hero with a miniature warm night nursery world around it, muted indigo and amber palette, UI pops forward with gentle glow, playful but premium, frame feels full and alive, polished App Store screenshot creative",
+    "avoid": "no childish mascot, no toy clutter, no illegible UI, no fake awards, no paywall",
+    "taskId": "39a80ef16cef166c35119d281f81b0c7",
+    "generatedPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/generated/06_big_phone_small_world.png",
+    "finalPath": "artifacts/app_store_screenshots/nano-banana-2-night-pop-explore/2026-06-16/iphone_69/final/06_big_phone_small_world.png",
+    "generatedSize": {
+      "width": 704,
+      "height": 1520
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "model": "nano-banana-2",
+    "styleReference": "previous direction 3 calm night shift",
+    "prompt": "Create a pure Nano Banana 2 App Store screenshot concept for BabyRelay, using the attached images.\n\nFIRST IMAGE: the real BabyRelay Today app screen. Preserve it as product truth. Keep the in-phone UI recognizable, readable, and honest.\nSECOND IMAGE: the previous approved direction reference. Match its full-screen, high-contrast, UI-popping behavior, but create a new distinct concept.\n\nOUTPUT: one complete 6.9-inch iPhone App Store portrait screenshot concept, roughly 9:19.5 aspect ratio.\n\nHEADLINE TEXT (verbatim): \"Tiny moments. Shared clearly.\"\nSUBHEAD TEXT (verbatim): \"Log once and everyone knows what changed.\"\nSTYLE DIRECTION: Big phone small world — oversized iPhone as the hero with a miniature warm night nursery world around it, muted indigo and amber palette, UI pops forward with gentle glow, playful but premium, frame feels full and alive, polished App Store screenshot creative.\n\nCOMPOSITION REQUIREMENTS: Fill the frame more like the reference. Make the iPhone/product UI large, dimensional, and prominent. The phone may be slightly angled or breaking the plane, but the full device and app screen must remain readable and App Store-safe. Use strong contrast and depth so the BabyRelay UI pops out. Keep the headline large and readable at the top.\n\nPRODUCT STORY: BabyRelay is a shared baby care log. It lets caregivers log sleep, feeds, diapers, notes, and night wakes, then shows next-up guidance and a timeline for the selected child.\n\nSTRICT CONSTRAINTS: no childish mascot, no toy clutter, no illegible UI, no fake awards, no paywall. Do not invent app features, fake ratings, awards, App Store badges, medical claims, sleep-training promises, subscription offers, or paywall content. Do not include the paywall screen."
+  }
+]
