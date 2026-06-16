@@ -67,5 +67,11 @@ Description count: 1216 / 4000.
   job failed with insufficient Kie credits. The deterministic local 6.9-inch
   set is staged in AppStore Co-Pilot as local screenshot changes, not pushed
   live to App Store Connect.
+- A stronger pure `gpt-image-2` story-led candidate set, without a paywall
+  screenshot, is saved at
+  `artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/`.
+  It is uploaded to a separate AppStore Co-Pilot storage path for review, but
+  is not promoted over the current staged set and is not pushed live to App
+  Store Connect.
 - The copy intentionally avoids medical, safe-sleep, or sleep-training outcome
   promises.
