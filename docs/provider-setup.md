@@ -127,8 +127,10 @@ Live AppStore Co-Pilot readback:
 - ASC app ID: `6779147183`
 - ASC app name: `BabyRelay : Shared Baby Care`
 - ASC SKU: `BabyRelay`
-- Apple server notifications: production and sandbox URLs are set from
-  RevenueCat, both read back as version `V2`.
+- Apple server notifications: live ASC readback on 2026-06-16 shows
+  production and sandbox notification URLs are not currently set. RevenueCat
+  still has the server-to-server notification token, but the production/sandbox
+  V2 URLs must be re-applied in App Store Connect before submission.
 - Subscription group: `22150100`, `BabyRelay Family`, localized `en-US`
 - Subscriptions:
   - Special annual: `6779256297`, product ID
