@@ -1,0 +1,20 @@
+{
+  "app": "BabyRelay",
+  "company": "Ruvix Labs",
+  "date": "2026-06-16",
+  "model": "gpt-image-2",
+  "purpose": "Happy baby close-up app icon exploration",
+  "contactSheet": "contact_sheet.png",
+  "selectedConcept": "07_glow_face",
+  "changedLiveAppIcon": true,
+  "concepts": [
+    { "id": "01", "name": "flat_smile", "path": "generated/01_flat_smile.png" },
+    { "id": "02", "name": "soft_clay_face", "path": "generated/02_soft_clay_face.png" },
+    { "id": "03", "name": "paper_cut_face", "path": "generated/03_paper_cut_face.png" },
+    { "id": "04", "name": "peekaboo_crop", "path": "generated/04_peekaboo_crop.png" },
+    { "id": "05", "name": "moon_cheek", "path": "generated/05_moon_cheek.png" },
+    { "id": "06", "name": "minimal_round_face", "path": "generated/06_minimal_round_face.png" },
+    { "id": "07", "name": "glow_face", "path": "generated/07_glow_face.png" },
+    { "id": "08", "name": "swaddle_face", "path": "generated/08_swaddle_face.png" }
+  ]
+}
