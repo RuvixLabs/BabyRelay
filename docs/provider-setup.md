@@ -107,6 +107,8 @@ Live AppStore Co-Pilot readback:
   - Firebase project ID: `babyrelay-ruvix`
   - Firebase iOS app ID: `1:500197010265:ios:3e9e3b96b065cb7b287a48`
 - RevenueCat project ID is linked: `26c4f023`.
+- en-US launch metadata is staged as AppStore Co-Pilot metadata history
+  version 1. The repo copy is `docs/app-store-metadata.md`.
 - RevenueCat public SDK keys are in `mc-vault`, but no BabyRelay RevenueCat
   secret API key is stored yet. AppStore Co-Pilot's RevenueCat management tools
   will need a `babyrelay-revenuecat-secret-key` vault entry and project field
