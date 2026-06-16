@@ -10,6 +10,7 @@ App Store Connect review. Current scope is `en-US`.
 | Name | BabyRelay: Shared Baby Care | 30 | 27 |
 | Subtitle | Baby Log & Care Sync | 30 | 20 |
 | Privacy Policy URL | https://appstorecopilot.com/legal/3omln7px/privacy | URL | - |
+| Terms of Service URL | https://appstorecopilot.com/legal/3omln7px/terms | URL | - |
 
 ## Version Metadata
 
@@ -56,6 +57,15 @@ Description count: 1216 / 4000.
 ## Notes
 
 - Staged in AppStore Co-Pilot before live App Store Connect publish.
-- Legal URLs must be generated/published before App Store submission.
+- Privacy Policy and Terms of Service are published through AppStore Co-Pilot
+  and are linked from the app paywall and Settings.
+- Source screenshots captured from the iPhone simulator live at
+  `artifacts/app_store_screenshots/raw/2026-06-16/`; the 6.9-inch
+  App Store-ready set is staged at
+  `artifacts/app_store_screenshots/final/2026-06-16/iphone_69/`.
+- Nano Banana generation was attempted through AppStore Co-Pilot/Kie, but the
+  job failed with insufficient Kie credits. The deterministic local 6.9-inch
+  set is staged in AppStore Co-Pilot as local screenshot changes, not pushed
+  live to App Store Connect.
 - The copy intentionally avoids medical, safe-sleep, or sleep-training outcome
   promises.

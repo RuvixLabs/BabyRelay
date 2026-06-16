@@ -1,0 +1,65 @@
+{
+  "projectId": "irq0wa833wWMRsASUxfK",
+  "generatedAt": "2026-06-16T14:09:49.937Z",
+  "job": {
+    "id": "de1n44U1iG3b9tP535tk",
+    "status": "completed",
+    "totalScreenshots": 6,
+    "completedScreenshots": 6,
+    "stats": {
+      "total": 6,
+      "success": 0,
+      "failed": 6
+    },
+    "results": [
+      {
+        "index": 0,
+        "headline": "Shared baby care, instantly calm",
+        "success": false,
+        "originalUrl": "",
+        "resizedUrls": {},
+        "error": "Kie.ai create task error: Credits insufficient : Your current balance isn’t enough to run this request. Please top up to continue."
+      },
+      {
+        "index": 1,
+        "headline": "Know what’s next",
+        "success": false,
+        "originalUrl": "",
+        "resizedUrls": {},
+        "error": "Anchor screenshot generation failed"
+      },
+      {
+        "index": 2,
+        "headline": "One family, every child",
+        "success": false,
+        "originalUrl": "",
+        "resizedUrls": {},
+        "error": "Anchor screenshot generation failed"
+      },
+      {
+        "index": 3,
+        "headline": "Send calmer handoffs",
+        "success": false,
+        "originalUrl": "",
+        "resizedUrls": {},
+        "error": "Anchor screenshot generation failed"
+      },
+      {
+        "index": 4,
+        "headline": "Invite your care team",
+        "success": false,
+        "originalUrl": "",
+        "resizedUrls": {},
+        "error": "Anchor screenshot generation failed"
+      },
+      {
+        "index": 5,
+        "headline": "Care stays coordinated",
+        "success": false,
+        "originalUrl": "",
+        "resizedUrls": {},
+        "error": "Anchor screenshot generation failed"
+      }
+    ]
+  }
+}

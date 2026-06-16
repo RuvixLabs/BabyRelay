@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../app/app_chrome.dart';
 import '../../core/design/relay_theme.dart';
 import '../../domain/models/baby_profile.dart';
 
@@ -10,7 +11,7 @@ Future<BabyProfile?> showChildFormSheet(
   BuildContext context, {
   BabyProfile? existing,
 }) {
-  return showModalBottomSheet<BabyProfile>(
+  return showRelayModalBottomSheet<BabyProfile>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => _ChildFormSheet(existing: existing),

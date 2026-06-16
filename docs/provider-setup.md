@@ -113,6 +113,9 @@ Live AppStore Co-Pilot readback:
 - Privacy Policy is published through AppStore Co-Pilot:
   `https://appstorecopilot.com/legal/3omln7px/privacy`. The URL returns `200`
   and is stored on both the project and en-US metadata record.
+- Terms of Service is published through AppStore Co-Pilot:
+  `https://appstorecopilot.com/legal/3omln7px/terms`. The URL returns `200`
+  and is linked from the app paywall and Settings.
 - Subscription catalog is synced from live ASC into AppStore Co-Pilot:
   - Group: `22150100`, `BabyRelay Family`
   - Monthly: `6779156238`, `babyrelay_pro_monthly`, `$9.99`, 7-day
@@ -122,8 +125,8 @@ Live AppStore Co-Pilot readback:
   - Special annual: `6779256297`, `babyrelay_pro_special_annual`, `$29.99`,
     no intro trial
 - AppStore Co-Pilot compliance now detects `hasSubscriptions: true` /
-  `hasPaidContent: true`. Remaining compliance error is Terms/EULA requirement
-  for subscriptions.
+  `hasPaidContent: true` and returns zero issues after the Terms of Service
+  publication.
 - RevenueCat public SDK keys are in `mc-vault`, but no BabyRelay RevenueCat
   secret API key is stored yet. AppStore Co-Pilot's RevenueCat management tools
   will need a `babyrelay-revenuecat-secret-key` vault entry and project field

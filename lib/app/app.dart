@@ -7,6 +7,7 @@ import '../core/design/relay_theme.dart';
 import '../core/purchases/purchase_service.dart';
 import '../core/support/support_service.dart';
 import '../data/family_repository.dart';
+import 'app_chrome.dart';
 import 'router.dart';
 
 class BabyRelayApp extends StatefulWidget {
@@ -30,6 +31,7 @@ class BabyRelayApp extends StatefulWidget {
 }
 
 class _BabyRelayAppState extends State<BabyRelayApp> {
+  late final appChrome = AppChromeController();
   late final router = buildRouter(widget.familyRepository);
 
   @override
@@ -41,9 +43,16 @@ class _BabyRelayAppState extends State<BabyRelayApp> {
   }
 
   @override
+  void dispose() {
+    appChrome.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: appChrome),
         ChangeNotifierProvider.value(value: widget.familyRepository),
         ChangeNotifierProvider.value(value: widget.purchaseService),
         Provider.value(value: widget.analytics),

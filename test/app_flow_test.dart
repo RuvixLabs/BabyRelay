@@ -187,6 +187,9 @@ void main() {
 
     expect(find.text('Your children'), findsOneWidget);
     expect(find.text('Add a child'), findsOneWidget);
+    final sheetRect = tester.getRect(find.byType(BottomSheet));
+    final appHeight = tester.getSize(find.byType(MaterialApp)).height;
+    expect(sheetRect.bottom, closeTo(appHeight, 0.1));
   });
 
   testWidgets('handoff opens from Today and shows summary', (tester) async {
@@ -200,6 +203,9 @@ void main() {
     expect(find.textContaining('HANDOFF FOR MAE'), findsOneWidget);
     expect(find.text('Share handoff'), findsOneWidget);
     expect(find.text('Copy as text'), findsOneWidget);
+    expect(find.text('Today'), findsNothing);
+    expect(find.text('Care team'), findsNothing);
+    expect(find.text('Settings'), findsNothing);
   });
 
   testWidgets('care team shows owner and paywall gates beyond free limit', (
@@ -223,6 +229,9 @@ void main() {
     expect(find.text('Claim annual offer'), findsOneWidget);
     expect(find.text('Offer ends in'), findsOneWidget);
     expect(find.text('1:30'), findsOneWidget);
+    expect(find.text('Today'), findsNothing);
+    expect(find.text('Care team'), findsNothing);
+    expect(find.text('Settings'), findsNothing);
   });
 
   testWidgets(

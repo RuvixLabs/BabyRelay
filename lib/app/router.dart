@@ -12,8 +12,11 @@ import '../features/settings/settings_screen.dart';
 import '../features/today/today_screen.dart';
 import 'shell.dart';
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 GoRouter buildRouter(FamilyRepository familyRepository) {
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/today',
     refreshListenable: familyRepository,
     redirect: (context, state) {
@@ -44,11 +47,13 @@ GoRouter buildRouter(FamilyRepository familyRepository) {
       ),
       GoRoute(
         path: '/handoff',
+        parentNavigatorKey: _rootNavigatorKey,
         pageBuilder: (context, state) =>
             const MaterialPage(fullscreenDialog: true, child: HandoffScreen()),
       ),
       GoRoute(
         path: '/paywall',
+        parentNavigatorKey: _rootNavigatorKey,
         pageBuilder: (context, state) =>
             const MaterialPage(fullscreenDialog: true, child: PaywallScreen()),
       ),

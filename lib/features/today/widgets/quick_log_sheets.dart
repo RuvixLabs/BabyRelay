@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/app_chrome.dart';
 import '../../../core/design/relay_theme.dart';
 import '../../../domain/models/care_event.dart';
 
@@ -32,7 +33,7 @@ Future<T?> _showPicker<T>(
   required String title,
   required List<(T, IconData, String)> options,
 }) {
-  return showModalBottomSheet<T>(
+  return showRelayModalBottomSheet<T>(
     context: context,
     builder: (sheetContext) {
       final c = sheetContext.relay;
@@ -89,7 +90,7 @@ Future<T?> _showPicker<T>(
 
 Future<String?> showNoteSheet(BuildContext context) {
   final controller = TextEditingController();
-  return showModalBottomSheet<String>(
+  return showRelayModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) {

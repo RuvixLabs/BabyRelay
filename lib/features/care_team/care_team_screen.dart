@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../app/app_chrome.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
@@ -287,7 +288,7 @@ Future<void> showInviteSheet(
   FamilyRepository repo,
   AnalyticsService analytics,
 ) {
-  return showModalBottomSheet<void>(
+  return showRelayModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => _InviteSheet(repo: repo, analytics: analytics),

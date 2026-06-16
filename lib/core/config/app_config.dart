@@ -19,6 +19,10 @@ abstract final class AppConfig {
   /// Always-available support channel; the Gleap widget replaces this as the
   /// primary path once [gleapSdkKey] is provided.
   static const String supportEmail = 'support@ruvixlabs.com';
+  static const String privacyPolicyUrl =
+      'https://appstorecopilot.com/legal/3omln7px/privacy';
+  static const String termsOfServiceUrl =
+      'https://appstorecopilot.com/legal/3omln7px/terms';
 
   /// Host for caregiver invite links (`https://<host>/join/<code>`). The
   /// universal-link handler ships with the Firebase backend integration.

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
+import '../../core/legal/legal_links.dart';
 import '../../core/purchases/purchase_service.dart';
 
 /// Family paywall. Calm and honest: price, trial terms, and the limited launch
@@ -221,6 +222,29 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       TextButton(
                         onPressed: purchases.busy ? null : _restore,
                         child: const Text('Restore purchases'),
+                      ),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 2,
+                        children: [
+                          TextButton(
+                            onPressed: () => openLegalDocument(
+                              context,
+                              LegalDocument.privacy,
+                            ),
+                            child: const Text('Privacy'),
+                          ),
+                          Text(
+                            '•',
+                            style: text.bodySmall?.copyWith(color: c.inkFaint),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                openLegalDocument(context, LegalDocument.terms),
+                            child: const Text('Terms'),
+                          ),
+                        ],
                       ),
                     ],
                   ),

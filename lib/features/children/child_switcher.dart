@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../app/app_chrome.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
@@ -35,7 +36,7 @@ Future<BabyProfile?> startAddChildFlow(BuildContext context) async {
 /// Bottom sheet listing every child with sleep state; tap to switch, plus an
 /// add-child row. The one place the whole family is visible at once.
 Future<void> showChildSwitcherSheet(BuildContext context) {
-  return showModalBottomSheet<void>(
+  return showRelayModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) => MultiProvider(

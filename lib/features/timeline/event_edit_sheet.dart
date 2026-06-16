@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../app/app_chrome.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
@@ -13,7 +14,7 @@ import '../../domain/models/care_event.dart';
 Future<void> showEventEditSheet(BuildContext context, CareEvent event) {
   final repo = context.read<FamilyRepository>();
   final analytics = context.read<AnalyticsService>();
-  return showModalBottomSheet<void>(
+  return showRelayModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     builder: (sheetContext) =>

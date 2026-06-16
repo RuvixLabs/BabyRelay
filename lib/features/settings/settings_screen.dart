@@ -8,6 +8,7 @@ import '../../core/analytics/analytics_service.dart';
 import '../../core/config/app_config.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
+import '../../core/legal/legal_links.dart';
 import '../../core/purchases/purchase_service.dart';
 import '../../core/support/support_service.dart';
 import '../../data/family_repository.dart';
@@ -163,6 +164,23 @@ class SettingsScreen extends StatelessWidget {
                       );
                     }
                   },
+                ),
+                Divider(height: 1, indent: 60, color: c.outline),
+                _SettingsRow(
+                  icon: Icons.privacy_tip_outlined,
+                  iconColor: c.clay,
+                  title: 'Privacy Policy',
+                  subtitle: 'How BabyRelay handles family data',
+                  onTap: () =>
+                      openLegalDocument(context, LegalDocument.privacy),
+                ),
+                Divider(height: 1, indent: 60, color: c.outline),
+                _SettingsRow(
+                  icon: Icons.description_outlined,
+                  iconColor: c.clayDeep,
+                  title: 'Terms of Service',
+                  subtitle: 'Subscriptions, use, and care guidance terms',
+                  onTap: () => openLegalDocument(context, LegalDocument.terms),
                 ),
                 Divider(height: 1, indent: 60, color: c.outline),
                 _SettingsRow(
