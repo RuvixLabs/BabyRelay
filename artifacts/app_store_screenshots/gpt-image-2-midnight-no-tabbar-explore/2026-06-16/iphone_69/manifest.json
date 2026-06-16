@@ -1,0 +1,122 @@
+[
+  {
+    "id": "01_midnight_crib_spotlight",
+    "name": "Midnight crib",
+    "headline": "Know what happened. Know what’s next.",
+    "subhead": "A shared baby log that makes the next care moment obvious.",
+    "background": "premium midnight nursery spotlight, deep cocoa and muted indigo, warm amber crib-side glow, crescent moon detail, cinematic product poster",
+    "model": "gpt-image-2",
+    "generatedPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/01_midnight_crib_spotlight.png",
+    "finalPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/01_midnight_crib_spotlight.png",
+    "generatedSize": {
+      "width": 1328,
+      "height": 2880
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "styleReference": "nano-banana-2 01_amber_crib_spotlight used as mood reference",
+    "tabBarConstraint": "No visible bottom app tab bar/navigation."
+  },
+  {
+    "id": "02_indigo_moon_mobile",
+    "name": "Indigo moon mobile",
+    "headline": "Every caregiver sees the latest.",
+    "subhead": "Sleep, feeds, notes, and handoffs stay clear at 2am.",
+    "background": "deep indigo nursery wall with a softly blurred hanging moon mobile, tiny warm brass stars, low amber rim light, premium night-shift calm",
+    "model": "gpt-image-2",
+    "generatedPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/02_indigo_moon_mobile.png",
+    "finalPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/02_indigo_moon_mobile.png",
+    "generatedSize": {
+      "width": 1328,
+      "height": 2880
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "styleReference": "nano-banana-2 01_amber_crib_spotlight used as mood reference",
+    "tabBarConstraint": "No visible bottom app tab bar/navigation."
+  },
+  {
+    "id": "03_sage_shadow_layers",
+    "name": "Sage shadow layers",
+    "headline": "Tiny moments. Shared clearly.",
+    "subhead": "Log once and everyone knows what changed.",
+    "background": "muted sage and cocoa paper-layer background, soft cutout moon shapes, tactile nursery stationery, gentle shadows, editorial but high contrast",
+    "model": "gpt-image-2",
+    "generatedPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/03_sage_shadow_layers.png",
+    "finalPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/03_sage_shadow_layers.png",
+    "generatedSize": {
+      "width": 1328,
+      "height": 2880
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "styleReference": "nano-banana-2 01_amber_crib_spotlight used as mood reference",
+    "tabBarConstraint": "No visible bottom app tab bar/navigation."
+  },
+  {
+    "id": "04_lamp_and_blanket",
+    "name": "Lamp and blanket",
+    "headline": "Know what happened. Know what’s next.",
+    "subhead": "The next nap, last feed, and notes stay in one calm view.",
+    "background": "realistic bedside lamp glow, folded knit blanket texture, warm cocoa shadows, out-of-focus crib rails, cozy but premium product photography",
+    "model": "gpt-image-2",
+    "generatedPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/04_lamp_and_blanket.png",
+    "finalPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/04_lamp_and_blanket.png",
+    "generatedSize": {
+      "width": 1328,
+      "height": 2880
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "styleReference": "nano-banana-2 01_amber_crib_spotlight used as mood reference",
+    "tabBarConstraint": "No visible bottom app tab bar/navigation."
+  },
+  {
+    "id": "05_dawn_from_night",
+    "name": "Dawn from night",
+    "headline": "Wake up already caught up.",
+    "subhead": "Morning handoffs start with a clear picture of the night.",
+    "background": "dark navy upper field fading into peach dawn glow below, soft horizon light behind the iPhone, subtle moon-to-sun transition, optimistic morning-after-night-shift feeling",
+    "model": "gpt-image-2",
+    "generatedPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/05_dawn_from_night.png",
+    "finalPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/05_dawn_from_night.png",
+    "generatedSize": {
+      "width": 1328,
+      "height": 2880
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "styleReference": "nano-banana-2 01_amber_crib_spotlight used as mood reference",
+    "tabBarConstraint": "No visible bottom app tab bar/navigation."
+  },
+  {
+    "id": "06_constellation_care_map",
+    "name": "Constellation care map",
+    "headline": "One calm place for baby care.",
+    "subhead": "The whole day becomes a timeline everyone can trust.",
+    "background": "dark navy constellation map made of tiny care-symbol dots, warm brass lines, crescent moon, cinematic spotlight behind the phone, elegant not sci-fi",
+    "model": "gpt-image-2",
+    "generatedPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/06_constellation_care_map.png",
+    "finalPath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/final/06_constellation_care_map.png",
+    "generatedSize": {
+      "width": 1328,
+      "height": 2880
+    },
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "styleReference": "nano-banana-2 01_amber_crib_spotlight used as mood reference",
+    "tabBarConstraint": "No visible bottom app tab bar/navigation."
+  }
+]
