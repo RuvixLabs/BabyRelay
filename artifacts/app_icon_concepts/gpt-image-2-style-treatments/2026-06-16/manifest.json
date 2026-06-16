@@ -1,0 +1,19 @@
+{
+  "app": "BabyRelay",
+  "company": "Ruvix Labs",
+  "date": "2026-06-16",
+  "model": "gpt-image-2",
+  "purpose": "Different app icon style treatments for two-hands baby-center concept",
+  "contactSheet": "contact_sheet.png",
+  "changedLiveAppIcon": false,
+  "concepts": [
+    { "id": "01", "name": "flat_geometric", "path": "generated/01_flat_geometric.png" },
+    { "id": "02", "name": "soft_clay", "path": "generated/02_soft_clay.png" },
+    { "id": "03", "name": "paper_cut", "path": "generated/03_paper_cut.png" },
+    { "id": "04", "name": "frosted_glass", "path": "generated/04_frosted_glass.png" },
+    { "id": "05", "name": "enamel_badge", "path": "generated/05_enamel_badge.png" },
+    { "id": "06", "name": "quilted_fabric", "path": "generated/06_quilted_fabric.png" },
+    { "id": "07", "name": "night_glow", "path": "generated/07_night_glow.png" },
+    { "id": "08", "name": "minimal_symbol", "path": "generated/08_minimal_symbol.png" }
+  ]
+}

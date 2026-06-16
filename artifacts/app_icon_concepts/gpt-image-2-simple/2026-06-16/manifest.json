@@ -1,0 +1,17 @@
+{
+  "app": "BabyRelay",
+  "company": "Ruvix Labs",
+  "date": "2026-06-16",
+  "model": "gpt-image-2",
+  "purpose": "Simple app icon best-practice exploration",
+  "contactSheet": "contact_sheet.png",
+  "changedLiveAppIcon": false,
+  "concepts": [
+    { "id": "01", "name": "crescent_cradle", "path": "generated/01_crescent_cradle.png" },
+    { "id": "02", "name": "relay_loop", "path": "generated/02_relay_loop.png" },
+    { "id": "03", "name": "shared_orbit", "path": "generated/03_shared_orbit.png" },
+    { "id": "04", "name": "dual_child_moons", "path": "generated/04_dual_child_moons.png" },
+    { "id": "05", "name": "handoff_mark", "path": "generated/05_handoff_mark.png" },
+    { "id": "06", "name": "moon_signal", "path": "generated/06_moon_signal.png" }
+  ]
+}
