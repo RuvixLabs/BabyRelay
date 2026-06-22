@@ -14,6 +14,16 @@ service cloud.firestore {
       return signedIn() && request.auth.uid in request.resource.data.memberIds;
     }
 
+    function memberIdsUnchanged() {
+      return request.resource.data.memberIds == resource.data.memberIds;
+    }
+
+    function onlyAddsSignedInMember() {
+      return request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1 &&
+        request.resource.data.memberIds.hasAll(resource.data.memberIds) &&
+        request.auth.uid in request.resource.data.memberIds;
+    }
+
     function inviteForFamily(familyId, code) {
       return exists(/databases/$(database)/documents/inviteCodes/$(code)) &&
         get(/databases/$(database)/documents/inviteCodes/$(code)).data.familyId == familyId;
@@ -30,6 +40,7 @@ service cloud.firestore {
       return signedIn() &&
         !(request.auth.uid in resource.data.memberIds) &&
         request.auth.uid in request.resource.data.memberIds &&
+        onlyAddsSignedInMember() &&
         request.resource.data.ownerId == resource.data.ownerId &&
         request.resource.data.inviteCode == resource.data.inviteCode &&
         inviteForFamily(familyId, resource.data.inviteCode);
@@ -49,6 +60,37 @@ service cloud.firestore {
         ).data.memberIds;
     }
 
+    function ownsExistingFamily(familyId) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/families/$(familyId)).data.ownerId == request.auth.uid;
+    }
+
+    function ownsFamilyAfter(familyId) {
+      return signedIn() &&
+        getAfter(/databases/$(database)/documents/families/$(familyId)).data.ownerId == request.auth.uid;
+    }
+
+    function validChildDocument(childId) {
+      return request.resource.data.id == childId &&
+        request.resource.data.nickname is string &&
+        request.resource.data.dob is string;
+    }
+
+    function validCaregiverDocument(caregiverId) {
+      return request.resource.data.id == caregiverId &&
+        request.resource.data.name is string &&
+        request.resource.data.role in ['owner', 'caregiver'];
+    }
+
+    function validEventDocument(eventId) {
+      return request.resource.data.id == eventId &&
+        request.resource.data.childId is string &&
+        request.resource.data.type in ['sleep', 'feed', 'diaper', 'note', 'nightWaking'] &&
+        request.resource.data.startAt is string &&
+        request.resource.data.startAtMillis is int &&
+        request.resource.data.loggedById is string;
+    }
+
     function validInviteWrite(code) {
       return request.resource.data.code == code &&
         request.resource.data.familyId is string &&
@@ -62,9 +104,32 @@ service cloud.firestore {
       allow update: if (
         isFamilyMember() &&
         willBeFamilyMember() &&
-        request.resource.data.ownerId == resource.data.ownerId
+        request.resource.data.ownerId == resource.data.ownerId &&
+        (memberIdsUnchanged() || resource.data.ownerId == request.auth.uid)
       ) || isInviteJoin(familyId);
       allow delete: if isFamilyMember() && resource.data.ownerId == request.auth.uid;
+
+      match /children/{childId} {
+        allow read: if memberOfExistingFamily(familyId);
+        allow create, update: if memberOfFamilyAfter(familyId) &&
+          validChildDocument(childId);
+        allow delete: if memberOfExistingFamily(familyId);
+      }
+
+      match /caregivers/{caregiverId} {
+        allow read: if memberOfExistingFamily(familyId);
+        allow create, update: if memberOfFamilyAfter(familyId) &&
+          validCaregiverDocument(caregiverId) &&
+          (caregiverId == request.auth.uid || ownsFamilyAfter(familyId));
+        allow delete: if ownsExistingFamily(familyId);
+      }
+
+      match /events/{eventId} {
+        allow read: if memberOfExistingFamily(familyId);
+        allow create, update: if memberOfFamilyAfter(familyId) &&
+          validEventDocument(eventId);
+        allow delete: if memberOfExistingFamily(familyId);
+      }
     }
 
     match /inviteCodes/{code} {

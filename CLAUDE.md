@@ -4,14 +4,15 @@ See `AGENTS.md` for the full project instructions and
 `docs/plans/core/overview.md` for the product plan. This file captures
 implementation knowledge for the next worker.
 
-## What exists (MVP, local-only)
+## What exists (MVP, local-first)
 
 Full Flutter MVP: onboarding → Today (one-tap sleep, quick logs, timeline,
 next-up guidance, child switcher) → handoff sheet → care team invites →
 paywall → settings. **Multi-child**: a family has any number of children;
 every care event is scoped to a `childId` and the UI focuses one selected
-child at a time. No backend; everything persists to SharedPreferences as
-JSON.
+child at a time. Local fallback persists to SharedPreferences as JSON;
+production builds can attach Firebase Auth/Firestore sync through
+`FirestoreFamilySyncAdapter`.
 
 ## Key files
 
@@ -21,7 +22,7 @@ JSON.
 | Routes / nav shell | `lib/app/router.dart`, `lib/app/shell.dart` |
 | Design system | `lib/core/design/relay_theme.dart` (RelayColors ThemeExtension), `relay_widgets.dart` |
 | Shared state | `lib/data/family_repository.dart` (ChangeNotifier, persisted) |
-| Persistence seam | `lib/data/local_store.dart` (swap for Firestore later) |
+| Persistence seam | `lib/data/local_store.dart` + `lib/data/firestore_family_sync.dart` |
 | Child switcher / add-child | `lib/features/children/child_switcher.dart`, `child_form_sheet.dart` |
 | Prediction engine | `lib/domain/engine/sleep_prediction_engine.dart` (pure Dart) |
 | Handoff text | `lib/domain/services/handoff_service.dart` (pure Dart) |
@@ -116,9 +117,12 @@ Provider keys arrive via `--dart-define` (never committed) and surface in
 `lib/core/config/app_config.dart`; full checklist in
 `docs/production-readiness.md`.
 
-1. Firebase: implement Firestore-backed `FamilyRepository` behind the same
-   API; model in `docs/plans/core/overview.md`. Children become a
-   `families/{id}/children` subcollection; events keep `childId`.
+1. Firebase: `FirestoreFamilySyncAdapter` is implemented behind the same
+   repository API. It stores small family metadata at `families/{id}`, children
+   at `families/{id}/children`, caregivers at `families/{id}/caregivers`, and
+   care logs at `families/{id}/events`. The live listener is bounded to the
+   most recent 500 events so app opens and live updates do not scale with
+   all-time history.
 2. RevenueCat: implement `PurchaseService` against the SDK (entitlement
    `pro`, product ids in `ProductIds`); plans come from offerings so price
    strings are store-driven.

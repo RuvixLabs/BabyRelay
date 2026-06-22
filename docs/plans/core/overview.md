@@ -162,49 +162,55 @@ Future care modules can add deterministic guidance for feeds, medication reminde
 
 ## Firestore Model
 
-Family is the subscription and access unit.
-
-Implementation note, June 2026: the current release-candidate app ships a
-local-first snapshot sync (`families/{familyId}` with `state`, `memberIds`,
-`ownerId`, `inviteCode`, plus `inviteCodes/{code}` for lookups). The
-subcollection model below is the intended scale-up shape once the first beta
-proves the workflows and we split high-write event data out of the snapshot.
+Family is the subscription and access unit. The release-candidate sync model is
+subcollection-first so high-write care logs do not rewrite or rebroadcast an
+ever-growing family snapshot.
 
 ```text
 families/{familyId}
-  createdBy: uid
+  ownerId: uid
+  memberIds: uid[]
   inviteCode: string
-  subscriptionOwnerUid: uid
-  createdAt: timestamp
+  selectedChildId: childId
+  onboarded: boolean
+  liveEventLimit: number
+  createdAt?: timestamp
+  updatedAt?: timestamp
 
-families/{familyId}/members/{uid}
+families/{familyId}/caregivers/{uid}
+  id: uid
   role: owner|caregiver
-  displayName: string
-  avatarColor: string
+  name: string
+  colorIndex: number
   joinedAt: timestamp
   removedAt?: timestamp
+  lastActiveAt?: timestamp
 
-families/{familyId}/babies/{babyId}
-  name: string
+families/{familyId}/children/{childId}
+  id: childId
+  nickname: string
   dob: timestamp
-  settings:
-    targetWakeTime: string
-    targetBedtime: string
-    scheduleOverride?: string
-  createdAt: timestamp
+  wakeTimeMinutes: number
+  bedtimeMinutes: number
+  napsPerDayEstimate: number
+  colorIndex: number
+  scheduleOverrideNaps?: number
 
-families/{familyId}/babies/{babyId}/events/{eventId}
-  type: sleep|wake|feed|diaper|medicine|note|nightWaking
-  startAt: timestamp
-  endAt?: timestamp
-  loggedBy: uid
-  editedBy: uid[]
-  source: tap|edit|merge
+families/{familyId}/events/{eventId}
+  id: eventId
+  childId: childId
+  type: sleep|feed|diaper|note|nightWaking
+  startAt: string
+  startAtMillis: number
+  endAt?: string
+  loggedById: uid
+  editedByIds: uid[]
+  feedKind?: bottle|nursing|solids
+  diaperKind?: wet|dirty|both
   note?: string
-  createdAt: timestamp
   updatedAt: timestamp
 
-families/{familyId}/babies/{babyId}/dailySummaries/{yyyy-mm-dd}
+families/{familyId}/children/{childId}/dailySummaries/{yyyy-mm-dd}
   napsCount: number
   totalDaySleepMinutes: number
   lastWakeAt: timestamp
@@ -218,6 +224,12 @@ users/{uid}
   rcAppUserId: string
   createdAt: timestamp
 ```
+
+The app keeps the repository API local-first, but
+`FirestoreFamilySyncAdapter` writes deltas to these subcollections. The live
+listener watches family metadata, children, caregivers, and the most recent 500
+care events. Older event history remains in Firestore for future paged export
+or archive views without making every app open/listener pay for all-time logs.
 
 Security:
 - Users only access families where they are active members.

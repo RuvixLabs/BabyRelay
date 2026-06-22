@@ -22,15 +22,16 @@ Live sync state:
   the Ruvix-authenticated Firebase Management API after the first live smoke
   returned `CONFIGURATION_NOT_FOUND`.
 - Firestore rules are deployed to the `cloud.firestore` release:
-  `557fed9a-ba93-4639-815c-c5a3dd594abb`.
-- A client-side live smoke passed on 2026-06-22 using two anonymous users and
-  no admin bypass:
+  `fe83434a-58a3-459f-a148-cdd4606a4570`.
+- A client-side optimized-subcollection live smoke passed on 2026-06-22 using
+  two anonymous users and no admin bypass:
   - owner anonymous Auth token issued
-  - owner created a family document
+  - owner created a small family metadata document
+  - owner created child and caregiver subcollection documents
   - owner created an invite code document
   - joiner read the family through the invite-code rule before membership
   - joiner joined the family through invite-aware rules
-  - owner wrote a shared care event after join
+  - owner wrote one shared care event document after join
   - joiner read the owner-written shared event
   - smoke invite/family cleanup completed
 - The Firebase CLI is not logged in as `joe@ruvixlabs.com` in this worker pane,
@@ -213,7 +214,7 @@ Remaining App Store / subscription blockers:
   `--dart-define=FIREBASE_CONFIGURED=true` is present.
 - Firestore rules are committed in `firestore.rules` and deployed to the
   `cloud.firestore` release on `babyrelay-ruvix` as ruleset
-  `557fed9a-ba93-4639-815c-c5a3dd594abb`.
+  `fe83434a-58a3-459f-a148-cdd4606a4570`.
 - RevenueCat SDK is installed. `RevenueCatPurchaseService` reads current and
   `special_offer` offerings, maps the three App Store product IDs, and unlocks
   entitlement `pro`.
