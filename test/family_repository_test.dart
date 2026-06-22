@@ -270,6 +270,63 @@ void main() {
     expect(repo.state.activeCaregivers.map((c) => c.name), contains('Alex'));
   });
 
+  test(
+    'two synced devices keep local caregiver identity after join and logging',
+    () async {
+      final network = SharedFakeFamilySyncNetwork();
+      final ownerRepo = FamilyRepository(
+        InMemoryStore(),
+        sync: network.adapterFor('owner_uid'),
+      );
+      final joinerRepo = FamilyRepository(
+        InMemoryStore(),
+        sync: network.adapterFor('joiner_uid'),
+      );
+
+      await ownerRepo.completeOnboarding(
+        firstChild: BabyProfile(
+          id: '',
+          nickname: 'Mae',
+          dob: DateTime.now().subtract(const Duration(days: 210)),
+          wakeTimeMinutes: 7 * 60,
+          bedtimeMinutes: 19 * 60,
+          napsPerDayEstimate: 3,
+        ),
+        primaryCaregiverName: 'Sara',
+      );
+      final ownerId = ownerRepo.state.currentCaregiverId;
+      final inviteCode = ownerRepo.state.inviteCode;
+
+      await joinerRepo.joinFamilyByInviteCode(
+        code: inviteCode,
+        caregiverName: 'Nana',
+        allowOverFreeCaregiverLimit: true,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(ownerRepo.state.currentCaregiverId, ownerId);
+      expect(ownerRepo.state.currentCaregiver!.name, 'Sara');
+      expect(joinerRepo.state.currentCaregiverId, 'joiner_uid');
+      expect(joinerRepo.state.currentCaregiver!.name, 'Nana');
+      expect(
+        ownerRepo.state.activeCaregivers.map((c) => c.name),
+        containsAll(['Sara', 'Nana']),
+      );
+
+      final feed = await ownerRepo.logFeed(FeedKind.bottle);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(feed.loggedById, ownerId);
+      expect(ownerRepo.state.currentCaregiver!.name, 'Sara');
+      expect(joinerRepo.state.currentCaregiver!.name, 'Nana');
+      expect(joinerRepo.state.events.map((e) => e.id), contains(feed.id));
+      expect(
+        joinerRepo.state.events.singleWhere((e) => e.id == feed.id).loggedById,
+        ownerId,
+      );
+    },
+  );
+
   test('persisted JSON carries the schema version and round-trips', () async {
     await onboard();
     await repo.logFeed(FeedKind.bottle);
@@ -617,4 +674,142 @@ class FakeFamilySyncAdapter implements FamilySyncAdapter {
 
   @override
   Future<void> dispose() => _controller.close();
+}
+
+class SharedFakeFamilySyncNetwork {
+  final _families = <String, FamilyState>{};
+  final _inviteCodes = <String, String>{};
+  final _controllers = <String, StreamController<FamilyState>>{};
+  int _familyCounter = 0;
+
+  FamilySyncAdapter adapterFor(String userId) =>
+      _SharedFakeFamilySyncAdapter(this, userId);
+
+  String newFamilyId() => 'family_${++_familyCounter}';
+
+  Stream<FamilyState> watchFamily(String familyId) {
+    return _controllers
+        .putIfAbsent(familyId, () => StreamController<FamilyState>.broadcast())
+        .stream;
+  }
+
+  Future<void> saveFamily(
+    FamilyState state, {
+    required String updatedBy,
+    String? previousInviteCode,
+  }) async {
+    _families[state.familyId] = state;
+    if (previousInviteCode != null && previousInviteCode.isNotEmpty) {
+      _inviteCodes.remove(previousInviteCode.toUpperCase());
+    }
+    if (state.inviteCode.isNotEmpty) {
+      _inviteCodes[state.inviteCode.toUpperCase()] = state.familyId;
+    }
+    _controllers[state.familyId]?.add(state);
+  }
+
+  Future<FamilyState> joinFamilyByInviteCode({
+    required String code,
+    required Caregiver caregiver,
+    required int freeCaregiverLimit,
+    required bool allowOverFreeCaregiverLimit,
+  }) async {
+    final familyId = _inviteCodes[code.toUpperCase()];
+    final current = familyId == null ? null : _families[familyId];
+    if (familyId == null || current == null) {
+      throw StateError('Invite code not found.');
+    }
+    final existing = current.caregivers
+        .where((c) => c.id == caregiver.id)
+        .firstOrNull;
+    final wouldIncreaseActiveMembers = existing == null || !existing.isActive;
+    if (!allowOverFreeCaregiverLimit &&
+        wouldIncreaseActiveMembers &&
+        current.activeCaregivers.length >= freeCaregiverLimit) {
+      throw StateError('This care team is full on the free plan.');
+    }
+    final caregivers = existing != null
+        ? current.caregivers
+              .map(
+                (c) => c.id == caregiver.id
+                    ? c.copyWith(
+                        name: caregiver.name,
+                        role: CaregiverRole.caregiver,
+                        clearRemovedAt: true,
+                        lastActiveAt: DateTime.now(),
+                      )
+                    : c,
+              )
+              .toList()
+        : [
+            ...current.caregivers,
+            caregiver.copyWith(lastActiveAt: DateTime.now()),
+          ];
+    final joined = current.copyWith(
+      caregivers: caregivers,
+      currentCaregiverId: caregiver.id,
+      onboarded: true,
+    );
+    _families[familyId] = joined;
+    _controllers[familyId]?.add(joined);
+    return joined;
+  }
+
+  Future<void> deleteFamily(FamilyState state) async {
+    _families.remove(state.familyId);
+    if (state.inviteCode.isNotEmpty) {
+      _inviteCodes.remove(state.inviteCode.toUpperCase());
+    }
+    await _controllers.remove(state.familyId)?.close();
+  }
+}
+
+class _SharedFakeFamilySyncAdapter implements FamilySyncAdapter {
+  _SharedFakeFamilySyncAdapter(this._network, this.userId);
+
+  final SharedFakeFamilySyncNetwork _network;
+
+  @override
+  final String userId;
+
+  @override
+  String newFamilyId() => _network.newFamilyId();
+
+  @override
+  Stream<FamilyState> watchFamily(String familyId) =>
+      _network.watchFamily(familyId);
+
+  @override
+  Future<void> saveFamily(FamilyState state, {String? previousInviteCode}) {
+    return _network.saveFamily(
+      state,
+      updatedBy: userId,
+      previousInviteCode: previousInviteCode,
+    );
+  }
+
+  @override
+  Future<FamilyState> joinFamilyByInviteCode({
+    required String code,
+    required Caregiver caregiver,
+    required int freeCaregiverLimit,
+    required bool allowOverFreeCaregiverLimit,
+  }) {
+    return _network.joinFamilyByInviteCode(
+      code: code,
+      caregiver: caregiver,
+      freeCaregiverLimit: freeCaregiverLimit,
+      allowOverFreeCaregiverLimit: allowOverFreeCaregiverLimit,
+    );
+  }
+
+  @override
+  Future<void> deleteFamily(FamilyState state) => _network.deleteFamily(state);
+
+  @override
+  Future<void> dispose() async {}
+}
+
+extension<T> on Iterable<T> {
+  T? get firstOrNull => this.isEmpty ? null : first;
 }
