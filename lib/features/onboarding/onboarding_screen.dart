@@ -92,9 +92,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
     analytics.logEvent('onboarding_completed');
     analytics.logEvent('baby_profile_created');
-    // Native review gate follows the first personalized setup moment, then
-    // continues to the same soft paywall as before.
-    router.go('/rating-request');
+    router.go('/today');
+    Future<void>.microtask(() => router.push('/paywall'));
   }
 
   @override

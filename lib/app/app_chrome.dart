@@ -24,6 +24,7 @@ Future<T?> showRelayModalBottomSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
   bool isScrollControlled = false,
+  bool showDragHandle = false,
 }) {
   final chrome = _maybeAppChromeOf(context);
 
@@ -31,6 +32,7 @@ Future<T?> showRelayModalBottomSheet<T>({
     context: context,
     isScrollControlled: isScrollControlled,
     useRootNavigator: true,
+    showDragHandle: showDragHandle,
     builder: builder,
   );
 

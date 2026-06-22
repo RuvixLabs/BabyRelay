@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
+import '../../core/reviews/review_prompt_sheet.dart';
 import '../../core/tutorial/coach_marks.dart';
 import '../../core/tutorial/tutorial_service.dart';
 import '../../data/family_repository.dart';
@@ -207,11 +208,15 @@ class _HandoffScreenState extends State<HandoffScreen> {
                 KeyedSubtree(
                   key: _shareKey,
                   child: FilledButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       analytics.logEvent('handoff_shared', {'method': 'share'});
-                      SharePlus.instance.share(
+                      final result = await SharePlus.instance.share(
                         ShareParams(text: summary.shareText),
                       );
+                      if (!context.mounted) return;
+                      if (result.status != ShareResultStatus.dismissed) {
+                        await maybeShowHandoffReviewPrompt(context);
+                      }
                     },
                     icon: const Icon(Icons.ios_share),
                     label: const Text('Share handoff'),
@@ -238,6 +243,12 @@ class _HandoffScreenState extends State<HandoffScreen> {
                           content: Text('Handoff copied — paste it anywhere'),
                         ),
                       );
+                      await Future<void>.delayed(
+                        const Duration(milliseconds: 350),
+                      );
+                      if (context.mounted) {
+                        await maybeShowHandoffReviewPrompt(context);
+                      }
                     }
                   },
                   icon: const Icon(Icons.copy_rounded),

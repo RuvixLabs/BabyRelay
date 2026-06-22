@@ -6,7 +6,6 @@ import '../features/care_team/care_team_screen.dart';
 import '../features/handoff/handoff_screen.dart';
 import '../features/join/join_family_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
-import '../features/onboarding/rating_request_screen.dart';
 import '../features/paywall/paywall_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/today/today_screen.dart';
@@ -40,10 +39,6 @@ GoRouter buildRouter(FamilyRepository familyRepository) {
         path: '/join/:code',
         builder: (context, state) =>
             JoinFamilyScreen(initialCode: state.pathParameters['code']),
-      ),
-      GoRoute(
-        path: '/rating-request',
-        builder: (context, state) => const RatingRequestScreen(),
       ),
       GoRoute(
         path: '/handoff',

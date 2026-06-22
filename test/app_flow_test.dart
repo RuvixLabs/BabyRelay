@@ -2,6 +2,7 @@ import 'package:babyrelay/app/app.dart';
 import 'package:babyrelay/core/analytics/analytics_service.dart';
 import 'package:babyrelay/core/attribution/attribution_service.dart';
 import 'package:babyrelay/core/purchases/purchase_service.dart';
+import 'package:babyrelay/core/reviews/review_prompt_service.dart';
 import 'package:babyrelay/core/support/support_service.dart';
 import 'package:babyrelay/core/tutorial/tutorial_service.dart';
 import 'package:babyrelay/data/family_repository.dart';
@@ -9,6 +10,7 @@ import 'package:babyrelay/data/local_store.dart';
 import 'package:babyrelay/domain/models/baby_profile.dart';
 import 'package:babyrelay/domain/models/care_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -51,6 +53,7 @@ void main() {
     FamilyRepository repo,
     PurchaseService purchases, {
     TutorialService? tutorialService,
+    ReviewPromptService? reviewPromptService,
   }) {
     return BabyRelayApp(
       familyRepository: repo,
@@ -59,6 +62,8 @@ void main() {
       supportService: SupportService.disabled(),
       attributionService: AttributionService(configured: false),
       tutorialService: tutorialService ?? TutorialService.disabled(),
+      reviewPromptService:
+          reviewPromptService ?? ReviewPromptService.disabled(),
     );
   }
 
@@ -86,7 +91,7 @@ void main() {
     expect(find.textContaining('local preview'), findsOneWidget);
   });
 
-  testWidgets('onboarding finishes with native rating gate before paywall', (
+  testWidgets('onboarding finishes at paywall without a rating gate', (
     tester,
   ) async {
     final (repo, purchases) = await buildDeps();
@@ -113,18 +118,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.state.onboarded, isTrue);
-    expect(find.text('Is BabyRelay already feeling helpful?'), findsOneWidget);
-    expect(find.text('Yes, love it'), findsOneWidget);
-    expect(find.text('Needs work'), findsOneWidget);
-    expect(find.text('Maybe later'), findsOneWidget);
-
-    await tester.tap(find.text('Maybe later'));
-    await tester.pump(const Duration(milliseconds: 250));
-    await tester.pumpAndSettle();
-
     expect(find.text('Claim annual offer'), findsOneWidget);
     expect(find.text('Offer ends in'), findsOneWidget);
     expect(find.text('1:30'), findsOneWidget);
+    expect(find.text('Is BabyRelay already feeling helpful?'), findsNothing);
+    expect(find.text('Did that handoff help?'), findsNothing);
   });
 
   testWidgets('Today coach marks wait until onboarding paywall is dismissed', (
@@ -154,10 +152,6 @@ void main() {
     await tester.enterText(find.byType(TextField), 'Sara');
     await tester.pump();
     await tester.tap(find.text('Create our timeline'));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Maybe later'));
-    await tester.pump(const Duration(milliseconds: 250));
     await tester.pumpAndSettle();
 
     expect(find.text('Claim annual offer'), findsOneWidget);
@@ -193,6 +187,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.state.isAsleep, isFalse);
     expect(repo.state.events.where((e) => e.isSleep), hasLength(1));
+  });
+
+  testWidgets('tracking action can trigger the timely native review prompt', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    final reviews = ReviewPromptService(InMemoryStore());
+    await reviews.load();
+
+    await tester.pumpWidget(app(repo, purchases, reviewPromptService: reviews));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Did that log help?'), findsNothing);
+
+    await tester.tap(find.text('Asleep'));
+    await tester.pump(const Duration(milliseconds: 450));
+    await tester.pumpAndSettle();
+
+    expect(repo.state.isAsleep, isTrue);
+    expect(find.text('Did that log help?'), findsOneWidget);
+    expect(find.text('Yes, it helped'), findsOneWidget);
+    expect(find.text('Needs work'), findsOneWidget);
+    expect(find.text('Maybe later'), findsOneWidget);
+
+    await tester.tap(find.text('Needs work'));
+    await tester.pumpAndSettle();
+    expect(reviews.shouldShow(ReviewPromptIds.trackingSuccess), isFalse);
+    expect(reviews.shouldShow(ReviewPromptIds.handoffSuccess), isFalse);
   });
 
   testWidgets('Today coach marks show once and persist when skipped', (
@@ -319,6 +341,54 @@ void main() {
     expect(find.text('Today'), findsNothing);
     expect(find.text('Care team'), findsNothing);
     expect(find.text('Settings'), findsNothing);
+  });
+
+  testWidgets('handoff copy is the timely native review prompt moment', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    final reviews = ReviewPromptService(InMemoryStore());
+    await reviews.load();
+    await repo.logFeed(FeedKind.bottle);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+          if (call.method == 'Clipboard.setData') return null;
+          return null;
+        });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null);
+    });
+
+    await tester.pumpWidget(app(repo, purchases, reviewPromptService: reviews));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Did that handoff help?'), findsNothing);
+
+    await tester.tap(find.text('Handoff to next caregiver'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Copy as text'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy as text'));
+    await tester.pump(const Duration(milliseconds: 450));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Did that handoff help?'), findsOneWidget);
+    expect(find.text('Yes, it helped'), findsOneWidget);
+    expect(find.text('Needs work'), findsOneWidget);
+    expect(find.text('Maybe later'), findsOneWidget);
+
+    await tester.tap(find.text('Maybe later'));
+    await tester.pumpAndSettle();
+    expect(reviews.shouldShow(ReviewPromptIds.handoffSuccess), isFalse);
+
+    await tester.ensureVisible(find.text('Copy as text'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy as text'));
+    await tester.pump(const Duration(milliseconds: 450));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Did that handoff help?'), findsNothing);
   });
 
   testWidgets('care team shows owner and paywall gates beyond free limit', (

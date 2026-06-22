@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
+import '../../core/reviews/review_prompt_sheet.dart';
 import '../../core/tutorial/coach_marks.dart';
 import '../../core/tutorial/tutorial_service.dart';
 import '../../core/util/formats.dart';
@@ -140,6 +141,20 @@ class _TodayViewState extends State<_TodayView> {
         '/today';
   }
 
+  Future<void> _trackAndMaybeAskForReview(
+    Future<void> Function() action,
+  ) async {
+    await action();
+    await _maybeAskForReviewAfterTracking();
+  }
+
+  Future<void> _maybeAskForReviewAfterTracking() async {
+    if (!mounted) return;
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (!mounted) return;
+    await maybeShowTrackingReviewPrompt(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
@@ -253,7 +268,8 @@ class _TodayViewState extends State<_TodayView> {
                   child: SleepButton(
                     isAsleep: state.isAsleep,
                     childName: child?.nickname,
-                    onPressed: cubit.toggleSleep,
+                    onPressed: () =>
+                        _trackAndMaybeAskForReview(cubit.toggleSleep),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -267,7 +283,11 @@ class _TodayViewState extends State<_TodayView> {
                         color: c.clay,
                         onTap: () async {
                           final kind = await showFeedSheet(context);
-                          if (kind != null) cubit.logFeed(kind);
+                          if (kind != null) {
+                            await _trackAndMaybeAskForReview(
+                              () => cubit.logFeed(kind),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(width: 10),
@@ -277,7 +297,11 @@ class _TodayViewState extends State<_TodayView> {
                         color: c.sage,
                         onTap: () async {
                           final kind = await showDiaperSheet(context);
-                          if (kind != null) cubit.logDiaper(kind);
+                          if (kind != null) {
+                            await _trackAndMaybeAskForReview(
+                              () => cubit.logDiaper(kind),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(width: 10),
@@ -287,7 +311,11 @@ class _TodayViewState extends State<_TodayView> {
                         color: c.sun,
                         onTap: () async {
                           final note = await showNoteSheet(context);
-                          if (note != null) cubit.logNote(note);
+                          if (note != null) {
+                            await _trackAndMaybeAskForReview(
+                              () => cubit.logNote(note),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(width: 10),
@@ -295,13 +323,15 @@ class _TodayViewState extends State<_TodayView> {
                         icon: Icons.dark_mode_outlined,
                         label: 'Night wake',
                         color: c.dusk,
-                        onTap: () {
-                          cubit.logNightWaking();
+                        onTap: () async {
+                          await cubit.logNightWaking();
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Night waking logged'),
                             ),
                           );
+                          await _maybeAskForReviewAfterTracking();
                         },
                       ),
                     ],

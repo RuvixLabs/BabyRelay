@@ -14,6 +14,7 @@ import 'core/attribution/attribution_service.dart';
 import 'core/config/app_config.dart';
 import 'core/purchases/purchase_service.dart';
 import 'core/purchases/revenuecat_purchase_service.dart';
+import 'core/reviews/review_prompt_service.dart';
 import 'core/support/support_service.dart';
 import 'core/tutorial/tutorial_service.dart';
 import 'data/firestore_family_sync.dart';
@@ -27,9 +28,11 @@ Future<void> main() async {
   final store = await SharedPrefsStore.create();
   final familyRepository = FamilyRepository(store);
   final tutorialService = TutorialService(store);
+  final reviewPromptService = ReviewPromptService(store);
   AnalyticsService analytics = AnalyticsService();
   await familyRepository.load();
   await tutorialService.load();
+  await reviewPromptService.load();
 
   if (AppConfig.firebaseConfigured) {
     try {
@@ -78,6 +81,7 @@ Future<void> main() async {
       supportService: supportService,
       attributionService: attributionService,
       tutorialService: tutorialService,
+      reviewPromptService: reviewPromptService,
     ),
   );
 }

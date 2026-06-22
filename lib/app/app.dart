@@ -5,6 +5,7 @@ import '../core/analytics/analytics_service.dart';
 import '../core/attribution/attribution_service.dart';
 import '../core/design/relay_theme.dart';
 import '../core/purchases/purchase_service.dart';
+import '../core/reviews/review_prompt_service.dart';
 import '../core/support/support_service.dart';
 import '../core/tutorial/tutorial_service.dart';
 import '../data/family_repository.dart';
@@ -20,6 +21,7 @@ class BabyRelayApp extends StatefulWidget {
     required this.supportService,
     required this.attributionService,
     required this.tutorialService,
+    required this.reviewPromptService,
   });
 
   final FamilyRepository familyRepository;
@@ -28,6 +30,7 @@ class BabyRelayApp extends StatefulWidget {
   final SupportService supportService;
   final AttributionService attributionService;
   final TutorialService tutorialService;
+  final ReviewPromptService reviewPromptService;
 
   @override
   State<BabyRelayApp> createState() => _BabyRelayAppState();
@@ -59,6 +62,7 @@ class _BabyRelayAppState extends State<BabyRelayApp> {
         ChangeNotifierProvider.value(value: widget.familyRepository),
         ChangeNotifierProvider.value(value: widget.purchaseService),
         ChangeNotifierProvider.value(value: widget.tutorialService),
+        ChangeNotifierProvider.value(value: widget.reviewPromptService),
         Provider.value(value: widget.analytics),
         Provider.value(value: widget.supportService),
         Provider.value(value: widget.attributionService),
