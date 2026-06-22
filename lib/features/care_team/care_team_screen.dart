@@ -431,26 +431,27 @@ class _InviteSheet extends StatelessWidget {
               icon: const Icon(Icons.refresh, size: 18),
               label: const Text('Generate a new code'),
             ),
-            Divider(color: c.outline, height: 28),
-            // Local-first stand-in for the real join flow: the second device
-            // would enter the code; here we add them directly so the shared
-            // timeline can be exercised end to end.
-            TextButton.icon(
-              onPressed: () async {
-                final name = await _askName(context);
-                if (name == null || name.trim().isEmpty) return;
-                await repo.addCaregiver(name);
-                analytics.logEvent('caregiver_joined');
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('$name joined the care team')),
-                  );
-                }
-              },
-              icon: const Icon(Icons.person_add_alt, size: 18),
-              label: const Text('Add caregiver on this device'),
-            ),
+            if (!repo.syncConfigured) ...[
+              Divider(color: c.outline, height: 28),
+              // Local-preview stand-in for the real second-device join flow.
+              // Production Firebase builds use only the QR/link/code path.
+              TextButton.icon(
+                onPressed: () async {
+                  final name = await _askName(context);
+                  if (name == null || name.trim().isEmpty) return;
+                  await repo.addCaregiver(name);
+                  analytics.logEvent('caregiver_joined');
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('$name joined the care team')),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.person_add_alt, size: 18),
+                label: const Text('Add caregiver on this device'),
+              ),
+            ],
           ],
         ),
       ),

@@ -93,10 +93,16 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
       batch.delete(_inviteRef(previousInviteCode));
     }
     if (nextCode.isNotEmpty) {
+      final ownerId =
+          state.caregivers
+              .where((c) => c.isOwner)
+              .map((c) => c.id)
+              .firstOrNull ??
+          state.currentCaregiverId;
       batch.set(_inviteRef(nextCode), {
         'code': nextCode,
         'familyId': state.familyId,
-        'ownerId': state.currentCaregiverId,
+        'ownerId': ownerId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     }

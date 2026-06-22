@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:babyrelay/app/app.dart';
 import 'package:babyrelay/core/analytics/analytics_service.dart';
 import 'package:babyrelay/core/attribution/attribution_service.dart';
@@ -9,6 +11,7 @@ import 'package:babyrelay/data/family_repository.dart';
 import 'package:babyrelay/data/local_store.dart';
 import 'package:babyrelay/domain/models/baby_profile.dart';
 import 'package:babyrelay/domain/models/care_event.dart';
+import 'package:babyrelay/domain/models/caregiver.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,9 +19,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   Future<(FamilyRepository, LocalPurchaseService)> buildDeps({
     bool onboarded = false,
+    FamilySyncAdapter? sync,
   }) async {
     final store = InMemoryStore();
-    final repo = FamilyRepository(store);
+    final repo = FamilyRepository(store, sync: sync);
     final purchases = LocalPurchaseService(store, actionDelay: Duration.zero);
     if (onboarded) {
       await repo.completeOnboarding(
@@ -418,6 +422,28 @@ void main() {
   });
 
   testWidgets(
+    'Firebase-enabled invite sheet hides local caregiver add shortcut',
+    (tester) async {
+      final (repo, purchases) = await buildDeps(
+        onboarded: true,
+        sync: _UiFakeFamilySyncAdapter(),
+      );
+      await tester.pumpWidget(app(repo, purchases));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Care team'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Invite a caregiver'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Invite a caregiver'), findsWidgets);
+      expect(find.text('Add caregiver on this device'), findsNothing);
+      expect(find.textContaining('babyrelay.app/join'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'settings lists children and add-child gates on paywall for free tier',
     (tester) async {
       final (repo, purchases) = await buildDeps(onboarded: true);
@@ -513,4 +539,40 @@ void main() {
     expect(purchases.isPro, isFalse);
     expect(find.text('No previous purchase found'), findsOneWidget);
   });
+}
+
+class _UiFakeFamilySyncAdapter implements FamilySyncAdapter {
+  final _controller = StreamController<FamilyState>.broadcast();
+  int _familyCounter = 0;
+
+  @override
+  String get userId => 'firebase-owner';
+
+  @override
+  String newFamilyId() => 'family_${++_familyCounter}';
+
+  @override
+  Stream<FamilyState> watchFamily(String familyId) => _controller.stream;
+
+  @override
+  Future<void> saveFamily(
+    FamilyState state, {
+    String? previousInviteCode,
+  }) async {}
+
+  @override
+  Future<FamilyState> joinFamilyByInviteCode({
+    required String code,
+    required Caregiver caregiver,
+    required int freeCaregiverLimit,
+    required bool allowOverFreeCaregiverLimit,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteFamily(FamilyState state) async {}
+
+  @override
+  Future<void> dispose() => _controller.close();
 }

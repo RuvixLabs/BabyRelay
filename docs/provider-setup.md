@@ -1,6 +1,6 @@
 # Provider Setup
 
-Last updated: 2026-06-16
+Last updated: 2026-06-22
 
 ## Firebase
 
@@ -8,12 +8,35 @@ Last updated: 2026-06-16
 - Firebase/GCP project ID: `babyrelay-ruvix`
 - iOS bundle ID: `com.ruvixlabs.babyrelay`
 - Firebase iOS app ID: `1:500197010265:ios:3e9e3b96b065cb7b287a48`
+- Firebase Web app ID: `1:500197010265:web:d6c4297117240e90287a48`
 - Firestore database: `(default)`, Firestore Native, `nam5`
 - Local config: `ios/Runner/GoogleService-Info.plist`
 
 Enabled services include Firebase Management, Firestore, Firebase Auth
 (`identitytoolkit`), Crashlytics, FCM, App Check, Installations, and Remote
 Config.
+
+Live sync state:
+
+- Anonymous Auth is enabled for `babyrelay-ruvix`. This was provisioned through
+  the Ruvix-authenticated Firebase Management API after the first live smoke
+  returned `CONFIGURATION_NOT_FOUND`.
+- Firestore rules are deployed to the `cloud.firestore` release:
+  `557fed9a-ba93-4639-815c-c5a3dd594abb`.
+- A client-side live smoke passed on 2026-06-22 using two anonymous users and
+  no admin bypass:
+  - owner anonymous Auth token issued
+  - owner created a family document
+  - owner created an invite code document
+  - joiner read the family through the invite-code rule before membership
+  - joiner joined the family through invite-aware rules
+  - owner wrote a shared care event after join
+  - joiner read the owner-written shared event
+  - smoke invite/family cleanup completed
+- The Firebase CLI is not logged in as `joe@ruvixlabs.com` in this worker pane,
+  so Auth provisioning and rules deployment were done with the Ruvix gcloud
+  context plus Firebase/Rules REST APIs. Future CLI deploys should explicitly
+  select the Ruvix context before mutating live Firebase state.
 
 ## AppRefer
 
@@ -188,8 +211,9 @@ Remaining App Store / subscription blockers:
 - Firebase SDK packages are installed. `main.dart` initializes Firebase,
   Crashlytics, Analytics, Messaging, anonymous Auth, and Firestore sync when
   `--dart-define=FIREBASE_CONFIGURED=true` is present.
-- Firestore rules are committed in `firestore.rules` but still need to be
-  deployed to `babyrelay-ruvix`.
+- Firestore rules are committed in `firestore.rules` and deployed to the
+  `cloud.firestore` release on `babyrelay-ruvix` as ruleset
+  `557fed9a-ba93-4639-815c-c5a3dd594abb`.
 - RevenueCat SDK is installed. `RevenueCatPurchaseService` reads current and
   `special_offer` offerings, maps the three App Store product IDs, and unlocks
   entitlement `pro`.

@@ -81,6 +81,69 @@ void main() {
     },
   );
 
+  test(
+    'attaching sync to an existing local family rekeys owner and attribution',
+    () async {
+      await onboard();
+      final localOwnerId = repo.state.currentCaregiverId;
+      await repo.logFeed(FeedKind.bottle);
+
+      final sync = FakeFamilySyncAdapter(userId: 'firebase_uid_1');
+      await repo.attachSync(sync);
+
+      expect(repo.state.currentCaregiverId, 'firebase_uid_1');
+      expect(repo.state.currentCaregiver!.id, 'firebase_uid_1');
+      expect(
+        repo.state.caregivers.map((c) => c.id),
+        contains('firebase_uid_1'),
+      );
+      expect(
+        repo.state.caregivers.map((c) => c.id),
+        isNot(contains(localOwnerId)),
+      );
+      expect(repo.state.events.single.loggedById, 'firebase_uid_1');
+      expect(sync.savedStates, hasLength(1));
+      expect(sync.savedStates.single.currentCaregiverId, 'firebase_uid_1');
+    },
+  );
+
+  test(
+    'remote family snapshots update local state and persisted cache',
+    () async {
+      final sync = FakeFamilySyncAdapter();
+      repo = FamilyRepository(store, sync: sync);
+      await onboard();
+
+      final remoteFeed = CareEvent(
+        id: 'remote_feed',
+        childId: repo.state.selectedChildId,
+        type: CareEventType.feed,
+        startAt: DateTime.now(),
+        endAt: DateTime.now(),
+        loggedById: repo.state.currentCaregiverId,
+        feedKind: FeedKind.bottle,
+      );
+      sync.emitRemote(repo.state.copyWith(events: [remoteFeed]));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.state.events.map((e) => e.id), contains('remote_feed'));
+      final raw = await store.read('babyrelay.family.v1');
+      expect(raw, contains('remote_feed'));
+    },
+  );
+
+  test('regenerating invite code asks sync to remove the old code', () async {
+    final sync = FakeFamilySyncAdapter();
+    repo = FamilyRepository(store, sync: sync);
+    await onboard();
+
+    final oldCode = repo.state.inviteCode;
+    await repo.regenerateInviteCode();
+
+    expect(repo.state.inviteCode, isNot(oldCode));
+    expect(sync.previousInviteCodes.last, oldCode);
+  });
+
   test('join-by-code adopts synced family and persists it locally', () async {
     final child = BabyProfile(
       id: 'baby_1',
@@ -445,20 +508,32 @@ void main() {
     expect(repo.state.events, isEmpty);
     expect(await store.read('babyrelay.family.v1'), isNull);
   });
+
+  test('deleteAllData deletes the remote family for the owner', () async {
+    final sync = FakeFamilySyncAdapter();
+    repo = FamilyRepository(store, sync: sync);
+    await onboard();
+
+    final familyId = repo.state.familyId;
+    await repo.deleteAllData();
+
+    expect(sync.deletedFamilyIds, [familyId]);
+  });
 }
 
 class FakeFamilySyncAdapter implements FamilySyncAdapter {
-  FakeFamilySyncAdapter({this.joinedTemplate});
+  FakeFamilySyncAdapter({this.joinedTemplate, this.userId = 'sync-user'});
 
   final FamilyState? joinedTemplate;
   final savedStates = <FamilyState>[];
   final previousInviteCodes = <String>[];
   final joinedCodes = <String>[];
+  final deletedFamilyIds = <String>[];
   final _controller = StreamController<FamilyState>.broadcast();
   int _familyCounter = 0;
 
   @override
-  String get userId => 'sync-user';
+  final String userId;
 
   @override
   String newFamilyId() => 'family_${++_familyCounter}';
@@ -474,6 +549,8 @@ class FakeFamilySyncAdapter implements FamilySyncAdapter {
     savedStates.add(state);
     previousInviteCodes.add(previousInviteCode ?? '');
   }
+
+  void emitRemote(FamilyState state) => _controller.add(state);
 
   @override
   Future<FamilyState> joinFamilyByInviteCode({
@@ -500,7 +577,9 @@ class FakeFamilySyncAdapter implements FamilySyncAdapter {
   }
 
   @override
-  Future<void> deleteFamily(FamilyState state) async {}
+  Future<void> deleteFamily(FamilyState state) async {
+    deletedFamilyIds.add(state.familyId);
+  }
 
   @override
   Future<void> dispose() => _controller.close();
