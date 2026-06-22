@@ -24,7 +24,8 @@ Future<BabyProfile?> startAddChildFlow(BuildContext context) async {
   final repo = context.read<FamilyRepository>();
   final purchases = context.read<PurchaseService>();
   final analytics = context.read<AnalyticsService>();
-  if (!purchases.isPro && repo.state.children.length >= kFreeChildLimit) {
+  final hasFamilyPlan = purchases.isPro || repo.state.familySubscriptionActive;
+  if (!hasFamilyPlan && repo.state.children.length >= kFreeChildLimit) {
     context.push('/paywall');
     return null;
   }

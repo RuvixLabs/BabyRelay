@@ -56,6 +56,9 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
       await repo.joinFamilyByInviteCode(
         code: code,
         caregiverName: name,
+        // The sync transaction also checks the family document's subscription
+        // status. This local entitlement is only an extra allowance for the
+        // current user; it is not the source of truth for a family plan.
         allowOverFreeCaregiverLimit: purchases.isPro,
       );
       analytics.logEvent('caregiver_joined');

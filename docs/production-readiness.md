@@ -31,7 +31,10 @@ Provider creation status is tracked in `docs/provider-setup.md`.
   failed, and nothing-to-restore states, with busy guards and store-driven
   prices when offerings are available. Product IDs:
   `babyrelay_pro_special_annual`, `babyrelay_pro_monthly`,
-  `babyrelay_pro_annual`; entitlement `pro`.
+  `babyrelay_pro_annual`; entitlement `pro`. Successful purchase/restore also
+  marks the shared family as BabyRelay Family active so extra-child/caregiver
+  gates and join-by-code evaluate the family plan, not only the joining
+  device's local RevenueCat status.
 - **Invites**: pure-Dart `InviteService` — unambiguous 6-char codes,
   deterministic `https://babyrelay.app/join/<code>` payload, share text, and a
   scannable QR code in the invite sheet.
@@ -56,7 +59,7 @@ Provider creation status is tracked in `docs/provider-setup.md`.
 
 | Provider | Status | Notes |
 |---|---|---|
-| Firebase | Live optimized sync smoke passed | Project `babyrelay-ruvix`; iOS app `com.ruvixlabs.babyrelay`; Web app `1:500197010265:web:d6c4297117240e90287a48`; Firestore `(default)` in `nam5`; plist is bundled in the iOS target. Anonymous Auth is enabled. Firestore rules are deployed to the `cloud.firestore` release as ruleset `fe83434a-58a3-459f-a148-cdd4606a4570`. A client-side owner/joiner invite-code smoke passed on 2026-06-22 with two anonymous users and no admin bypass against the optimized subcollection model. |
+| Firebase | Live optimized sync smoke passed | Project `babyrelay-ruvix`; iOS app `com.ruvixlabs.babyrelay`; Web app `1:500197010265:web:d6c4297117240e90287a48`; Firestore `(default)` in `nam5`; plist is bundled in the iOS target. Anonymous Auth is enabled. Firestore rules are deployed to the `cloud.firestore` release as ruleset `fe83434a-58a3-459f-a148-cdd4606a4570`. A client-side owner/joiner invite-code smoke passed on 2026-06-22 with two anonymous users and no admin bypass against the optimized subcollection model. The repo rules now include a follow-up tightening for family subscription metadata; deploy them once a Ruvix Firebase CLI auth session is available. |
 | AppRefer | Created | App `app_16e4ca28f81`; link `babyrelay-meta`; live/test SDK keys stored in `mc-vault`. Needs store destination URL before `trk.apprefer.com` can redirect. |
 | RevenueCat | Test Store + App Store catalog mapped | Project `26c4f023`; Test Store app `appf68d685da8`; App Store app `app70e3a91be4`; App Store SDK key stored in `mc-vault`; Ruvix in-app purchase key and ASC API key are configured. App Store monthly/annual products are imported, attached to `pro`, and included in the current `default` offering packages alongside Test Store products. App Store special annual product `babyrelay_pro_special_annual` is attached to `pro` in separate `special_offer` offering package `special_annual`. Account email still needs confirmation. Live ASC readback on 2026-06-16 shows Apple server notification URLs are not currently set, so production/sandbox V2 URLs must be re-applied before submission. |
 | AppStore Co-Pilot | Project + subscription catalog/legal docs synced | Ruvix owner `joe@ruvixlabs.com`; project `irq0wa833wWMRsASUxfK`; iOS app ID `6779147183`; Firebase project/app IDs and RevenueCat project ID are linked. Ruvix account-level App Store credentials exist. ASC subscription group `22150100` and products `babyrelay_pro_monthly`, `babyrelay_pro_annual`, and `babyrelay_pro_special_annual` are synced into Co-Pilot with pricing/trial metadata. Privacy Policy and Terms of Service are published, and AppStore Co-Pilot compliance currently returns zero issues. RevenueCat direct catalog management still needs a BabyRelay RevenueCat secret API key. |

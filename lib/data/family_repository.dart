@@ -28,6 +28,9 @@ class FamilyState {
     this.events = const [],
     this.currentCaregiverId = '',
     this.inviteCode = '',
+    this.familySubscriptionActive = false,
+    this.familySubscriptionPlanId = '',
+    this.familySubscriptionOwnerId = '',
     this.onboarded = false,
   });
 
@@ -39,6 +42,9 @@ class FamilyState {
   final List<CareEvent> events;
   final String currentCaregiverId;
   final String inviteCode;
+  final bool familySubscriptionActive;
+  final String familySubscriptionPlanId;
+  final String familySubscriptionOwnerId;
   final bool onboarded;
 
   BabyProfile? get selectedChild {
@@ -115,6 +121,9 @@ class FamilyState {
     List<CareEvent>? events,
     String? currentCaregiverId,
     String? inviteCode,
+    bool? familySubscriptionActive,
+    String? familySubscriptionPlanId,
+    String? familySubscriptionOwnerId,
     bool? onboarded,
   }) {
     return FamilyState(
@@ -125,6 +134,12 @@ class FamilyState {
       events: events ?? this.events,
       currentCaregiverId: currentCaregiverId ?? this.currentCaregiverId,
       inviteCode: inviteCode ?? this.inviteCode,
+      familySubscriptionActive:
+          familySubscriptionActive ?? this.familySubscriptionActive,
+      familySubscriptionPlanId:
+          familySubscriptionPlanId ?? this.familySubscriptionPlanId,
+      familySubscriptionOwnerId:
+          familySubscriptionOwnerId ?? this.familySubscriptionOwnerId,
       onboarded: onboarded ?? this.onboarded,
     );
   }
@@ -138,6 +153,9 @@ class FamilyState {
     'events': events.map((e) => e.toJson()).toList(),
     'currentCaregiverId': currentCaregiverId,
     'inviteCode': inviteCode,
+    'familySubscriptionActive': familySubscriptionActive,
+    'familySubscriptionPlanId': familySubscriptionPlanId,
+    'familySubscriptionOwnerId': familySubscriptionOwnerId,
     'onboarded': onboarded,
   };
 
@@ -176,6 +194,12 @@ class FamilyState {
       events: events,
       currentCaregiverId: json['currentCaregiverId'] as String? ?? '',
       inviteCode: json['inviteCode'] as String? ?? '',
+      familySubscriptionActive:
+          json['familySubscriptionActive'] as bool? ?? false,
+      familySubscriptionPlanId:
+          json['familySubscriptionPlanId'] as String? ?? '',
+      familySubscriptionOwnerId:
+          json['familySubscriptionOwnerId'] as String? ?? '',
       onboarded: json['onboarded'] as bool? ?? false,
     );
   }
@@ -707,6 +731,19 @@ class FamilyRepository extends ChangeNotifier {
 
   Future<void> regenerateInviteCode() async {
     await _commit(_state.copyWith(inviteCode: InviteService.generateCode()));
+  }
+
+  Future<void> setFamilySubscriptionStatus({
+    required bool active,
+    String planId = '',
+  }) async {
+    await _commit(
+      _state.copyWith(
+        familySubscriptionActive: active,
+        familySubscriptionPlanId: active ? planId : '',
+        familySubscriptionOwnerId: active ? _state.currentCaregiverId : '',
+      ),
+    );
   }
 
   Future<void> joinFamilyByInviteCode({

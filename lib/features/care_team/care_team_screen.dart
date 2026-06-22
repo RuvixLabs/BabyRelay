@@ -82,12 +82,13 @@ class _CareTeamScreenState extends State<CareTeamScreen> {
     final state = repo.state;
     final active = state.activeCaregivers;
     final isOwner = state.currentCaregiver?.isOwner ?? false;
+    final hasFamilyPlan = purchases.isPro || state.familySubscriptionActive;
     final text = Theme.of(context).textTheme;
     final c = context.relay;
 
     Future<void> startInvite() async {
       analytics.logEvent('caregiver_invite_started');
-      if (!purchases.isPro && active.length >= kFreeCaregiverLimit) {
+      if (!hasFamilyPlan && active.length >= kFreeCaregiverLimit) {
         context.push('/paywall');
         return;
       }
@@ -134,7 +135,7 @@ class _CareTeamScreenState extends State<CareTeamScreen> {
               label: const Text('Invite a caregiver'),
             ),
           ),
-          if (!purchases.isPro && active.length >= kFreeCaregiverLimit) ...[
+          if (!hasFamilyPlan && active.length >= kFreeCaregiverLimit) ...[
             const SizedBox(height: 10),
             RelayCard(
               padding: const EdgeInsets.all(16),

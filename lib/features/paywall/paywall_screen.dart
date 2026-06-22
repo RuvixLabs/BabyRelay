@@ -8,6 +8,7 @@ import '../../core/design/relay_theme.dart';
 import '../../core/legal/legal_links.dart';
 import '../../core/purchases/purchase_service.dart';
 import '../../core/tutorial/tutorial_service.dart';
+import '../../data/family_repository.dart';
 
 /// Family paywall. Calm and honest: price, trial terms, and the limited launch
 /// offer window are stated plainly, and close is always available.
@@ -77,6 +78,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _purchase() async {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
+    final repo = context.read<FamilyRepository>();
+    final messenger = ScaffoldMessenger.of(context);
     final plan = purchases.plans.firstWhere((p) => p.id == _selected);
     analytics.logEvent('purchase_started', {'plan': plan.id.name});
     final outcome = await purchases.purchase(plan);
@@ -84,7 +87,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     switch (outcome) {
       case PurchaseOutcome.success:
         analytics.logEvent('purchase_completed', {'plan': plan.id.name});
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           SnackBar(
             content: Text(
               plan.trialDays > 0
@@ -94,6 +97,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         );
         _dismissPaywall();
+        _syncFamilySubscription(repo, plan.id.name);
         break;
       case PurchaseOutcome.cancelled:
         // Backing out of the store sheet is not an error; stay quiet.
@@ -116,16 +120,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _restore() async {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
+    final repo = context.read<FamilyRepository>();
+    final messenger = ScaffoldMessenger.of(context);
     analytics.logEvent('restore_tapped');
     final outcome = await purchases.restore();
     if (!mounted) return;
     switch (outcome) {
       case RestoreOutcome.restored:
         analytics.logEvent('restore_completed');
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Purchases restored')));
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Purchases restored')),
+        );
         _dismissPaywall();
+        _syncFamilySubscription(repo, purchases.activePlan?.name ?? '');
         break;
       case RestoreOutcome.nothingToRestore:
         analytics.logEvent('restore_empty');
@@ -274,6 +281,27 @@ class _PaywallScreenState extends State<PaywallScreen> {
     });
   }
 
+  void _syncFamilySubscription(FamilyRepository repo, String planId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(
+        repo
+            .setFamilySubscriptionStatus(active: true, planId: planId)
+            .catchError((Object error, StackTrace stack) {
+              FlutterError.reportError(
+                FlutterErrorDetails(
+                  exception: error,
+                  stack: stack,
+                  library: 'BabyRelay purchases',
+                  context: ErrorDescription(
+                    'syncing family subscription status',
+                  ),
+                ),
+              );
+            }),
+      );
+    });
+  }
+
   String _ctaLabel(PurchaseService purchases) {
     final plan = purchases.plans.firstWhere((p) => p.id == _selected);
     return plan.trialDays > 0 ? 'Start 7-day free trial' : 'Claim annual offer';
@@ -309,10 +337,10 @@ class _FeatureGrid extends StatelessWidget {
 
   static const _features = [
     _Feature(Icons.group_add_outlined, 'Care team'),
-    _Feature(Icons.child_care_outlined, 'Child timelines'),
-    _Feature(Icons.swap_horiz_rounded, 'Handoff notes'),
-    _Feature(Icons.notifications_active_outlined, 'Shared alerts'),
-    _Feature(Icons.history, 'Full history'),
+    _Feature(Icons.child_care_outlined, 'More children'),
+    _Feature(Icons.group_outlined, 'More caregivers'),
+    _Feature(Icons.swap_horiz_rounded, 'Handoff summaries'),
+    _Feature(Icons.sync_rounded, 'Family sync'),
     _Feature(Icons.route_outlined, 'Nap guidance'),
   ];
 

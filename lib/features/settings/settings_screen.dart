@@ -29,6 +29,7 @@ class SettingsScreen extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final state = repo.state;
     final now = DateTime.now();
+    final hasFamilyPlan = purchases.isPro || state.familySubscriptionActive;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -101,7 +102,7 @@ class SettingsScreen extends StatelessWidget {
                 _SettingsRow(
                   icon: Icons.workspace_premium_outlined,
                   iconColor: c.clay,
-                  title: purchases.isPro
+                  title: hasFamilyPlan
                       ? 'BabyRelay Family${purchases.inTrial ? ' · trial' : ''}'
                       : 'Free plan',
                   subtitle: purchases.isPro
@@ -111,8 +112,10 @@ class SettingsScreen extends StatelessWidget {
                           PlanId.monthly => 'Monthly · \$9.99/mo',
                           null => 'BabyRelay Family',
                         }
+                      : state.familySubscriptionActive
+                      ? 'Active for this care team'
                       : 'First child + one extra caregiver',
-                  trailing: purchases.isPro
+                  trailing: hasFamilyPlan
                       ? RelayChip('Active', color: c.sage)
                       : RelayChip('Upgrade', color: c.clay),
                   onTap: () => context.push('/paywall'),

@@ -66,6 +66,12 @@ Future<void> main() async {
           appUserId: familyRepository.syncUserId,
         );
   await purchaseService.load();
+  if (purchaseService.isPro && familyRepository.state.onboarded) {
+    await familyRepository.setFamilySubscriptionStatus(
+      active: true,
+      planId: purchaseService.activePlan?.name ?? '',
+    );
+  }
   final supportService = await SupportService.create(
     gleapSdkKey: AppConfig.gleapSdkKey,
   );

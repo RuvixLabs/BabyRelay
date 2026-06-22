@@ -217,7 +217,9 @@ Remaining App Store / subscription blockers:
   `fe83434a-58a3-459f-a148-cdd4606a4570`.
 - RevenueCat SDK is installed. `RevenueCatPurchaseService` reads current and
   `special_offer` offerings, maps the three App Store product IDs, and unlocks
-  entitlement `pro`.
+  entitlement `pro`. Purchase/restore marks the shared family subscription
+  active so paid capacity gates apply to the family and join-by-code can accept
+  over-free-limit caregivers for a subscribed family.
 - Gleap SDK is installed. Settings opens in-app support when
   `GLEAP_SDK_KEY` is supplied, otherwise it falls back to the support email.
 - App tracking transparency is installed. `APPREFER_LINK_ID=babyrelay-meta`

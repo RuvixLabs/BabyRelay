@@ -83,6 +83,9 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
       'memberIds': memberIds,
       'inviteCode': state.inviteCode.toUpperCase(),
       'selectedChildId': state.selectedChildId,
+      'familySubscriptionActive': state.familySubscriptionActive,
+      'familySubscriptionPlanId': state.familySubscriptionPlanId,
+      'familySubscriptionOwnerId': state.familySubscriptionOwnerId,
       'onboarded': state.onboarded,
       'liveEventLimit': liveEventLimit,
       'updatedBy': userId,
@@ -236,6 +239,10 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
           ) ||
           previous.inviteCode.toUpperCase() != state.inviteCode.toUpperCase() ||
           previous.selectedChildId != state.selectedChildId ||
+          previous.familySubscriptionActive != state.familySubscriptionActive ||
+          previous.familySubscriptionPlanId != state.familySubscriptionPlanId ||
+          previous.familySubscriptionOwnerId !=
+              state.familySubscriptionOwnerId ||
           previous.onboarded != state.onboarded;
     }
 
@@ -378,8 +385,11 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
 
       final memberIds = (family['memberIds'] as List<dynamic>? ?? const [])
           .cast<String>();
+      final familySubscriptionActive =
+          family['familySubscriptionActive'] as bool? ?? false;
       final wouldIncreaseActiveMembers = !memberIds.contains(caregiver.id);
       if (!allowOverFreeCaregiverLimit &&
+          !familySubscriptionActive &&
           wouldIncreaseActiveMembers &&
           memberIds.length >= freeCaregiverLimit) {
         throw StateError('This care team is full on the free plan.');
@@ -531,6 +541,12 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
       events: events,
       currentCaregiverId: activeCurrentCaregiverId,
       inviteCode: familyData['inviteCode'] as String? ?? '',
+      familySubscriptionActive:
+          familyData['familySubscriptionActive'] as bool? ?? false,
+      familySubscriptionPlanId:
+          familyData['familySubscriptionPlanId'] as String? ?? '',
+      familySubscriptionOwnerId:
+          familyData['familySubscriptionOwnerId'] as String? ?? '',
       onboarded: familyData['onboarded'] as bool? ?? childProfiles.isNotEmpty,
     );
   }

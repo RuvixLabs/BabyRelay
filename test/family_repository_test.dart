@@ -271,6 +271,55 @@ void main() {
   });
 
   test(
+    'join-by-code allows extra caregivers for a subscribed family',
+    () async {
+      final child = BabyProfile(
+        id: 'baby_1',
+        nickname: 'Mae',
+        dob: DateTime.now().subtract(const Duration(days: 210)),
+        wakeTimeMinutes: 7 * 60,
+        bedtimeMinutes: 19 * 60,
+        napsPerDayEstimate: 3,
+      );
+      Caregiver caregiver(String id, String name, CaregiverRole role) =>
+          Caregiver(
+            id: id,
+            name: name,
+            role: role,
+            colorIndex: role == CaregiverRole.owner ? 0 : 1,
+            joinedAt: DateTime.now(),
+          );
+      final sync = FakeFamilySyncAdapter(
+        joinedTemplate: FamilyState(
+          familyId: 'family_remote',
+          children: [child],
+          selectedChildId: child.id,
+          caregivers: [
+            caregiver('owner_1', 'Sara', CaregiverRole.owner),
+            caregiver('caregiver_1', 'Sam', CaregiverRole.caregiver),
+          ],
+          currentCaregiverId: 'owner_1',
+          inviteCode: 'ABC123',
+          familySubscriptionActive: true,
+          familySubscriptionPlanId: 'specialAnnual',
+          familySubscriptionOwnerId: 'owner_1',
+          onboarded: true,
+        ),
+      );
+      repo = FamilyRepository(store, sync: sync);
+
+      await repo.joinFamilyByInviteCode(
+        code: 'ABC123',
+        caregiverName: 'Alex',
+        allowOverFreeCaregiverLimit: false,
+      );
+
+      expect(repo.state.activeCaregivers.map((c) => c.name), contains('Alex'));
+      expect(repo.state.familySubscriptionActive, isTrue);
+    },
+  );
+
+  test(
     'two synced devices keep local caregiver identity after join and logging',
     () async {
       final network = SharedFakeFamilySyncNetwork();
@@ -656,6 +705,7 @@ class FakeFamilySyncAdapter implements FamilySyncAdapter {
       (c) => c.id == caregiver.id && c.isActive,
     );
     if (!allowOverFreeCaregiverLimit &&
+        !template.familySubscriptionActive &&
         wouldIncreaseActiveMembers &&
         template.activeCaregivers.length >= freeCaregiverLimit) {
       throw StateError('This care team is full on the free plan.');
@@ -724,6 +774,7 @@ class SharedFakeFamilySyncNetwork {
         .firstOrNull;
     final wouldIncreaseActiveMembers = existing == null || !existing.isActive;
     if (!allowOverFreeCaregiverLimit &&
+        !current.familySubscriptionActive &&
         wouldIncreaseActiveMembers &&
         current.activeCaregivers.length >= freeCaregiverLimit) {
       throw StateError('This care team is full on the free plan.');
