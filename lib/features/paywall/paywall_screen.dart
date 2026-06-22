@@ -7,6 +7,7 @@ import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/legal/legal_links.dart';
 import '../../core/purchases/purchase_service.dart';
+import '../../core/tutorial/tutorial_service.dart';
 
 /// Family paywall. Calm and honest: price, trial terms, and the limited launch
 /// offer window are stated plainly, and close is always available.
@@ -92,7 +93,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             ),
           ),
         );
-        Navigator.of(context).pop();
+        _dismissPaywall();
         break;
       case PurchaseOutcome.cancelled:
         // Backing out of the store sheet is not an error; stay quiet.
@@ -124,7 +125,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Purchases restored')));
-        Navigator.of(context).pop();
+        _dismissPaywall();
         break;
       case RestoreOutcome.nothingToRestore:
         analytics.logEvent('restore_empty');
@@ -256,13 +257,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
               right: 8,
               child: IconButton(
                 icon: Icon(Icons.close, color: c.inkSoft),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: _dismissPaywall,
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _dismissPaywall() {
+    final tutorials = context.read<TutorialService>();
+    Navigator.of(context).pop();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      tutorials.requestVisibleTutorialCheck();
+    });
   }
 
   String _ctaLabel(PurchaseService purchases) {

@@ -127,6 +127,50 @@ void main() {
     expect(find.text('1:30'), findsOneWidget);
   });
 
+  testWidgets('Today coach marks wait until onboarding paywall is dismissed', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps();
+    final tutorials = TutorialService(InMemoryStore());
+    await tutorials.load();
+
+    await tester.pumpWidget(app(repo, purchases, tutorialService: tutorials));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Mae');
+    await tester.pump();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Sara');
+    await tester.pump();
+    await tester.tap(find.text('Create our timeline'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Maybe later'));
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Claim annual offer'), findsOneWidget);
+    expect(find.text('Start with one tap'), findsNothing);
+    expect(tutorials.shouldShow(TutorialIds.todayIntro), isTrue);
+
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Start with one tap'), findsOneWidget);
+    expect(tutorials.shouldShow(TutorialIds.todayIntro), isTrue);
+  });
+
   testWidgets('onboarded user lands on Today and can log sleep one-tap', (
     tester,
   ) async {

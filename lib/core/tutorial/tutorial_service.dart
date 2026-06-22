@@ -55,6 +55,10 @@ class TutorialService extends ChangeNotifier {
 
   bool shouldShow(String id) => _enabled && _loaded && !_seen.contains(id);
 
+  void requestVisibleTutorialCheck() {
+    if (_enabled) notifyListeners();
+  }
+
   Future<void> markSeen(String id) async {
     if (!_enabled) return;
     if (!_seen.add(id)) return;

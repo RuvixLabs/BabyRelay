@@ -44,7 +44,31 @@ class _TodayViewState extends State<_TodayView> {
   final _sleepButtonKey = GlobalKey(debugLabel: 'coach-sleep-button');
   final _quickActionsKey = GlobalKey(debugLabel: 'coach-quick-actions');
   final _handoffKey = GlobalKey(debugLabel: 'coach-handoff');
+  RouteInformationProvider? _routeInformationProvider;
   bool _todayTourQueued = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final nextRouteInformationProvider = GoRouter.of(
+      context,
+    ).routeInformationProvider;
+    if (_routeInformationProvider == nextRouteInformationProvider) return;
+    _routeInformationProvider?.removeListener(_handleRouteChanged);
+    _routeInformationProvider = nextRouteInformationProvider
+      ..addListener(_handleRouteChanged);
+  }
+
+  @override
+  void dispose() {
+    _routeInformationProvider?.removeListener(_handleRouteChanged);
+    super.dispose();
+  }
+
+  void _handleRouteChanged() {
+    if (!mounted) return;
+    _queueTodayTour(context);
+  }
 
   String _greeting(DateTime now) {
     if (now.hour < 5) return 'Late night shift';
@@ -56,13 +80,17 @@ class _TodayViewState extends State<_TodayView> {
 
   void _queueTodayTour(BuildContext context) {
     if (_todayTourQueued) return;
-    if (ModalRoute.of(context)?.isCurrent != true) return;
+    if (!_isTodayTopRoute(context)) return;
     final tutorial = context.read<TutorialService>();
     if (!tutorial.shouldShow(TutorialIds.todayIntro)) return;
     _todayTourQueued = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      if (!_isTodayTopRoute(context)) {
+        _todayTourQueued = false;
+        return;
+      }
       if (!tutorial.shouldShow(TutorialIds.todayIntro)) return;
       final analytics = context.read<AnalyticsService>();
       analytics.logEvent('coach_mark_seen', {
@@ -105,10 +133,18 @@ class _TodayViewState extends State<_TodayView> {
     });
   }
 
+  bool _isTodayTopRoute(BuildContext context) {
+    if (ModalRoute.of(context)?.isCurrent != true) return false;
+    if (Navigator.of(context, rootNavigator: true).canPop()) return false;
+    return GoRouter.of(context).routeInformationProvider.value.uri.path ==
+        '/today';
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
     final text = Theme.of(context).textTheme;
+    context.watch<TutorialService>();
 
     return BlocBuilder<TodayCubit, TodayState>(
       builder: (context, state) {
