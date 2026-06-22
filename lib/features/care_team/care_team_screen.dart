@@ -9,6 +9,8 @@ import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
 import '../../core/purchases/purchase_service.dart';
+import '../../core/tutorial/coach_marks.dart';
+import '../../core/tutorial/tutorial_service.dart';
 import '../../core/util/formats.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/caregiver.dart';
@@ -18,11 +20,62 @@ import '../../domain/services/invite_service.dart';
 /// beyond that is the BabyRelay Family upgrade moment.
 const int kFreeCaregiverLimit = FamilyRepository.freeCaregiverLimit;
 
-class CareTeamScreen extends StatelessWidget {
+class CareTeamScreen extends StatefulWidget {
   const CareTeamScreen({super.key});
 
   @override
+  State<CareTeamScreen> createState() => _CareTeamScreenState();
+}
+
+class _CareTeamScreenState extends State<CareTeamScreen> {
+  final _inviteKey = GlobalKey(debugLabel: 'coach-care-team-invite');
+  final _howItWorksKey = GlobalKey(debugLabel: 'coach-care-team-how-it-works');
+  bool _tourQueued = false;
+
+  void _queueTour(BuildContext context) {
+    if (_tourQueued) return;
+    final tutorial = context.read<TutorialService>();
+    if (!tutorial.shouldShow(TutorialIds.careTeam)) return;
+    _tourQueued = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (!tutorial.shouldShow(TutorialIds.careTeam)) return;
+      final analytics = context.read<AnalyticsService>();
+      analytics.logEvent('coach_mark_seen', {'section': TutorialIds.careTeam});
+      final result = await showCoachMarks(
+        context: context,
+        steps: [
+          CoachMarkStep(
+            targetKey: _inviteKey,
+            title: 'Invite the people who help',
+            body:
+                'Partners, grandparents, nannies, and sitters can join the same shared baby log.',
+            icon: Icons.person_add_alt_1,
+          ),
+          CoachMarkStep(
+            targetKey: _howItWorksKey,
+            title: 'Everyone stays in sync',
+            body:
+                'Each log shows who added it, so the next caregiver can take over with context.',
+            icon: Icons.sync_rounded,
+          ),
+        ],
+      );
+      if (!mounted) return;
+      await tutorial.markSeen(TutorialIds.careTeam);
+      analytics.logEvent(
+        result == CoachMarkResult.completed
+            ? 'coach_mark_completed'
+            : 'coach_mark_skipped',
+        {'section': TutorialIds.careTeam},
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _queueTour(context);
     final repo = context.watch<FamilyRepository>();
     final purchases = context.watch<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
@@ -73,10 +126,13 @@ class CareTeamScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: startInvite,
-            icon: const Icon(Icons.person_add_alt_1),
-            label: const Text('Invite a caregiver'),
+          KeyedSubtree(
+            key: _inviteKey,
+            child: FilledButton.icon(
+              onPressed: startInvite,
+              icon: const Icon(Icons.person_add_alt_1),
+              label: const Text('Invite a caregiver'),
+            ),
           ),
           if (!purchases.isPro && active.length >= kFreeCaregiverLimit) ...[
             const SizedBox(height: 10),
@@ -111,29 +167,32 @@ class CareTeamScreen extends StatelessWidget {
           ],
           const SizedBox(height: 24),
           const SectionLabel('How invites work'),
-          RelayCard(
-            child: Column(
-              children: const [
-                _HowItWorksRow(
-                  icon: Icons.qr_code_2,
-                  title: 'Share the code',
-                  body: 'Show the QR or send the 6-letter code or link.',
-                ),
-                SizedBox(height: 14),
-                _HowItWorksRow(
-                  icon: Icons.download_outlined,
-                  title: 'They join in under a minute',
-                  body:
-                      'They install BabyRelay, enter the code, and pick a name.',
-                ),
-                SizedBox(height: 14),
-                _HowItWorksRow(
-                  icon: Icons.sync,
-                  title: 'Everything stays in sync',
-                  body:
-                      'Every log shows who did it. No more "when did she last eat?" texts.',
-                ),
-              ],
+          KeyedSubtree(
+            key: _howItWorksKey,
+            child: RelayCard(
+              child: Column(
+                children: const [
+                  _HowItWorksRow(
+                    icon: Icons.qr_code_2,
+                    title: 'Share the code',
+                    body: 'Show the QR or send the 6-letter code or link.',
+                  ),
+                  SizedBox(height: 14),
+                  _HowItWorksRow(
+                    icon: Icons.download_outlined,
+                    title: 'They join in under a minute',
+                    body:
+                        'They install BabyRelay, enter the code, and pick a name.',
+                  ),
+                  SizedBox(height: 14),
+                  _HowItWorksRow(
+                    icon: Icons.sync,
+                    title: 'Everything stays in sync',
+                    body:
+                        'Every log shows who did it. No more "when did she last eat?" texts.',
+                  ),
+                ],
+              ),
             ),
           ),
         ],

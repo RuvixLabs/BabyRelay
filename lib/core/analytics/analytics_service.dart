@@ -53,6 +53,9 @@ class AnalyticsService {
     'restore_failed',
     'sample_day_loaded',
     'data_deleted',
+    'coach_mark_seen',
+    'coach_mark_skipped',
+    'coach_mark_completed',
   };
 
   void logEvent(String name, [Map<String, Object>? params]) {

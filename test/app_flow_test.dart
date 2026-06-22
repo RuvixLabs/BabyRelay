@@ -3,6 +3,7 @@ import 'package:babyrelay/core/analytics/analytics_service.dart';
 import 'package:babyrelay/core/attribution/attribution_service.dart';
 import 'package:babyrelay/core/purchases/purchase_service.dart';
 import 'package:babyrelay/core/support/support_service.dart';
+import 'package:babyrelay/core/tutorial/tutorial_service.dart';
 import 'package:babyrelay/data/family_repository.dart';
 import 'package:babyrelay/data/local_store.dart';
 import 'package:babyrelay/domain/models/baby_profile.dart';
@@ -46,13 +47,20 @@ void main() {
     );
   }
 
-  Widget app(FamilyRepository repo, PurchaseService purchases) => BabyRelayApp(
-    familyRepository: repo,
-    purchaseService: purchases,
-    analytics: AnalyticsService(),
-    supportService: SupportService.disabled(),
-    attributionService: AttributionService(configured: false),
-  );
+  Widget app(
+    FamilyRepository repo,
+    PurchaseService purchases, {
+    TutorialService? tutorialService,
+  }) {
+    return BabyRelayApp(
+      familyRepository: repo,
+      purchaseService: purchases,
+      analytics: AnalyticsService(),
+      supportService: SupportService.disabled(),
+      attributionService: AttributionService(configured: false),
+      tutorialService: tutorialService ?? TutorialService.disabled(),
+    );
+  }
 
   testWidgets('fresh install lands on onboarding', (tester) async {
     final (repo, purchases) = await buildDeps();
@@ -141,6 +149,67 @@ void main() {
     await tester.pumpAndSettle();
     expect(repo.state.isAsleep, isFalse);
     expect(repo.state.events.where((e) => e.isSleep), hasLength(1));
+  });
+
+  testWidgets('Today coach marks show once and persist when skipped', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    final tutorials = TutorialService(InMemoryStore());
+    await tutorials.load();
+
+    await tester.pumpWidget(app(repo, purchases, tutorialService: tutorials));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Start with one tap'), findsOneWidget);
+    expect(find.text('Skip tour'), findsOneWidget);
+
+    await tester.tap(find.text('Skip tour'));
+    await tester.pumpAndSettle();
+
+    expect(tutorials.shouldShow(TutorialIds.todayIntro), isFalse);
+    expect(find.text('Start with one tap'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(app(repo, purchases, tutorialService: tutorials));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Start with one tap'), findsNothing);
+    expect(find.text('Asleep'), findsOneWidget);
+  });
+
+  testWidgets('Care Team coach marks complete and do not repeat', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    final tutorials = TutorialService(InMemoryStore());
+    await tutorials.load();
+    await tutorials.markSeen(TutorialIds.todayIntro);
+
+    await tester.pumpWidget(app(repo, purchases, tutorialService: tutorials));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Care team'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Invite the people who help'), findsOneWidget);
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+    expect(find.text('Everyone stays in sync'), findsWidgets);
+
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(tutorials.shouldShow(TutorialIds.careTeam), isFalse);
+    expect(find.text('Invite the people who help'), findsNothing);
+
+    await tester.tap(find.text('Today'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Care team'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Invite the people who help'), findsNothing);
   });
 
   testWidgets('child switcher swaps Today to the selected child', (

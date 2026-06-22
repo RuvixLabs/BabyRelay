@@ -6,6 +6,7 @@ import '../core/attribution/attribution_service.dart';
 import '../core/design/relay_theme.dart';
 import '../core/purchases/purchase_service.dart';
 import '../core/support/support_service.dart';
+import '../core/tutorial/tutorial_service.dart';
 import '../data/family_repository.dart';
 import 'app_chrome.dart';
 import 'router.dart';
@@ -18,6 +19,7 @@ class BabyRelayApp extends StatefulWidget {
     required this.analytics,
     required this.supportService,
     required this.attributionService,
+    required this.tutorialService,
   });
 
   final FamilyRepository familyRepository;
@@ -25,6 +27,7 @@ class BabyRelayApp extends StatefulWidget {
   final AnalyticsService analytics;
   final SupportService supportService;
   final AttributionService attributionService;
+  final TutorialService tutorialService;
 
   @override
   State<BabyRelayApp> createState() => _BabyRelayAppState();
@@ -55,6 +58,7 @@ class _BabyRelayAppState extends State<BabyRelayApp> {
         ChangeNotifierProvider.value(value: appChrome),
         ChangeNotifierProvider.value(value: widget.familyRepository),
         ChangeNotifierProvider.value(value: widget.purchaseService),
+        ChangeNotifierProvider.value(value: widget.tutorialService),
         Provider.value(value: widget.analytics),
         Provider.value(value: widget.supportService),
         Provider.value(value: widget.attributionService),

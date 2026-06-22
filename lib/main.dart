@@ -15,6 +15,7 @@ import 'core/config/app_config.dart';
 import 'core/purchases/purchase_service.dart';
 import 'core/purchases/revenuecat_purchase_service.dart';
 import 'core/support/support_service.dart';
+import 'core/tutorial/tutorial_service.dart';
 import 'data/firestore_family_sync.dart';
 import 'data/family_repository.dart';
 import 'data/local_store.dart';
@@ -25,8 +26,10 @@ Future<void> main() async {
 
   final store = await SharedPrefsStore.create();
   final familyRepository = FamilyRepository(store);
+  final tutorialService = TutorialService(store);
   AnalyticsService analytics = AnalyticsService();
   await familyRepository.load();
+  await tutorialService.load();
 
   if (AppConfig.firebaseConfigured) {
     try {
@@ -74,6 +77,7 @@ Future<void> main() async {
       analytics: analytics,
       supportService: supportService,
       attributionService: attributionService,
+      tutorialService: tutorialService,
     ),
   );
 }

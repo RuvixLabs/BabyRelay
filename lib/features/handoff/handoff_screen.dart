@@ -6,6 +6,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
+import '../../core/tutorial/coach_marks.dart';
+import '../../core/tutorial/tutorial_service.dart';
 import '../../data/family_repository.dart';
 import '../../domain/engine/sleep_prediction_engine.dart';
 import '../../domain/models/baby_profile.dart';
@@ -15,8 +17,17 @@ import '../../domain/services/handoff_service.dart';
 /// The relay moment: a plain-language summary the next caregiver can read in
 /// ten seconds, shareable as text so non-app grandparents still get it.
 /// Always scoped to the selected child.
-class HandoffScreen extends StatelessWidget {
+class HandoffScreen extends StatefulWidget {
   const HandoffScreen({super.key});
+
+  @override
+  State<HandoffScreen> createState() => _HandoffScreenState();
+}
+
+class _HandoffScreenState extends State<HandoffScreen> {
+  final _summaryKey = GlobalKey(debugLabel: 'coach-handoff-summary');
+  final _shareKey = GlobalKey(debugLabel: 'coach-handoff-share');
+  bool _tourQueued = false;
 
   HandoffSummary? _buildSummary(FamilyRepository repo, BabyProfile? child) {
     final state = repo.state;
@@ -42,6 +53,47 @@ class HandoffScreen extends StatelessWidget {
     );
   }
 
+  void _queueTour(BuildContext context, HandoffSummary? summary) {
+    if (_tourQueued || summary == null) return;
+    final tutorial = context.read<TutorialService>();
+    if (!tutorial.shouldShow(TutorialIds.handoff)) return;
+    _tourQueued = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (!tutorial.shouldShow(TutorialIds.handoff)) return;
+      final analytics = context.read<AnalyticsService>();
+      analytics.logEvent('coach_mark_seen', {'section': TutorialIds.handoff});
+      final result = await showCoachMarks(
+        context: context,
+        steps: [
+          CoachMarkStep(
+            targetKey: _summaryKey,
+            title: 'Everything in one glance',
+            body:
+                'BabyRelay turns today’s logs into the nap, feed, change, and heads-up context.',
+            icon: Icons.article_outlined,
+          ),
+          CoachMarkStep(
+            targetKey: _shareKey,
+            title: 'Share it before handoff',
+            body:
+                'Send or copy the summary for anyone taking over, even if they are not in the app yet.',
+            icon: Icons.ios_share,
+          ),
+        ],
+      );
+      if (!mounted) return;
+      await tutorial.markSeen(TutorialIds.handoff);
+      analytics.logEvent(
+        result == CoachMarkResult.completed
+            ? 'coach_mark_completed'
+            : 'coach_mark_skipped',
+        {'section': TutorialIds.handoff},
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
@@ -50,6 +102,7 @@ class HandoffScreen extends StatelessWidget {
     final analytics = context.read<AnalyticsService>();
     final child = repo.state.selectedChild;
     final summary = _buildSummary(repo, child);
+    _queueTour(context, summary);
 
     return Scaffold(
       appBar: AppBar(
@@ -71,92 +124,98 @@ class HandoffScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 // The relay note. Deep header band makes it feel like a
                 // designed artifact, not another list.
-                Container(
-                  decoration: BoxDecoration(
-                    color: c.surface,
-                    borderRadius: BorderRadius.circular(26),
-                    border: Border.all(color: c.outline),
-                    boxShadow: [
-                      BoxShadow(
-                        color: c.ink.withValues(alpha: 0.06),
-                        blurRadius: 22,
-                        offset: const Offset(0, 9),
-                      ),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(gradient: c.nightGradient),
-                        padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
-                        child: Row(
-                          children: [
-                            ChildAvatar(child: child, size: 40),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    summary.headline.toUpperCase(),
-                                    style: text.labelSmall?.copyWith(
-                                      color: c.onNightSoft,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    summary.statusLine,
-                                    style: text.titleMedium?.copyWith(
-                                      color: c.onNight,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                KeyedSubtree(
+                  key: _summaryKey,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: c.surface,
+                      borderRadius: BorderRadius.circular(26),
+                      border: Border.all(color: c.outline),
+                      boxShadow: [
+                        BoxShadow(
+                          color: c.ink.withValues(alpha: 0.06),
+                          blurRadius: 22,
+                          offset: const Offset(0, 9),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(22),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final line in summary.lines) ...[
-                              _SummaryLine(line: line),
-                              const SizedBox(height: 10),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(gradient: c.nightGradient),
+                          padding: const EdgeInsets.fromLTRB(22, 18, 22, 18),
+                          child: Row(
+                            children: [
+                              ChildAvatar(child: child, size: 40),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      summary.headline.toUpperCase(),
+                                      style: text.labelSmall?.copyWith(
+                                        color: c.onNightSoft,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      summary.statusLine,
+                                      style: text.titleMedium?.copyWith(
+                                        color: c.onNight,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
-                            Divider(color: c.outline, height: 28),
-                            Text(
-                              'FOR THE NEXT CAREGIVER',
-                              style: text.labelSmall,
-                            ),
-                            const SizedBox(height: 10),
-                            for (final line in summary.headsUp) ...[
-                              _SummaryLine(
-                                line: line,
-                                icon: Icons.tips_and_updates_outlined,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(22),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (final line in summary.lines) ...[
+                                _SummaryLine(line: line),
+                                const SizedBox(height: 10),
+                              ],
+                              Divider(color: c.outline, height: 28),
+                              Text(
+                                'FOR THE NEXT CAREGIVER',
+                                style: text.labelSmall,
                               ),
                               const SizedBox(height: 10),
+                              for (final line in summary.headsUp) ...[
+                                _SummaryLine(
+                                  line: line,
+                                  icon: Icons.tips_and_updates_outlined,
+                                ),
+                                const SizedBox(height: 10),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: () {
-                    analytics.logEvent('handoff_shared', {'method': 'share'});
-                    SharePlus.instance.share(
-                      ShareParams(text: summary.shareText),
-                    );
-                  },
-                  icon: const Icon(Icons.ios_share),
-                  label: const Text('Share handoff'),
+                KeyedSubtree(
+                  key: _shareKey,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      analytics.logEvent('handoff_shared', {'method': 'share'});
+                      SharePlus.instance.share(
+                        ShareParams(text: summary.shareText),
+                      );
+                    },
+                    icon: const Icon(Icons.ios_share),
+                    label: const Text('Share handoff'),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(

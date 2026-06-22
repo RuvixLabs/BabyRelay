@@ -8,6 +8,8 @@ import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
 import '../../core/purchases/purchase_service.dart';
+import '../../core/tutorial/coach_marks.dart';
+import '../../core/tutorial/tutorial_service.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/baby_profile.dart';
 import 'child_form_sheet.dart';
@@ -44,17 +46,63 @@ Future<void> showChildSwitcherSheet(BuildContext context) {
         ChangeNotifierProvider.value(value: context.read<FamilyRepository>()),
         ChangeNotifierProvider.value(value: context.read<PurchaseService>()),
         Provider.value(value: context.read<AnalyticsService>()),
+        ChangeNotifierProvider.value(value: context.read<TutorialService>()),
       ],
       child: const _ChildSwitcherSheet(),
     ),
   );
 }
 
-class _ChildSwitcherSheet extends StatelessWidget {
+class _ChildSwitcherSheet extends StatefulWidget {
   const _ChildSwitcherSheet();
 
   @override
+  State<_ChildSwitcherSheet> createState() => _ChildSwitcherSheetState();
+}
+
+class _ChildSwitcherSheetState extends State<_ChildSwitcherSheet> {
+  final _childrenKey = GlobalKey(debugLabel: 'coach-child-switcher');
+  bool _tourQueued = false;
+
+  void _queueTour(BuildContext context) {
+    if (_tourQueued) return;
+    final tutorial = context.read<TutorialService>();
+    if (!tutorial.shouldShow(TutorialIds.childSwitcher)) return;
+    _tourQueued = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (!tutorial.shouldShow(TutorialIds.childSwitcher)) return;
+      final analytics = context.read<AnalyticsService>();
+      analytics.logEvent('coach_mark_seen', {
+        'section': TutorialIds.childSwitcher,
+      });
+      final result = await showCoachMarks(
+        context: context,
+        steps: [
+          CoachMarkStep(
+            targetKey: _childrenKey,
+            title: 'One timeline per child',
+            body:
+                'Switch children here without mixing naps, feeds, notes, or handoffs.',
+            icon: Icons.child_care_rounded,
+          ),
+        ],
+      );
+      if (!mounted) return;
+      await tutorial.markSeen(TutorialIds.childSwitcher);
+      analytics.logEvent(
+        result == CoachMarkResult.completed
+            ? 'coach_mark_completed'
+            : 'coach_mark_skipped',
+        {'section': TutorialIds.childSwitcher},
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    _queueTour(context);
     final repo = context.watch<FamilyRepository>();
     final analytics = context.read<AnalyticsService>();
     final state = repo.state;
@@ -81,21 +129,28 @@ class _ChildSwitcherSheet extends StatelessWidget {
               style: text.bodyMedium,
             ),
             const SizedBox(height: 14),
-            for (final child in state.children) ...[
-              _ChildRow(
-                child: child,
-                selected: child.id == state.selectedChildId,
-                asleep: state.isChildAsleep(child.id),
-                ageLabel: child.ageLabelAt(now),
-                onTap: () async {
-                  HapticFeedback.selectionClick();
-                  await repo.selectChild(child.id);
-                  analytics.logEvent('child_switched');
-                  if (context.mounted) Navigator.of(context).pop();
-                },
+            KeyedSubtree(
+              key: _childrenKey,
+              child: Column(
+                children: [
+                  for (final child in state.children) ...[
+                    _ChildRow(
+                      child: child,
+                      selected: child.id == state.selectedChildId,
+                      asleep: state.isChildAsleep(child.id),
+                      ageLabel: child.ageLabelAt(now),
+                      onTap: () async {
+                        HapticFeedback.selectionClick();
+                        await repo.selectChild(child.id);
+                        analytics.logEvent('child_switched');
+                        if (context.mounted) Navigator.of(context).pop();
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ],
               ),
-              const SizedBox(height: 8),
-            ],
+            ),
             InkWell(
               onTap: () async {
                 final added = await startAddChildFlow(context);

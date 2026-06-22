@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/analytics/analytics_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
+import '../../core/tutorial/coach_marks.dart';
+import '../../core/tutorial/tutorial_service.dart';
 import '../../core/util/formats.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/care_event.dart';
@@ -31,8 +33,18 @@ class TodayScreen extends StatelessWidget {
   }
 }
 
-class _TodayView extends StatelessWidget {
+class _TodayView extends StatefulWidget {
   const _TodayView();
+
+  @override
+  State<_TodayView> createState() => _TodayViewState();
+}
+
+class _TodayViewState extends State<_TodayView> {
+  final _sleepButtonKey = GlobalKey(debugLabel: 'coach-sleep-button');
+  final _quickActionsKey = GlobalKey(debugLabel: 'coach-quick-actions');
+  final _handoffKey = GlobalKey(debugLabel: 'coach-handoff');
+  bool _todayTourQueued = false;
 
   String _greeting(DateTime now) {
     if (now.hour < 5) return 'Late night shift';
@@ -42,6 +54,57 @@ class _TodayView extends StatelessWidget {
     return 'Night shift';
   }
 
+  void _queueTodayTour(BuildContext context) {
+    if (_todayTourQueued) return;
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    final tutorial = context.read<TutorialService>();
+    if (!tutorial.shouldShow(TutorialIds.todayIntro)) return;
+    _todayTourQueued = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      if (!tutorial.shouldShow(TutorialIds.todayIntro)) return;
+      final analytics = context.read<AnalyticsService>();
+      analytics.logEvent('coach_mark_seen', {
+        'section': TutorialIds.todayIntro,
+      });
+      final result = await showCoachMarks(
+        context: context,
+        steps: [
+          CoachMarkStep(
+            targetKey: _sleepButtonKey,
+            title: 'Start with one tap',
+            body:
+                'Log sleep the moment it starts or ends. No timer setup, no extra screen.',
+            icon: Icons.nightlight_round,
+          ),
+          CoachMarkStep(
+            targetKey: _quickActionsKey,
+            title: 'Log care as it happens',
+            body:
+                'Feeds, diapers, notes, and night wakes all land in the shared timeline.',
+            icon: Icons.bolt_rounded,
+          ),
+          CoachMarkStep(
+            targetKey: _handoffKey,
+            title: 'Hand off without guesswork',
+            body:
+                'When someone takes over, send the day so far in one clean summary.',
+            icon: Icons.swap_horiz_rounded,
+          ),
+        ],
+      );
+      if (!mounted) return;
+      await tutorial.markSeen(TutorialIds.todayIntro);
+      analytics.logEvent(
+        result == CoachMarkResult.completed
+            ? 'coach_mark_completed'
+            : 'coach_mark_skipped',
+        {'section': TutorialIds.todayIntro},
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
@@ -49,6 +112,7 @@ class _TodayView extends StatelessWidget {
 
     return BlocBuilder<TodayCubit, TodayState>(
       builder: (context, state) {
+        _queueTodayTour(context);
         final cubit = context.read<TodayCubit>();
         final child = state.child;
         final caregivers = state.family.activeCaregivers;
@@ -124,11 +188,16 @@ class _TodayView extends StatelessWidget {
                 ),
                 if (state.children.length > 1) const SizedBox(height: 12),
                 // Handoff is the product promise — keep it one tap from home.
-                _HandoffPill(
-                  onTap: () {
-                    context.read<AnalyticsService>().logEvent('handoff_opened');
-                    context.push('/handoff');
-                  },
+                KeyedSubtree(
+                  key: _handoffKey,
+                  child: _HandoffPill(
+                    onTap: () {
+                      context.read<AnalyticsService>().logEvent(
+                        'handoff_opened',
+                      );
+                      context.push('/handoff');
+                    },
+                  ),
                 ),
                 const SizedBox(height: 16),
                 NextUpCard(
@@ -143,56 +212,64 @@ class _TodayView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                SleepButton(
-                  isAsleep: state.isAsleep,
-                  childName: child?.nickname,
-                  onPressed: cubit.toggleSleep,
+                KeyedSubtree(
+                  key: _sleepButtonKey,
+                  child: SleepButton(
+                    isAsleep: state.isAsleep,
+                    childName: child?.nickname,
+                    onPressed: cubit.toggleSleep,
+                  ),
                 ),
                 const SizedBox(height: 14),
-                Row(
-                  children: [
-                    QuickAction(
-                      icon: Icons.local_drink_outlined,
-                      label: 'Feed',
-                      color: c.clay,
-                      onTap: () async {
-                        final kind = await showFeedSheet(context);
-                        if (kind != null) cubit.logFeed(kind);
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    QuickAction(
-                      icon: Icons.baby_changing_station,
-                      label: 'Diaper',
-                      color: c.sage,
-                      onTap: () async {
-                        final kind = await showDiaperSheet(context);
-                        if (kind != null) cubit.logDiaper(kind);
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    QuickAction(
-                      icon: Icons.sticky_note_2_outlined,
-                      label: 'Note',
-                      color: c.sun,
-                      onTap: () async {
-                        final note = await showNoteSheet(context);
-                        if (note != null) cubit.logNote(note);
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    QuickAction(
-                      icon: Icons.dark_mode_outlined,
-                      label: 'Night wake',
-                      color: c.dusk,
-                      onTap: () {
-                        cubit.logNightWaking();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Night waking logged')),
-                        );
-                      },
-                    ),
-                  ],
+                KeyedSubtree(
+                  key: _quickActionsKey,
+                  child: Row(
+                    children: [
+                      QuickAction(
+                        icon: Icons.local_drink_outlined,
+                        label: 'Feed',
+                        color: c.clay,
+                        onTap: () async {
+                          final kind = await showFeedSheet(context);
+                          if (kind != null) cubit.logFeed(kind);
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      QuickAction(
+                        icon: Icons.baby_changing_station,
+                        label: 'Diaper',
+                        color: c.sage,
+                        onTap: () async {
+                          final kind = await showDiaperSheet(context);
+                          if (kind != null) cubit.logDiaper(kind);
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      QuickAction(
+                        icon: Icons.sticky_note_2_outlined,
+                        label: 'Note',
+                        color: c.sun,
+                        onTap: () async {
+                          final note = await showNoteSheet(context);
+                          if (note != null) cubit.logNote(note);
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      QuickAction(
+                        icon: Icons.dark_mode_outlined,
+                        label: 'Night wake',
+                        color: c.dusk,
+                        onTap: () {
+                          cubit.logNightWaking();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Night waking logged'),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SectionLabel(
