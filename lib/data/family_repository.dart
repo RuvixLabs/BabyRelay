@@ -295,13 +295,32 @@ class FamilyRepository extends ChangeNotifier {
       if (_applyingRemote) return;
       _applyingRemote = true;
       try {
-        _state = remote;
+        final merged = _mergeRemoteFamilyState(remote);
+        _state = merged;
         notifyListeners();
-        await _store.write(_storageKey, jsonEncode(remote.toJson()));
+        await _store.write(_storageKey, jsonEncode(merged.toJson()));
       } finally {
         _applyingRemote = false;
       }
     });
+  }
+
+  FamilyState _mergeRemoteFamilyState(FamilyState remote) {
+    var merged = remote;
+
+    final localCaregiverId = _state.currentCaregiverId;
+    if (localCaregiverId.isNotEmpty &&
+        remote.caregivers.any((c) => c.id == localCaregiverId && c.isActive)) {
+      merged = merged.copyWith(currentCaregiverId: localCaregiverId);
+    }
+
+    final localSelectedChildId = _state.selectedChildId;
+    if (localSelectedChildId.isNotEmpty &&
+        remote.children.any((c) => c.id == localSelectedChildId)) {
+      merged = merged.copyWith(selectedChildId: localSelectedChildId);
+    }
+
+    return merged;
   }
 
   Future<void> _commit(FamilyState next) async {

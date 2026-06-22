@@ -51,13 +51,17 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
   Map<String, dynamic> _familyDocument(FamilyState state) {
     final memberIds = state.activeCaregivers.map((c) => c.id).toSet().toList()
       ..sort();
+    final ownerId = state.caregivers
+        .where((c) => c.isOwner)
+        .map((c) => c.id)
+        .firstOrNull;
+    final sharedState = state.copyWith(
+      currentCaregiverId: ownerId ?? state.currentCaregiverId,
+    );
     return {
       'schemaVersion': FamilyState.schemaVersion,
-      'state': state.toJson(),
-      'ownerId': state.caregivers
-          .where((c) => c.isOwner)
-          .map((c) => c.id)
-          .firstOrNull,
+      'state': sharedState.toJson(),
+      'ownerId': ownerId,
       'memberIds': memberIds,
       'inviteCode': state.inviteCode,
       'updatedBy': userId,

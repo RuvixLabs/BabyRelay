@@ -132,6 +132,40 @@ void main() {
     },
   );
 
+  test(
+    'remote family snapshots preserve this device caregiver identity',
+    () async {
+      final sync = FakeFamilySyncAdapter();
+      repo = FamilyRepository(store, sync: sync);
+      await onboard();
+
+      final ownerId = repo.state.currentCaregiverId;
+      final joiner = Caregiver(
+        id: 'joiner_uid',
+        name: 'Nana',
+        role: CaregiverRole.caregiver,
+        colorIndex: 1,
+        joinedAt: DateTime.now(),
+        lastActiveAt: DateTime.now(),
+      );
+
+      sync.emitRemote(
+        repo.state.copyWith(
+          caregivers: [...repo.state.caregivers, joiner],
+          currentCaregiverId: joiner.id,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.state.currentCaregiverId, ownerId);
+      expect(repo.state.currentCaregiver!.name, 'Sara');
+      expect(repo.state.activeCaregivers.map((c) => c.id), contains(joiner.id));
+      final raw = await store.read('babyrelay.family.v1');
+      final json = jsonDecode(raw!) as Map<String, dynamic>;
+      expect(json['currentCaregiverId'], ownerId);
+    },
+  );
+
   test('regenerating invite code asks sync to remove the old code', () async {
     final sync = FakeFamilySyncAdapter();
     repo = FamilyRepository(store, sync: sync);
