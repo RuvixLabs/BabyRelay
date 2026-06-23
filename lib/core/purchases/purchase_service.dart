@@ -106,7 +106,7 @@ abstract class PurchaseService extends ChangeNotifier {
       title: 'Monthly',
       priceLabel: '\$9.99',
       periodLabel: 'per month',
-      trialDays: 7,
+      trialDays: 0,
     ),
   ];
 

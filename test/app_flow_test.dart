@@ -127,6 +127,14 @@ void main() {
     expect(find.text('1:30'), findsOneWidget);
     expect(find.text('Is BabyRelay already feeling helpful?'), findsNothing);
     expect(find.text('Did that handoff help?'), findsNothing);
+
+    await tester.scrollUntilVisible(find.text('Monthly'), 200);
+    await tester.tap(find.text('Monthly'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose monthly'), findsOneWidget);
+    expect(find.text('\$9.99/month today. Cancel anytime.'), findsOneWidget);
+    expect(find.text('Start 7-day free trial'), findsNothing);
   });
 
   testWidgets('Today coach marks wait until onboarding paywall is dismissed', (

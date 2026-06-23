@@ -179,7 +179,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'BabyRelay Family keeps every caregiver in sync — choose the launch offer or start with a trial.',
+                        'BabyRelay Family keeps every caregiver in sync — choose the launch offer, annual trial, or monthly plan.',
                         textAlign: TextAlign.center,
                         style: text.bodyMedium,
                       ),
@@ -304,7 +304,12 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   String _ctaLabel(PurchaseService purchases) {
     final plan = purchases.plans.firstWhere((p) => p.id == _selected);
-    return plan.trialDays > 0 ? 'Start 7-day free trial' : 'Claim annual offer';
+    if (plan.trialDays > 0) return 'Start 7-day free trial';
+    return switch (plan.id) {
+      PlanId.specialAnnual => 'Claim annual offer',
+      PlanId.annual => 'Choose annual',
+      PlanId.monthly => 'Choose monthly',
+    };
   }
 
   String _billingCopy(PurchaseService purchases) {
@@ -312,7 +317,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (plan.trialDays > 0) {
       return 'Free for ${plan.trialDays} days, then ${plan.priceLabel}${plan.id == PlanId.monthly ? '/month' : '/year'}. Cancel anytime.';
     }
-    return '${plan.priceLabel}/year today. Cancel anytime.';
+    final period = plan.id == PlanId.monthly ? 'month' : 'year';
+    return '${plan.priceLabel}/$period today. Cancel anytime.';
   }
 }
 

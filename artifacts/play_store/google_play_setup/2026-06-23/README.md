@@ -19,7 +19,7 @@ Live work completed:
   Government apps, Financial features, Health apps, Content rating, Target
   audience, and Data safety.
 - Created active Google Play subscriptions/base plans:
-  - `babyrelay_pro_monthly` / `monthly` / `P1M` / `$9.99` / 7-day trial
+  - `babyrelay_pro_monthly` / `monthly` / `P1M` / `$9.99` / no active trial
   - `babyrelay_pro_annual` / `annual` / `P1Y` / `$59.99` / 7-day trial
   - `babyrelay_pro_special_annual` / `special-annual` / `P1Y` / `$29.99`
 

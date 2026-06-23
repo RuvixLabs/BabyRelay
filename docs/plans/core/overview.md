@@ -304,7 +304,7 @@ Free:
 Premium: `BabyRelay Family`
 - $9.99/month
 - $59.99/year
-- 7-day trial
+- 7-day annual trial
 - unlimited caregivers
 - handoff sheets
 - cross-caregiver notifications
@@ -317,8 +317,8 @@ Paywall placements:
   such as completing a care-tracking action or copying/sharing a handoff
   summary, and appears at most once per prompt version.
 - Hard gate on inviting a second caregiver.
-- Launch-offer copy by default, with trial copy on the standard annual/monthly
-  plans.
+- Launch-offer copy by default, with trial copy on the standard annual plan.
+  Monthly is direct-paid and should not show a trial.
 
 RevenueCat:
 - entitlement: `pro`

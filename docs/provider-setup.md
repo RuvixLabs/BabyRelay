@@ -153,8 +153,7 @@ Live AppStore Co-Pilot readback:
   and is linked from the app paywall and Settings.
 - Subscription catalog is synced from live ASC into AppStore Co-Pilot:
   - Group: `22150100`, `BabyRelay Family`
-  - Monthly: `6779156238`, `babyrelay_pro_monthly`, `$9.99`, 7-day
-    free trial in `175` territories
+  - Monthly: `6779156238`, `babyrelay_pro_monthly`, `$9.99`, no intro trial
   - Annual: `6779156833`, `babyrelay_pro_annual`, `$59.99`, 7-day
     free trial in `175` territories
   - Special annual: `6779256297`, `babyrelay_pro_special_annual`, `$29.99`,
@@ -191,13 +190,15 @@ Live AppStore Co-Pilot readback:
     `babyrelay_pro_special_annual`, period `ONE_YEAR`, USA price `$29.99`,
     no free trial, available in `50` territories
   - Monthly: `6779156238`, product ID `babyrelay_pro_monthly`, period
-    `ONE_MONTH`, USA price `$9.99`, 7-day free trial in `175` territories
+    `ONE_MONTH`, USA price `$9.99`, no intro trial
   - Annual: `6779156833`, product ID `babyrelay_pro_annual`, period
     `ONE_YEAR`, USA price `$59.99`, 7-day free trial in `175` territories
 - Review screenshot: `artifacts/app_store_review/babyrelay_paywall_review.png`
-  captured from the real Flutter paywall at `1206x2622`. The current screenshot
-  includes the visible launch-offer timer and is uploaded to all three
-  subscriptions:
+  captured from the real Flutter paywall at `1206x2622`. The uploaded screenshot
+  includes the visible launch-offer timer and shows Monthly without a trial
+  badge, but it predates the 2026-06-23 support-copy cleanup that changed
+  "start with a trial" to "annual trial, or monthly plan"; refresh it before
+  final ASC submission. It is uploaded to all three subscriptions:
   - Special annual: `e0323cd6-0cc3-4f4f-b936-feee23f629c8`
   - Annual: `e66325c4-9dec-4025-8bcd-491eeafd5755`
   - Monthly: `4eecee8b-68a0-4c29-9fb5-39bf4b6943f3`
@@ -257,7 +258,7 @@ Live AppStore Co-Pilot readback:
     to the published Privacy Policy
 - Play subscriptions/base plans:
   - Monthly: `babyrelay_pro_monthly`, base plan `monthly`, period `P1M`, USA
-    price `$9.99`, active, 7-day trial offer `trial-7-day`, `173` regions
+    price `$9.99`, active, no active trial offer, `173` regions
   - Annual: `babyrelay_pro_annual`, base plan `annual`, period `P1Y`, USA
     price `$59.99`, active, 7-day trial offer `trial-7-day`, `173` regions
   - Special annual: `babyrelay_pro_special_annual`, base plan

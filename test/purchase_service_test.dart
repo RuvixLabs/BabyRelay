@@ -14,6 +14,7 @@ void main() {
   Plan specialAnnual() =>
       purchases.plans.firstWhere((p) => p.id == PlanId.specialAnnual);
   Plan annual() => purchases.plans.firstWhere((p) => p.id == PlanId.annual);
+  Plan monthly() => purchases.plans.firstWhere((p) => p.id == PlanId.monthly);
 
   test('catalog exposes offer, annual, and monthly plans with product ids', () {
     expect(purchases.plans.map((p) => p.id), [
@@ -25,8 +26,19 @@ void main() {
     expect(specialAnnual().productId, ProductIds.specialAnnual);
     expect(specialAnnual().isSpecialOffer, isTrue);
     expect(specialAnnual().trialDays, 0);
+    expect(annual().trialDays, 7);
+    expect(monthly().trialDays, 0);
     expect(specialAnnual().countdownSeconds, 90);
     expect(PurchaseService.entitlementId, 'pro');
+  });
+
+  test('monthly purchase grants pro without a trial', () async {
+    final outcome = await purchases.purchase(monthly());
+    expect(outcome, PurchaseOutcome.success);
+    expect(purchases.isPro, isTrue);
+    expect(purchases.activePlan, PlanId.monthly);
+    expect(purchases.inTrial, isFalse);
+    expect(purchases.trialEndsAt, isNull);
   });
 
   test('product ids map to plans with Google Play base-plan suffixes', () {

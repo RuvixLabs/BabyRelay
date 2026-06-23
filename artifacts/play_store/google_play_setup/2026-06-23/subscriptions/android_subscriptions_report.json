@@ -1,169 +1,52 @@
 {
-  "actions": [
-    {
-      "action": "created_subscription",
-      "productId": "babyrelay_pro_monthly",
-      "basePlanId": "monthly",
-      "regionVersion": "2025/03",
-      "regions": 173
-    },
-    {
-      "action": "activated_base_plan",
-      "productId": "babyrelay_pro_monthly",
-      "basePlanId": "monthly"
-    },
-    {
-      "action": "created_offer",
-      "productId": "babyrelay_pro_monthly",
-      "basePlanId": "monthly",
-      "offerId": "trial-7-day",
-      "regions": 173
-    },
-    {
-      "action": "activated_offer",
-      "productId": "babyrelay_pro_monthly",
-      "basePlanId": "monthly",
-      "offerId": "trial-7-day"
-    },
-    {
-      "action": "created_subscription",
-      "productId": "babyrelay_pro_annual",
-      "basePlanId": "annual",
-      "regionVersion": "2025/03",
-      "regions": 173
-    },
-    {
-      "action": "activated_base_plan",
-      "productId": "babyrelay_pro_annual",
-      "basePlanId": "annual"
-    },
-    {
-      "action": "created_offer",
-      "productId": "babyrelay_pro_annual",
-      "basePlanId": "annual",
-      "offerId": "trial-7-day",
-      "regions": 173
-    },
-    {
-      "action": "activated_offer",
-      "productId": "babyrelay_pro_annual",
-      "basePlanId": "annual",
-      "offerId": "trial-7-day"
-    },
-    {
-      "action": "created_subscription",
-      "productId": "babyrelay_pro_special_annual",
-      "basePlanId": "special-annual",
-      "regionVersion": "2025/03",
-      "regions": 173
-    },
-    {
-      "action": "activated_base_plan",
-      "productId": "babyrelay_pro_special_annual",
-      "basePlanId": "special-annual"
-    }
-  ],
+  "updatedAt": "2026-06-23T10:45:52.401882+00:00",
+  "packageName": "com.ruvixlabs.babyrelay",
+  "sourceOfTruth": "Google Play Android Publisher API",
+  "note": "Current readback after removing the monthly active trial. Play cannot delete a non-draft offer, so the previous monthly trial offer remains as INACTIVE and is not available to new subscribers.",
   "readback": [
     {
-      "productId": "babyrelay_pro_annual",
-      "listings": [
+      "productId": "babyrelay_pro_monthly",
+      "basePlanId": "monthly",
+      "period": "P1M",
+      "usaPrice": "9.99 USD",
+      "basePlanState": "ACTIVE",
+      "offers": [
         {
-          "title": "BabyRelay Family Annual",
-          "benefits": [
-            "Extra children",
-            "Larger care teams",
-            "Care summaries",
-            "Longer history and exports"
+          "offerId": "trial-7-day",
+          "state": "INACTIVE",
+          "phaseDurations": [
+            "P7D"
           ],
-          "languageCode": "en-US",
-          "description": "Annual shared baby care subscription"
-        }
-      ],
-      "basePlans": [
-        {
-          "basePlanId": "annual",
-          "state": "ACTIVE",
-          "period": "P1Y",
-          "regions": 173,
-          "offers": [
-            {
-              "offerId": "trial-7-day",
-              "state": "ACTIVE",
-              "regions": 173,
-              "phases": [
-                {
-                  "duration": "P7D",
-                  "recurrenceCount": 1,
-                  "regions": 173
-                }
-              ]
-            }
-          ]
+          "regionCount": 173,
+          "otherRegionsConfig": true
         }
       ]
     },
     {
-      "productId": "babyrelay_pro_monthly",
-      "listings": [
+      "productId": "babyrelay_pro_annual",
+      "basePlanId": "annual",
+      "period": "P1Y",
+      "usaPrice": "59.99 USD",
+      "basePlanState": "ACTIVE",
+      "offers": [
         {
-          "title": "BabyRelay Family Monthly",
-          "benefits": [
-            "Extra children",
-            "Larger care teams",
-            "Care summaries",
-            "Longer history and exports"
-          ],
-          "languageCode": "en-US",
-          "description": "Monthly shared baby care subscription"
-        }
-      ],
-      "basePlans": [
-        {
-          "basePlanId": "monthly",
+          "offerId": "trial-7-day",
           "state": "ACTIVE",
-          "period": "P1M",
-          "regions": 173,
-          "offers": [
-            {
-              "offerId": "trial-7-day",
-              "state": "ACTIVE",
-              "regions": 173,
-              "phases": [
-                {
-                  "duration": "P7D",
-                  "recurrenceCount": 1,
-                  "regions": 173
-                }
-              ]
-            }
-          ]
+          "phaseDurations": [
+            "P7D"
+          ],
+          "regionCount": 173,
+          "otherRegionsConfig": true
         }
       ]
     },
     {
       "productId": "babyrelay_pro_special_annual",
-      "listings": [
-        {
-          "title": "BabyRelay Special Annual",
-          "benefits": [
-            "Extra children",
-            "Larger care teams",
-            "Care summaries",
-            "Longer history and exports"
-          ],
-          "languageCode": "en-US",
-          "description": "Limited annual shared baby care offer"
-        }
-      ],
-      "basePlans": [
-        {
-          "basePlanId": "special-annual",
-          "state": "ACTIVE",
-          "period": "P1Y",
-          "regions": 173,
-          "offers": []
-        }
-      ]
+      "basePlanId": "special-annual",
+      "period": "P1Y",
+      "usaPrice": "29.99 USD",
+      "basePlanState": "ACTIVE",
+      "offers": []
     }
   ]
 }
