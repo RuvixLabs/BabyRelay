@@ -224,10 +224,15 @@ Live AppStore Co-Pilot readback:
   shaped and requires child `territoryAvailabilities`, so normal release
   availability should be initialized in the App Store Connect UI before the
   final submit attempt.
-- Apple server notifications: live ASC readback on 2026-06-16 shows
-  production and sandbox notification URLs are not currently set. RevenueCat
-  still has the server-to-server notification token, but the production/sandbox
-  V2 URLs must be re-applied in App Store Connect before submission.
+- Apple server notifications: RevenueCat app settings expose production and
+  sandbox subscription-status URLs for BabyRelay. On 2026-06-23, a live ASC
+  API patch using those URLs and `V2` for production/sandbox returned Apple's
+  generic server-side `500` response; subsequent app readbacks timed out, and
+  the authenticated ASC browser route for the BabyRelay version rendered only
+  the App Store Connect shell / "Sorry, something went wrong" state. The URLs
+  are still treated as not readback-confirmed in ASC and must be re-applied or
+  confirmed before submission. Evidence screenshot:
+  `artifacts/asc_browser/asc-version-shell-stuck-2026-06-23.png`.
 - Subscription group: `22150100`, `BabyRelay Family`, localized `en-US`
 - Subscriptions:
   - Special annual: `6779256297`, product ID
@@ -321,6 +326,11 @@ Remaining Android / Play blockers:
 
 Remaining App Store / subscription blockers:
 
+- Re-try App Store Connect after Apple's app/version route recovers: confirm
+  pricing availability, privacy nutrition, content-rights declaration, App
+  Review contact phone/details, and RevenueCat production/sandbox `V2` server
+  notification URLs. Do not submit until the notification URLs read back as
+  present.
 - Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
   smoke against the real offering.
 - Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
