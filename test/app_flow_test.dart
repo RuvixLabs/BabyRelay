@@ -201,6 +201,49 @@ void main() {
     expect(repo.state.events.where((e) => e.isSleep), hasLength(1));
   });
 
+  testWidgets('Today sleep tools support backdated and manual sleep logs', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sleep today'), findsOneWidget);
+    expect(find.text('Started 10 min ago'), findsOneWidget);
+    expect(find.text('Add past sleep'), findsOneWidget);
+
+    await tester.tap(find.text('Started 10 min ago'));
+    await tester.pumpAndSettle();
+
+    expect(repo.state.isAsleep, isTrue);
+    final ongoing = repo.state.ongoingSleep!;
+    expect(
+      DateTime.now().difference(ongoing.startAt).inMinutes,
+      greaterThanOrEqualTo(9),
+    );
+    expect(find.text('Woke 10 min ago'), findsOneWidget);
+    expect(find.text('Adjust start'), findsOneWidget);
+
+    await tester.tap(find.text('Woke 10 min ago'));
+    await tester.pumpAndSettle();
+    expect(repo.state.isAsleep, isFalse);
+
+    await tester.tap(find.text('Add past sleep'));
+    await tester.pumpAndSettle();
+    expect(find.text('For the nap someone forgot to start.'), findsOneWidget);
+
+    await tester.tap(find.text('Last 45 min'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add sleep'));
+    await tester.pumpAndSettle();
+
+    final sleeps = repo.state.events.where((e) => e.isSleep).toList();
+    expect(sleeps, hasLength(2));
+    final manual = sleeps.firstWhere((e) => e.duration?.inMinutes == 45);
+    expect(manual.endAt, isNotNull);
+    expect(repo.state.isAsleep, isFalse);
+  });
+
   testWidgets('tracking action can trigger the timely native review prompt', (
     tester,
   ) async {
@@ -308,7 +351,14 @@ void main() {
     // Header shows Mae; the switcher strip shows both children.
     expect(find.text('Mae'), findsWidgets);
     expect(find.text('Theo'), findsOneWidget);
-    expect(find.text('Bottle', skipOffstage: false), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Bottle'),
+      260,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Bottle'), findsOneWidget);
+    await tester.fling(find.byType(ListView), const Offset(0, 500), 1000);
+    await tester.pumpAndSettle();
 
     // Tap Theo's pill → Today re-scopes: his ongoing sleep, not Mae's feed.
     await tester.tap(find.text('Theo'));

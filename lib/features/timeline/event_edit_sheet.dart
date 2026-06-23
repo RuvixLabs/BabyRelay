@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 import '../../app/app_chrome.dart';
 import '../../core/analytics/analytics_service.dart';
@@ -57,6 +58,23 @@ class _EventEditSheetState extends State<_EventEditSheet> {
       case CareEventType.nightWaking:
         return 'Edit night waking';
     }
+  }
+
+  Future<DateTime?> _pickDate(DateTime initial) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime.now().subtract(const Duration(days: 30)),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+    );
+    if (picked == null) return null;
+    return DateTime(
+      picked.year,
+      picked.month,
+      picked.day,
+      initial.hour,
+      initial.minute,
+    );
   }
 
   Future<DateTime?> _pickTime(DateTime initial) async {
@@ -202,20 +220,28 @@ class _EventEditSheetState extends State<_EventEditSheet> {
                 ),
               ],
               const SizedBox(height: 12),
-              _TimeRow(
+              _DateTimeRow(
                 label: widget.event.isSleep ? 'Fell asleep' : 'Time',
                 value: _startAt,
-                onTap: () async {
+                onDateTap: () async {
+                  final picked = await _pickDate(_startAt);
+                  if (picked != null) setState(() => _startAt = picked);
+                },
+                onTimeTap: () async {
                   final picked = await _pickTime(_startAt);
                   if (picked != null) setState(() => _startAt = picked);
                 },
               ),
               if (widget.event.isSleep && _endAt != null) ...[
                 const SizedBox(height: 10),
-                _TimeRow(
+                _DateTimeRow(
                   label: 'Woke up',
                   value: _endAt!,
-                  onTap: () async {
+                  onDateTap: () async {
+                    final picked = await _pickDate(_endAt!);
+                    if (picked != null) setState(() => _endAt = picked);
+                  },
+                  onTimeTap: () async {
                     final picked = await _pickTime(_endAt!);
                     if (picked != null) setState(() => _endAt = picked);
                   },
@@ -253,42 +279,46 @@ class _EventEditSheetState extends State<_EventEditSheet> {
   }
 }
 
-class _TimeRow extends StatelessWidget {
-  const _TimeRow({
+class _DateTimeRow extends StatelessWidget {
+  const _DateTimeRow({
     required this.label,
     required this.value,
-    required this.onTap,
+    required this.onDateTap,
+    required this.onTimeTap,
   });
+
+  static final _date = DateFormat('EEE d MMM');
 
   final String label;
   final DateTime value;
-  final VoidCallback onTap;
+  final VoidCallback onDateTap;
+  final VoidCallback onTimeTap;
 
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
     final text = Theme.of(context).textTheme;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: c.background,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: c.outline),
-        ),
-        child: Row(
-          children: [
-            Expanded(child: Text(label, style: text.bodyLarge)),
-            Text(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
+      decoration: BoxDecoration(
+        color: c.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.outline),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: text.bodyLarge)),
+          TextButton(onPressed: onDateTap, child: Text(_date.format(value))),
+          const SizedBox(width: 2),
+          TextButton(
+            onPressed: onTimeTap,
+            child: Text(
               formatTime(value),
               style: text.titleMedium?.copyWith(color: c.clayDeep),
             ),
-            const SizedBox(width: 6),
-            Icon(Icons.edit_outlined, size: 16, color: c.inkFaint),
-          ],
-        ),
+          ),
+          Icon(Icons.edit_outlined, size: 16, color: c.inkFaint),
+        ],
       ),
     );
   }

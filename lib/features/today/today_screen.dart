@@ -11,9 +11,11 @@ import '../../core/tutorial/tutorial_service.dart';
 import '../../core/util/formats.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/care_event.dart';
+import '../../domain/services/sleep_summary_service.dart';
 import '../children/child_switcher.dart';
 import '../timeline/event_edit_sheet.dart';
 import 'today_cubit.dart';
+import 'widgets/manual_sleep_sheet.dart';
 import 'widgets/next_up_card.dart';
 import 'widgets/quick_log_sheets.dart';
 import 'widgets/sleep_button.dart';
@@ -104,7 +106,7 @@ class _TodayViewState extends State<_TodayView> {
             targetKey: _sleepButtonKey,
             title: 'Start with one tap',
             body:
-                'Log sleep the moment it starts or ends. No timer setup, no extra screen.',
+                'Log sleep live, backdate the start, or add a nap afterward when someone forgot.',
             icon: Icons.nightlight_round,
           ),
           CoachMarkStep(
@@ -155,6 +157,30 @@ class _TodayViewState extends State<_TodayView> {
     await maybeShowTrackingReviewPrompt(context);
   }
 
+  Future<void> _showManualSleepEntry(TodayState state, TodayCubit cubit) async {
+    final draft = await showManualSleepSheet(
+      context,
+      now: state.now,
+      childName: state.child?.nickname,
+    );
+    if (draft == null) return;
+    await _trackAndMaybeAskForReview(
+      () => cubit.logManualSleep(
+        startAt: draft.startAt,
+        endAt: draft.endAt,
+        note: draft.note,
+      ),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Sleep added: ${formatTime(draft.startAt)} – ${formatTime(draft.endAt)}',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
@@ -168,6 +194,13 @@ class _TodayViewState extends State<_TodayView> {
         final child = state.child;
         final caregivers = state.family.activeCaregivers;
         final you = state.family.currentCaregiver;
+        final sleepSummary = child == null
+            ? null
+            : const SleepSummaryService().summarizeDay(
+                child: child,
+                events: state.family.eventsForChild(child.id),
+                now: state.now,
+              );
 
         return Scaffold(
           body: SafeArea(
@@ -272,7 +305,30 @@ class _TodayViewState extends State<_TodayView> {
                         _trackAndMaybeAskForReview(cubit.toggleSleep),
                   ),
                 ),
+                const SizedBox(height: 10),
+                _SleepCorrectionRow(
+                  isAsleep: state.isAsleep,
+                  ongoingSleep: state.ongoingSleep,
+                  onStartedEarlier: () => _trackAndMaybeAskForReview(
+                    () => cubit.startSleepAt(
+                      state.now.subtract(const Duration(minutes: 10)),
+                    ),
+                  ),
+                  onWokeEarlier: () => _trackAndMaybeAskForReview(
+                    () => cubit.endSleepAt(
+                      state.now.subtract(const Duration(minutes: 10)),
+                    ),
+                  ),
+                  onAdjustOngoing: state.ongoingSleep == null
+                      ? null
+                      : () => showEventEditSheet(context, state.ongoingSleep!),
+                  onAddPastSleep: () => _showManualSleepEntry(state, cubit),
+                ),
                 const SizedBox(height: 14),
+                if (sleepSummary != null) ...[
+                  _SleepRhythmCard(summary: sleepSummary),
+                  const SizedBox(height: 14),
+                ],
                 KeyedSubtree(
                   key: _quickActionsKey,
                   child: Row(
@@ -356,6 +412,279 @@ class _TodayViewState extends State<_TodayView> {
       },
     );
   }
+}
+
+class _SleepRhythmCard extends StatelessWidget {
+  const _SleepRhythmCard({required this.summary});
+
+  final DailySleepSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.relay;
+    final text = Theme.of(context).textTheme;
+    return RelayCard(
+      padding: const EdgeInsets.all(18),
+      color: Color.lerp(c.surface, c.dusk, 0.05)!,
+      borderColor: c.dusk.withValues(alpha: 0.14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconSquare(icon: Icons.bedtime_rounded, color: c.dusk, size: 40),
+              const SizedBox(width: 12),
+              Expanded(child: Text('Sleep today', style: text.titleMedium)),
+              RelayChip(summary.primaryLabel, color: c.dusk),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(summary.reassurance, style: text.bodyMedium),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 18,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: _SleepRibbonPainter(
+                summary: summary,
+                trackColor: c.outline.withValues(alpha: 0.45),
+                dayColor: c.dusk,
+                nightColor: c.nightHigh,
+                ongoingColor: c.sage,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _SleepStat(
+                label: 'Naps',
+                value: '${summary.napCount}',
+                color: c.dusk,
+              ),
+              _SleepStat(
+                label: 'Day sleep',
+                value: formatDurationMinutes(summary.daySleepMinutes),
+                color: c.clay,
+              ),
+              _SleepStat(
+                label: 'Night',
+                value: formatDurationMinutes(summary.nightSleepMinutes),
+                color: c.nightHigh,
+              ),
+            ],
+          ),
+          if (summary.averageNapMinutes > 0) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Average nap ${formatDurationMinutes(summary.averageNapMinutes)} · longest sleep ${formatDurationMinutes(summary.longestSleepMinutes)}.',
+              style: text.bodySmall?.copyWith(color: c.inkFaint),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SleepCorrectionRow extends StatelessWidget {
+  const _SleepCorrectionRow({
+    required this.isAsleep,
+    required this.onStartedEarlier,
+    required this.onWokeEarlier,
+    required this.onAddPastSleep,
+    this.ongoingSleep,
+    this.onAdjustOngoing,
+  });
+
+  final bool isAsleep;
+  final CareEvent? ongoingSleep;
+  final VoidCallback onStartedEarlier;
+  final VoidCallback onWokeEarlier;
+  final VoidCallback onAddPastSleep;
+  final VoidCallback? onAdjustOngoing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        if (isAsleep) ...[
+          _CorrectionChip(
+            icon: Icons.history_toggle_off_rounded,
+            label: 'Woke 10 min ago',
+            onTap: onWokeEarlier,
+          ),
+          if (ongoingSleep != null && onAdjustOngoing != null)
+            _CorrectionChip(
+              icon: Icons.tune_rounded,
+              label: 'Adjust start',
+              onTap: onAdjustOngoing!,
+            ),
+        ] else ...[
+          _CorrectionChip(
+            icon: Icons.replay_10_rounded,
+            label: 'Started 10 min ago',
+            onTap: onStartedEarlier,
+          ),
+        ],
+        _CorrectionChip(
+          icon: Icons.add_alarm_rounded,
+          label: 'Add past sleep',
+          onTap: onAddPastSleep,
+        ),
+      ],
+    );
+  }
+}
+
+class _CorrectionChip extends StatelessWidget {
+  const _CorrectionChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.relay;
+    return PressableScale(
+      scale: 0.96,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: c.outline),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 17, color: c.dusk),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: c.ink,
+                fontWeight: FontWeight.w800,
+                fontSize: 12.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SleepStat extends StatelessWidget {
+  const _SleepStat({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.relay;
+    final text = Theme.of(context).textTheme;
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.14)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              value,
+              style: text.titleMedium?.copyWith(
+                color: Color.lerp(color, c.ink, 0.18),
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(label, style: text.labelSmall?.copyWith(letterSpacing: 0)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SleepRibbonPainter extends CustomPainter {
+  const _SleepRibbonPainter({
+    required this.summary,
+    required this.trackColor,
+    required this.dayColor,
+    required this.nightColor,
+    required this.ongoingColor,
+  });
+
+  final DailySleepSummary summary;
+  final Color trackColor;
+  final Color dayColor;
+  final Color nightColor;
+  final Color ongoingColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final radius = Radius.circular(size.height / 2);
+    final track = RRect.fromRectAndRadius(Offset.zero & size, radius);
+    canvas.drawRRect(track, Paint()..color = trackColor);
+    if (summary.sleepEvents.isEmpty) return;
+
+    final dayMinutes = summary.dayEnd.difference(summary.dayStart).inMinutes;
+    for (final sleep in summary.sleepEvents) {
+      final rawEnd = sleep.endAt ?? summary.now;
+      final start = sleep.startAt.isBefore(summary.dayStart)
+          ? summary.dayStart
+          : sleep.startAt;
+      final end = rawEnd.isAfter(summary.dayEnd) ? summary.dayEnd : rawEnd;
+      if (!end.isAfter(start)) continue;
+      final left =
+          start.difference(summary.dayStart).inMinutes /
+          dayMinutes *
+          size.width;
+      final right =
+          end.difference(summary.dayStart).inMinutes / dayMinutes * size.width;
+      final adjustedRight = right.clamp(left + 2, size.width).toDouble();
+      final color = sleep.isOngoingSleep
+          ? ongoingColor
+          : (sleep.startAt.hour >= 6 && sleep.startAt.hour < 19
+                ? dayColor
+                : nightColor);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTRB(left, 0, adjustedRight, size.height),
+          radius,
+        ),
+        Paint()..color = color,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SleepRibbonPainter oldDelegate) =>
+      oldDelegate.summary != summary ||
+      oldDelegate.trackColor != trackColor ||
+      oldDelegate.dayColor != dayColor ||
+      oldDelegate.nightColor != nightColor ||
+      oldDelegate.ongoingColor != ongoingColor;
 }
 
 /// Compact glanceable recap: naps · day sleep · feeds · diapers.

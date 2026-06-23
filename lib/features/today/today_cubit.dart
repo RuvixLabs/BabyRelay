@@ -114,6 +114,39 @@ class TodayCubit extends Cubit<TodayState> {
     }
   }
 
+  Future<void> startSleepAt(DateTime at) async {
+    final event = await _repo.startSleep(at: at);
+    if (event != null) {
+      _analytics.logEvent('care_event_logged', {'type': 'sleep_backdated'});
+    }
+  }
+
+  Future<void> endSleepAt(DateTime at) async {
+    final ongoing = state.ongoingSleep;
+    final safeEndAt = ongoing != null && !at.isAfter(ongoing.startAt)
+        ? DateTime.now()
+        : at;
+    final event = await _repo.endSleep(at: safeEndAt);
+    if (event != null) {
+      _analytics.logEvent('care_event_logged', {'type': 'wake_backdated'});
+    }
+  }
+
+  Future<void> logManualSleep({
+    required DateTime startAt,
+    required DateTime endAt,
+    String? note,
+  }) async {
+    final event = await _repo.logSleep(
+      startAt: startAt,
+      endAt: endAt,
+      note: note,
+    );
+    if (event != null) {
+      _analytics.logEvent('care_event_logged', {'type': 'sleep_manual'});
+    }
+  }
+
   Future<void> logFeed(FeedKind kind) async {
     await _repo.logFeed(kind);
     _analytics.logEvent('care_event_logged', {'type': 'feed'});

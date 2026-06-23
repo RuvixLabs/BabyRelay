@@ -499,6 +499,30 @@ class FamilyRepository extends ChangeNotifier {
     return updated;
   }
 
+  /// Adds a completed sleep span without starting a live timer. This is the
+  /// tired-parent correction path for naps or night sleep remembered later.
+  Future<CareEvent?> logSleep({
+    required DateTime startAt,
+    required DateTime endAt,
+    String? note,
+    String? childId,
+  }) async {
+    final id = childId ?? _selectedChildIdOrEmpty;
+    if (id.isEmpty || !endAt.isAfter(startAt)) return null;
+    final trimmedNote = note?.trim();
+    final event = CareEvent(
+      id: _newId('e'),
+      childId: id,
+      type: CareEventType.sleep,
+      startAt: startAt,
+      endAt: endAt,
+      loggedById: _state.currentCaregiverId,
+      note: trimmedNote == null || trimmedNote.isEmpty ? null : trimmedNote,
+    );
+    await _commitEvent(event);
+    return event;
+  }
+
   Future<CareEvent> logFeed(
     FeedKind kind, {
     String? note,

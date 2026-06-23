@@ -534,6 +534,34 @@ void main() {
     expect(repo.state.isAsleep, isFalse);
   });
 
+  test('manual retrospective sleep is completed and child-scoped', () async {
+    await onboard();
+    final mae = repo.state.selectedChild!;
+    final theo = await addSibling();
+    await repo.selectChild(mae.id);
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day, 9);
+    final end = start.add(const Duration(minutes: 48));
+
+    final sleep = await repo.logSleep(
+      startAt: start,
+      endAt: end,
+      note: 'Logged after breakfast',
+    );
+
+    expect(sleep, isNotNull);
+    expect(sleep!.childId, mae.id);
+    expect(sleep.endAt, end);
+    expect(sleep.duration, const Duration(minutes: 48));
+    expect(sleep.note, 'Logged after breakfast');
+    expect(repo.state.isChildAsleep(mae.id), isFalse);
+    expect(repo.state.eventsForChild(theo.id), isEmpty);
+
+    final invalid = await repo.logSleep(startAt: end, endAt: start);
+    expect(invalid, isNull);
+    expect(repo.state.events.where((e) => e.isSleep), hasLength(1));
+  });
+
   test(
     'overlapping sleeps are detected per child and merge into one span',
     () async {
