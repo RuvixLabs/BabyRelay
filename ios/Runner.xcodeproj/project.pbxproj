@@ -8,10 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		2661717D9FDE3FE4C77CE4C6 /* BabyRelaySleepAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA25351B5C3A121962DBEED /* BabyRelaySleepAttributes.swift */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		4F8348848293B36BAE5C5DC5 /* BabyRelaySleepLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = F117501DC824F9F812614649 /* BabyRelaySleepLiveActivity.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		780195D4102C6DB5B0B80BE8 /* BabyRelaySleepLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 27B2041BCB1FC5DFCD8C37AE /* BabyRelaySleepLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, CodeSignOnCopy, ); }; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
+		79F46CD0E60AE22DD75A7208 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42DA6C79315AF4C849B2822B /* Foundation.framework */; };
+		7A0C262BF77F87B7279836BA /* BabyRelaySleepAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DA25351B5C3A121962DBEED /* BabyRelaySleepAttributes.swift */; };
 		84A917C52D15217A00B7F221 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 84A917C42D15217A00B7F221 /* GoogleService-Info.plist */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -21,6 +26,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1854ACCDADF2C8119655536C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F9F40F4215809A18C53BCC8F;
+			remoteInfo = BabyRelaySleepLiveActivity;
+		};
 		331C8085294A63A400263BE5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
@@ -41,16 +53,31 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C1C26F34160983B47117938F /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				780195D4102C6DB5B0B80BE8 /* BabyRelaySleepLiveActivity.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1DA25351B5C3A121962DBEED /* BabyRelaySleepAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BabyRelaySleepAttributes.swift; sourceTree = "<group>"; };
+		27B2041BCB1FC5DFCD8C37AE /* BabyRelaySleepLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BabyRelaySleepLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2840EDD0AC1FC276F3D50FE5 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		30906F840EFD66729876E275 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		36BAB7DADDA9A51BB4166ED4 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		42DA6C79315AF4C849B2822B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		487A695E59352E6D651404B4 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		4DC30C6E6D3D22654C38E487 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -68,10 +95,19 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B651A69DC36045FBFF608E2B /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		F117501DC824F9F812614649 /* BabyRelaySleepLiveActivity.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BabyRelaySleepLiveActivity.swift; sourceTree = "<group>"; };
 		FD9E4AAF6651292F1336F215 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		408767721FFA78D67ACB3F11 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				79F46CD0E60AE22DD75A7208 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		974AC9F2549AA261F8D5A416 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -113,6 +149,25 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		6B368665D942B43DE43E4922 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				42DA6C79315AF4C849B2822B /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		7BB5B83D25B6511C9C28D0E3 /* BabyRelaySleepLiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				1DA25351B5C3A121962DBEED /* BabyRelaySleepAttributes.swift */,
+				F117501DC824F9F812614649 /* BabyRelaySleepLiveActivity.swift */,
+				30906F840EFD66729876E275 /* Info.plist */,
+			);
+			name = BabyRelaySleepLiveActivity;
+			path = BabyRelaySleepLiveActivity;
+			sourceTree = "<group>";
+		};
 		9740EEB11CF90186004384FC /* Flutter */ = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +188,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				46A25A2FE41CAC2DED75FC48 /* Pods */,
 				FE1AD5663E9BCC6665D94C33 /* Frameworks */,
+				7BB5B83D25B6511C9C28D0E3 /* BabyRelaySleepLiveActivity */,
 			);
 			sourceTree = "<group>";
 		};
@@ -141,6 +197,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				27B2041BCB1FC5DFCD8C37AE /* BabyRelaySleepLiveActivity.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -167,6 +224,7 @@
 			children = (
 				8FA18872B7C849D773D552F9 /* Pods_Runner.framework */,
 				FD9E4AAF6651292F1336F215 /* Pods_RunnerTests.framework */,
+				6B368665D942B43DE43E4922 /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -202,19 +260,37 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
+				C1C26F34160983B47117938F /* Embed App Extensions */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
-				B681D4F0E8761B63E6F03EB5 /* [CP] Embed Pods Frameworks */,
 				A58EC140DDE264F0EE921AA8 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				089FD0084BEED29FB44E93A9 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		F9F40F4215809A18C53BCC8F /* BabyRelaySleepLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00EA190DA66A880FF832F350 /* Build configuration list for PBXNativeTarget "BabyRelaySleepLiveActivity" */;
+			buildPhases = (
+				43047F220D7982C8BBBE5330 /* Sources */,
+				408767721FFA78D67ACB3F11 /* Frameworks */,
+				6119BD90A2E53F6359D3AF1B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BabyRelaySleepLiveActivity;
+			productName = BabyRelaySleepLiveActivity;
+			productReference = 27B2041BCB1FC5DFCD8C37AE /* BabyRelaySleepLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -251,12 +327,20 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				F9F40F4215809A18C53BCC8F /* BabyRelaySleepLiveActivity */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		331C807F294A63A400263BE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6119BD90A2E53F6359D3AF1B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -370,23 +454,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B681D4F0E8761B63E6F03EB5 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -398,6 +465,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		43047F220D7982C8BBBE5330 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2661717D9FDE3FE4C77CE4C6 /* BabyRelaySleepAttributes.swift in Sources */,
+				4F8348848293B36BAE5C5DC5 /* BabyRelaySleepLiveActivity.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		97C146EA1CF9000F007C117D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -405,12 +481,19 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
+				7A0C262BF77F87B7279836BA /* BabyRelaySleepAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		089FD0084BEED29FB44E93A9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = BabyRelaySleepLiveActivity;
+			target = F9F40F4215809A18C53BCC8F /* BabyRelaySleepLiveActivity */;
+			targetProxy = 1854ACCDADF2C8119655536C /* PBXContainerItemProxy */;
+		};
 		331C8086294A63A400263BE5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
@@ -499,6 +582,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = S399W94VV8;
 				ENABLE_BITCODE = NO;
+				ENABLE_DEBUG_DYLIB = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -511,6 +595,34 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Profile;
+		};
+		2B4FA547BA4C5550EDB5CAD6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = S399W94VV8;
+				EXECUTABLE_NAME = "$(EXECUTABLE_PREFIX)$(PRODUCT_NAME)$(EXECUTABLE_SUFFIX)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BabyRelaySleepLiveActivity/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/PlugIns";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ruvixlabs.babyrelay.sleepactivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				WRAPPER_EXTENSION = appex;
+				WRAPPER_NAME = "$(PRODUCT_NAME).$(WRAPPER_EXTENSION)";
+			};
+			name = Debug;
 		};
 		331C8088294A63A400263BE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -559,6 +671,35 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+			};
+			name = Profile;
+		};
+		81344F1026E65977F45F1E3F /* Profile */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = S399W94VV8;
+				EXECUTABLE_NAME = "$(EXECUTABLE_PREFIX)$(PRODUCT_NAME)$(EXECUTABLE_SUFFIX)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BabyRelaySleepLiveActivity/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/PlugIns";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ruvixlabs.babyrelay.sleepactivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_EXTENSION = appex;
+				WRAPPER_NAME = "$(PRODUCT_NAME).$(WRAPPER_EXTENSION)";
 			};
 			name = Profile;
 		};
@@ -682,6 +823,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = S399W94VV8;
 				ENABLE_BITCODE = NO;
+				ENABLE_DEBUG_DYLIB = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -705,6 +847,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = S399W94VV8;
 				ENABLE_BITCODE = NO;
+				ENABLE_DEBUG_DYLIB = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -718,9 +861,48 @@
 			};
 			name = Release;
 		};
+		FCEA41A5214345F0BC7A1480 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = S399W94VV8;
+				EXECUTABLE_NAME = "$(EXECUTABLE_PREFIX)$(PRODUCT_NAME)$(EXECUTABLE_SUFFIX)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BabyRelaySleepLiveActivity/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/PlugIns";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ruvixlabs.babyrelay.sleepactivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_EXTENSION = appex;
+				WRAPPER_NAME = "$(PRODUCT_NAME).$(WRAPPER_EXTENSION)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		00EA190DA66A880FF832F350 /* Build configuration list for PBXNativeTarget "BabyRelaySleepLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FCEA41A5214345F0BC7A1480 /* Release */,
+				2B4FA547BA4C5550EDB5CAD6 /* Debug */,
+				81344F1026E65977F45F1E3F /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		331C8087294A63A400263BE5 /* Build configuration list for PBXNativeTarget "RunnerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

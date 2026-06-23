@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,7 @@ import '../core/attribution/attribution_service.dart';
 import '../core/design/relay_theme.dart';
 import '../core/purchases/purchase_service.dart';
 import '../core/reviews/review_prompt_service.dart';
+import '../core/sleep/sleep_runtime_service.dart';
 import '../core/support/support_service.dart';
 import '../core/tutorial/tutorial_service.dart';
 import '../data/family_repository.dart';
@@ -22,6 +25,7 @@ class BabyRelayApp extends StatefulWidget {
     required this.attributionService,
     required this.tutorialService,
     required this.reviewPromptService,
+    this.sleepRuntimeService,
   });
 
   final FamilyRepository familyRepository;
@@ -31,6 +35,7 @@ class BabyRelayApp extends StatefulWidget {
   final AttributionService attributionService;
   final TutorialService tutorialService;
   final ReviewPromptService reviewPromptService;
+  final SleepRuntimeService? sleepRuntimeService;
 
   @override
   State<BabyRelayApp> createState() => _BabyRelayAppState();
@@ -39,6 +44,8 @@ class BabyRelayApp extends StatefulWidget {
 class _BabyRelayAppState extends State<BabyRelayApp> {
   late final appChrome = AppChromeController();
   late final router = buildRouter(widget.familyRepository);
+  late final sleepRuntimeService =
+      widget.sleepRuntimeService ?? SleepRuntimeService.disabled();
 
   @override
   void initState() {
@@ -51,6 +58,7 @@ class _BabyRelayAppState extends State<BabyRelayApp> {
   @override
   void dispose() {
     appChrome.dispose();
+    unawaited(sleepRuntimeService.dispose());
     super.dispose();
   }
 

@@ -15,6 +15,7 @@ import 'core/config/app_config.dart';
 import 'core/purchases/purchase_service.dart';
 import 'core/purchases/revenuecat_purchase_service.dart';
 import 'core/reviews/review_prompt_service.dart';
+import 'core/sleep/sleep_runtime_service.dart';
 import 'core/support/support_service.dart';
 import 'core/tutorial/tutorial_service.dart';
 import 'data/firestore_family_sync.dart';
@@ -78,6 +79,10 @@ Future<void> main() async {
   final attributionService = AttributionService(
     configured: AppConfig.appReferLinkId.isNotEmpty,
   );
+  final sleepRuntimeService = await SleepRuntimeService.create(
+    familyRepository: familyRepository,
+    analytics: analytics,
+  );
 
   runApp(
     BabyRelayApp(
@@ -88,6 +93,7 @@ Future<void> main() async {
       attributionService: attributionService,
       tutorialService: tutorialService,
       reviewPromptService: reviewPromptService,
+      sleepRuntimeService: sleepRuntimeService,
     ),
   );
 }

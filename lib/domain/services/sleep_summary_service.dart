@@ -47,7 +47,7 @@ class DailySleepSummary {
   String get primaryLabel {
     if (ongoingSleep != null) {
       final minutes = now.difference(ongoingSleep!.startAt).inMinutes;
-      return '${formatDurationMinutes(minutes)} asleep';
+      return 'LIVE · ${formatDurationMinutes(minutes)}';
     }
     final awake = awakeMinutes;
     if (awake != null) {
@@ -61,7 +61,7 @@ class DailySleepSummary {
 
   String get reassurance {
     if (ongoingSleep != null) {
-      return 'Started at ${formatTime(ongoingSleep!.startAt)}. When they wake, BabyRelay will recalculate the next window.';
+      return 'Started at ${formatTime(ongoingSleep!.startAt)}. When your baby wakes, BabyRelay will recalculate the next window.';
     }
     if (lastWakeAt != null) {
       return 'Last wake was ${formatTime(lastWakeAt!)}. The next window uses this awake stretch.';
@@ -84,8 +84,7 @@ class SleepSummaryService {
         events
             .where(
               (event) =>
-                  event.isSleep &&
-                  _overlapMinutes(event, dayStart, dayEnd, now) > 0,
+                  event.isSleep && _touchesRange(event, dayStart, dayEnd, now),
             )
             .toList()
           ..sort((a, b) => a.startAt.compareTo(b.startAt));
@@ -145,6 +144,20 @@ class SleepSummaryService {
     final end = endAt.isBefore(rangeEnd) ? endAt : rangeEnd;
     if (!end.isAfter(start)) return 0;
     return end.difference(start).inMinutes;
+  }
+
+  bool _touchesRange(
+    CareEvent event,
+    DateTime rangeStart,
+    DateTime rangeEnd,
+    DateTime now,
+  ) {
+    final endAt = event.endAt ?? now;
+    final start = event.startAt.isAfter(rangeStart)
+        ? event.startAt
+        : rangeStart;
+    final end = endAt.isBefore(rangeEnd) ? endAt : rangeEnd;
+    return !end.isBefore(start);
   }
 
   bool _isDaySleep(CareEvent event) =>

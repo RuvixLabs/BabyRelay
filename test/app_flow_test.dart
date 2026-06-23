@@ -186,16 +186,17 @@ void main() {
 
     // Today surface.
     expect(find.text('Mae'), findsOneWidget);
-    expect(find.text('Asleep'), findsOneWidget);
+    expect(find.text('Start sleep'), findsOneWidget);
 
     // One tap: asleep.
-    await tester.tap(find.text('Asleep'));
+    await tester.tap(find.text('Start sleep'));
     await tester.pumpAndSettle();
     expect(repo.state.isAsleep, isTrue);
-    expect(find.text('Awake'), findsWidgets);
+    expect(find.text('End sleep'), findsWidgets);
 
     // One tap: awake — timeline now has a completed sleep.
-    await tester.tap(find.text('Awake').first);
+    await tester.ensureVisible(find.text('End sleep').first);
+    await tester.tap(find.text('End sleep').first);
     await tester.pumpAndSettle();
     expect(repo.state.isAsleep, isFalse);
     expect(repo.state.events.where((e) => e.isSleep), hasLength(1));
@@ -208,11 +209,11 @@ void main() {
     await tester.pumpWidget(app(repo, purchases));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sleep today'), findsOneWidget);
-    expect(find.text('Started 10 min ago'), findsOneWidget);
+    expect(find.text('Sleep today', skipOffstage: false), findsOneWidget);
+    expect(find.text('Fell asleep 10 min ago'), findsOneWidget);
     expect(find.text('Add past sleep'), findsOneWidget);
 
-    await tester.tap(find.text('Started 10 min ago'));
+    await tester.tap(find.text('Fell asleep 10 min ago'));
     await tester.pumpAndSettle();
 
     expect(repo.state.isAsleep, isTrue);
@@ -221,10 +222,10 @@ void main() {
       DateTime.now().difference(ongoing.startAt).inMinutes,
       greaterThanOrEqualTo(9),
     );
-    expect(find.text('Woke 10 min ago'), findsOneWidget);
-    expect(find.text('Adjust start'), findsOneWidget);
+    expect(find.text('Woke up 10 min ago'), findsOneWidget);
+    expect(find.text('Adjust sleep start'), findsOneWidget);
 
-    await tester.tap(find.text('Woke 10 min ago'));
+    await tester.tap(find.text('Woke up 10 min ago'));
     await tester.pumpAndSettle();
     expect(repo.state.isAsleep, isFalse);
 
@@ -256,7 +257,7 @@ void main() {
 
     expect(find.text('Did that log help?'), findsNothing);
 
-    await tester.tap(find.text('Asleep'));
+    await tester.tap(find.text('Start sleep'));
     await tester.pump(const Duration(milliseconds: 450));
     await tester.pumpAndSettle();
 
@@ -296,7 +297,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Start with one tap'), findsNothing);
-    expect(find.text('Asleep'), findsOneWidget);
+    expect(find.text('Start sleep'), findsOneWidget);
   });
 
   testWidgets('Care Team coach marks complete and do not repeat', (
@@ -367,7 +368,7 @@ void main() {
     expect(repo.state.isAsleep, isTrue);
     expect(find.text('Bottle', skipOffstage: false), findsNothing);
     // Sleep button now offers to log the wake-up.
-    expect(find.text('Awake'), findsOneWidget);
+    expect(find.text('End sleep'), findsOneWidget);
   });
 
   testWidgets('child switcher sheet lists children and add-child row', (

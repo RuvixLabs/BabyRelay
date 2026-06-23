@@ -4,9 +4,9 @@ import 'package:flutter/services.dart';
 import '../../../core/design/relay_theme.dart';
 import '../../../core/design/relay_widgets.dart';
 
-/// The one-tap promise: a single, huge, unmissable sleep toggle.
-/// Asleep → a sage "wake" surface; awake → a deep dusk "sleep" surface, so
-/// the button always shows the action it will take.
+/// The one-tap promise: a single, huge, unmissable sleep control.
+/// State and action are intentionally separate: the surrounding hero says what
+/// is happening now, while this control always uses a verb.
 class SleepButton extends StatelessWidget {
   const SleepButton({
     super.key,
@@ -25,40 +25,54 @@ class SleepButton extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final name = childName ?? 'baby';
 
-    final Gradient gradient;
-    final Color glow;
+    final Color background;
+    final Color foreground;
+    final Color border;
+    final Color iconBackground;
+    final String actionLabel;
+    final String actionHint;
+    final IconData actionIcon;
+    final List<BoxShadow> shadows;
+
     if (isAsleep) {
-      final hi = isDark ? Color.lerp(c.sage, Colors.black, 0.25)! : c.sage;
-      final lo = Color.lerp(hi, Colors.black, 0.22)!;
-      gradient = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [hi, lo],
-      );
-      glow = hi;
+      background = isDark ? c.duskSoft : c.surface;
+      foreground = c.dusk;
+      border = c.dusk.withValues(alpha: isDark ? 0.42 : 0.26);
+      iconBackground = c.dusk.withValues(alpha: 0.12);
+      actionLabel = 'End sleep';
+      actionHint = 'Tap when $name wakes up';
+      actionIcon = Icons.wb_twilight;
+      shadows = [
+        BoxShadow(
+          color: c.ink.withValues(alpha: isDark ? 0.08 : 0.05),
+          blurRadius: 14,
+          offset: const Offset(0, 6),
+        ),
+      ];
     } else {
-      gradient = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: isDark
-            ? [
-                Color.lerp(c.nightHigh, Colors.black, 0.15)!,
-                Color.lerp(c.nightLow, Colors.black, 0.15)!,
-              ]
-            : [c.nightHigh, c.nightLow],
-      );
-      glow = c.nightHigh;
+      background = c.clay;
+      foreground = c.onClay;
+      border = Color.lerp(c.clay, Colors.white, isDark ? 0.10 : 0.18)!;
+      iconBackground = Colors.white.withValues(alpha: 0.14);
+      actionLabel = 'Start sleep';
+      actionHint = '$name is awake now · logs from now';
+      actionIcon = Icons.nightlight_round;
+      shadows = [
+        BoxShadow(
+          color: c.clay.withValues(alpha: isDark ? 0.22 : 0.30),
+          blurRadius: 18,
+          offset: const Offset(0, 8),
+        ),
+      ];
     }
 
-    final label = isAsleep ? 'Awake' : 'Asleep';
-    final hint = isAsleep
-        ? 'Tap when $name wakes up'
-        : 'Tap when $name falls asleep';
-    final icon = isAsleep ? Icons.wb_sunny_rounded : Icons.nightlight_round;
-
     return Semantics(
+      excludeSemantics: true,
       button: true,
-      label: 'Log $label',
+      label: actionLabel,
+      hint: isAsleep
+          ? 'Stops the timer and saves this sleep.'
+          : 'Starts a live sleep timer.',
       child: PressableScale(
         scale: 0.965,
         onTap: () {
@@ -68,56 +82,59 @@ class SleepButton extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 24),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
           decoration: BoxDecoration(
-            gradient: gradient,
-            borderRadius: BorderRadius.circular(26),
-            boxShadow: [
-              BoxShadow(
-                color: glow.withValues(alpha: isDark ? 0.25 : 0.38),
-                blurRadius: 22,
-                offset: const Offset(0, 9),
-              ),
-            ],
+            color: background,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: border, width: isAsleep ? 1.2 : 1),
+            boxShadow: shadows,
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                transitionBuilder: (child, anim) => RotationTransition(
-                  turns: Tween(begin: 0.85, end: 1.0).animate(anim),
-                  child: FadeTransition(opacity: anim, child: child),
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: iconBackground,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(
-                  icon,
-                  key: ValueKey(isAsleep),
-                  color: Colors.white,
-                  size: 30,
-                ),
+                alignment: Alignment.center,
+                child: Icon(actionIcon, color: foreground, size: 25),
               ),
               const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      actionLabel,
+                      style: TextStyle(
+                        color: foreground,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
                     ),
-                  ),
-                  Text(
-                    hint,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 2),
+                    Text(
+                      actionHint,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: foreground.withValues(alpha: 0.78),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Icon(
+                Icons.arrow_forward_rounded,
+                color: foreground.withValues(alpha: 0.82),
+                size: 22,
               ),
             ],
           ),

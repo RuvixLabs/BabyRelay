@@ -35,7 +35,11 @@ class NextUpCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     if (ongoingSleep != null) {
-      final mins = now.difference(ongoingSleep!.startAt).inMinutes;
+      final elapsed = now.difference(ongoingSleep!.startAt);
+      final timerLabel = formatStopwatch(elapsed);
+      final wakePrediction = predictionIfWakesNow == null
+          ? null
+          : 'If ${childName ?? 'baby'} wakes now, the next window opens around ${formatTime(predictionIfWakesNow!.windowStart)}.';
       return AnimatedSwitcher(
         duration: const Duration(milliseconds: 350),
         child: Container(
@@ -66,21 +70,40 @@ class NextUpCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'ASLEEP',
-                      style: text.labelSmall?.copyWith(color: c.onNightSoft),
+                    Row(
+                      children: [
+                        Text(
+                          'ASLEEP',
+                          style: text.labelSmall?.copyWith(
+                            color: c.onNightSoft,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        RelayChip('LIVE', color: c.onNight, icon: Icons.circle),
+                      ],
                     ),
                     const SizedBox(height: 10),
-                    Text(
-                      mins < 1
-                          ? 'Just fell asleep'
-                          : formatDurationMinutes(mins),
-                      style: text.displaySmall?.copyWith(color: c.onNight),
+                    Semantics(
+                      liveRegion: true,
+                      label: _sleepTimerSemantics(
+                        childName: childName,
+                        elapsed: elapsed,
+                        startedAt: ongoingSleep!.startAt,
+                      ),
+                      child: ExcludeSemantics(
+                        child: Text(
+                          timerLabel,
+                          style: text.displaySmall?.copyWith(
+                            color: c.onNight,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Down at ${formatTime(ongoingSleep!.startAt)}.'
-                      '${predictionIfWakesNow != null ? ' If ${childName ?? 'they'} wakes now, the next window opens around ${formatTime(predictionIfWakesNow!.windowStart)}.' : ''}',
+                      '${wakePrediction == null ? '' : ' $wakePrediction'}',
                       style: text.bodyMedium?.copyWith(color: c.onNightSoft),
                     ),
                   ],
@@ -186,6 +209,19 @@ class NextUpCard extends StatelessWidget {
       ],
     );
   }
+}
+
+String _sleepTimerSemantics({
+  required String? childName,
+  required Duration elapsed,
+  required DateTime startedAt,
+}) {
+  final name = childName ?? 'Baby';
+  final minutes = elapsed.isNegative ? 0 : elapsed.inMinutes;
+  final duration = minutes < 1
+      ? 'less than 1 minute'
+      : formatDurationMinutes(minutes);
+  return '$name asleep for $duration, since ${formatTime(startedAt)}.';
 }
 
 class _TransitionBanner extends StatelessWidget {

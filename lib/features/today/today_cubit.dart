@@ -47,7 +47,6 @@ class TodayCubit extends Cubit<TodayState> {
        _dayBuilder = dayBuilder,
        super(TodayState(family: _repo.state, now: DateTime.now())) {
     _repo.addListener(_recompute);
-    _ticker = Timer.periodic(const Duration(seconds: 30), (_) => _recompute());
     _recompute();
   }
 
@@ -57,9 +56,27 @@ class TodayCubit extends Cubit<TodayState> {
   final DayContextBuilder _dayBuilder;
   Timer? _ticker;
 
+  /// While a sleep is running the hero shows a live second-counting timer, so
+  /// we tick every second; otherwise 30s is plenty to keep "awake for" fresh.
+  static const _tickWhileAsleep = Duration(seconds: 1);
+  static const _tickWhileAwake = Duration(seconds: 30);
+
+  void _ensureTicker({required bool asleep}) {
+    final wanted = asleep ? _tickWhileAsleep : _tickWhileAwake;
+    if (_ticker != null && _ticker!.isActive && _tickInterval == wanted) {
+      return;
+    }
+    _ticker?.cancel();
+    _tickInterval = wanted;
+    _ticker = Timer.periodic(wanted, (_) => _recompute());
+  }
+
+  Duration? _tickInterval;
+
   void _recompute() {
     final family = _repo.state;
     final now = DateTime.now();
+    _ensureTicker(asleep: family.isAsleep);
     final child = family.selectedChild;
     if (child == null) {
       emit(TodayState(family: family, now: now));

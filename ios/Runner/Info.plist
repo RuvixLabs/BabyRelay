@@ -30,6 +30,8 @@
 	<false/>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>BabyRelay uses attribution to understand which campaigns help families discover the app.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

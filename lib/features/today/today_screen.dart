@@ -284,27 +284,51 @@ class _TodayViewState extends State<_TodayView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                NextUpCard(
-                  now: state.now,
-                  childName: child?.nickname,
-                  prediction: state.prediction,
-                  ongoingSleep: state.ongoingSleep,
-                  predictionIfWakesNow: state.predictionIfWakesNow,
-                  onTransitionAccept: (naps) => cubit.applyTransition(naps),
-                  onTransitionDismiss: () => cubit.applyTransition(
-                    state.prediction?.napsExpected ?? 3,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                KeyedSubtree(
-                  key: _sleepButtonKey,
-                  child: SleepButton(
-                    isAsleep: state.isAsleep,
+                if (state.isAsleep) ...[
+                  NextUpCard(
+                    now: state.now,
                     childName: child?.nickname,
-                    onPressed: () =>
-                        _trackAndMaybeAskForReview(cubit.toggleSleep),
+                    prediction: state.prediction,
+                    ongoingSleep: state.ongoingSleep,
+                    predictionIfWakesNow: state.predictionIfWakesNow,
+                    onTransitionAccept: (naps) => cubit.applyTransition(naps),
+                    onTransitionDismiss: () => cubit.applyTransition(
+                      state.prediction?.napsExpected ?? 3,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 14),
+                  KeyedSubtree(
+                    key: _sleepButtonKey,
+                    child: SleepButton(
+                      isAsleep: state.isAsleep,
+                      childName: child?.nickname,
+                      onPressed: () =>
+                          _trackAndMaybeAskForReview(cubit.toggleSleep),
+                    ),
+                  ),
+                ] else ...[
+                  KeyedSubtree(
+                    key: _sleepButtonKey,
+                    child: SleepButton(
+                      isAsleep: state.isAsleep,
+                      childName: child?.nickname,
+                      onPressed: () =>
+                          _trackAndMaybeAskForReview(cubit.toggleSleep),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  NextUpCard(
+                    now: state.now,
+                    childName: child?.nickname,
+                    prediction: state.prediction,
+                    ongoingSleep: state.ongoingSleep,
+                    predictionIfWakesNow: state.predictionIfWakesNow,
+                    onTransitionAccept: (naps) => cubit.applyTransition(naps),
+                    onTransitionDismiss: () => cubit.applyTransition(
+                      state.prediction?.napsExpected ?? 3,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 _SleepCorrectionRow(
                   isAsleep: state.isAsleep,
@@ -513,19 +537,19 @@ class _SleepCorrectionRow extends StatelessWidget {
         if (isAsleep) ...[
           _CorrectionChip(
             icon: Icons.history_toggle_off_rounded,
-            label: 'Woke 10 min ago',
+            label: 'Woke up 10 min ago',
             onTap: onWokeEarlier,
           ),
           if (ongoingSleep != null && onAdjustOngoing != null)
             _CorrectionChip(
               icon: Icons.tune_rounded,
-              label: 'Adjust start',
+              label: 'Adjust sleep start',
               onTap: onAdjustOngoing!,
             ),
         ] else ...[
           _CorrectionChip(
             icon: Icons.replay_10_rounded,
-            label: 'Started 10 min ago',
+            label: 'Fell asleep 10 min ago',
             onTap: onStartedEarlier,
           ),
         ],
@@ -553,30 +577,36 @@ class _CorrectionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
-    return PressableScale(
-      scale: 0.96,
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(100),
-          border: Border.all(color: c.outline),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 17, color: c.dusk),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: c.ink,
-                fontWeight: FontWeight.w800,
-                fontSize: 12.5,
+    return Semantics(
+      excludeSemantics: true,
+      button: true,
+      label: label,
+      child: PressableScale(
+        scale: 0.96,
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 44),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(100),
+            border: Border.all(color: c.outline),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 17, color: c.dusk),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: c.ink,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12.5,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
