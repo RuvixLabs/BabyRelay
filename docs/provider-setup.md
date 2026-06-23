@@ -228,6 +228,16 @@ Live AppStore Co-Pilot readback:
   read of `/v1/apps/6779147183/appAvailabilityV2` still returned Apple's
   generic server-side `500` on 2026-06-23, so normal release availability should
   be initialized in the App Store Connect UI before the final submit attempt.
+- Browser / web-session retry: the Ruvix agent-browser profile is authenticated
+  and shows the `J Mambwe Ruvix Ltd` account, but ASC app routes for BabyRelay
+  render only the App Store Connect shell or a blank app content pane. Clearing
+  local/session storage and caches while preserving cookies did not recover the
+  UI. The experimental `asc web apps availability create` helper exists, but it
+  needs a separate cached Apple web session; `asc web auth status` currently
+  reports no cached session.
+- App Privacy / privacy nutrition: not submitted in ASC because the App Privacy
+  UI did not render and `asc web privacy` has no cached Apple web session. The
+  answer worksheet is prepared in `docs/app-store-privacy-nutrition.md`.
 - Apple server notifications: confirmed in ASC on 2026-06-23 via explicit
   app-field readback. Production and sandbox RevenueCat notification URLs are
   both present and both use `V2`. Do not print or commit the full notification
@@ -327,8 +337,8 @@ Remaining App Store / subscription blockers:
 
 - Re-try App Store Connect after Apple's app/version route recovers: initialize
   pricing availability, complete privacy nutrition, and add App Review contact
-  phone/details. Content rights are now confirmed as
-  `DOES_NOT_USE_THIRD_PARTY_CONTENT`.
+  phone/details. Use `docs/app-store-privacy-nutrition.md` for privacy answers.
+  Content rights are now confirmed as `DOES_NOT_USE_THIRD_PARTY_CONTENT`.
 - Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
   smoke against the real offering.
 - Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
