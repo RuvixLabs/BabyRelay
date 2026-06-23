@@ -6,8 +6,12 @@ SDKs, `docs/privacy-policy.md`, and the Google Play Data Safety declaration
 saved on 2026-06-23.
 
 ASC status on 2026-06-23: the visual App Privacy route did not render in the
-Ruvix browser profile, and `asc web privacy` needs a separate cached Apple web
-session. Use this worksheet when the ASC App Privacy UI is reachable again.
+Ruvix browser profile, and `asc web privacy` had no separate cached Apple web
+session. The authenticated browser session was able to call the same Iris
+privacy endpoints used by the ASC UI. The declaration below was created and
+published in ASC on 2026-06-23; readback returned `published: true`,
+`lastPublished: 2026-06-23T07:39:40-07:00`, and
+`lastPublishedBy: J Mambwe`.
 
 ## App-Level Answers
 
@@ -22,12 +26,12 @@ session. Use this worksheet when the ASC App Privacy UI is reachable again.
 | Apple data type | Collected | Linked to user | Tracking | Purposes |
 |---|---:|---:|---:|---|
 | Contact Info - Name | Yes | Yes | No | App Functionality |
-| Contact Info - Email Address | Yes, optional via support/contact flows | Yes | No | App Functionality, Developer Communications |
+| Contact Info - Email Address | Yes, optional via support/contact flows | Yes | No | App Functionality |
 | Health & Fitness - Health | Yes | Yes | No | App Functionality, Product Personalization |
 | User Content - Other User Content | Yes | Yes | No | App Functionality |
 | Purchases - Purchase History | Yes | Yes | No | App Functionality, Account Management |
 | Identifiers - User ID | Yes | Yes | No | App Functionality, Analytics, Fraud Prevention/Security, Account Management |
-| Identifiers - Device ID | Yes | Yes | Yes when ATT/AppRefer attribution is enabled and authorized | App Functionality, Analytics, Developer Advertising or Marketing, Fraud Prevention/Security |
+| Identifiers - Device ID | Yes | Yes | Yes when ATT/AppRefer attribution is enabled and authorized | App Functionality, Analytics, Developer Advertising or Marketing |
 | Usage Data - Product Interaction | Yes | Yes | No | Analytics |
 | Diagnostics - Crash Data | Yes | Yes | No | Analytics |
 | Diagnostics - Performance Data / Other Diagnostic Data | Yes | Yes | No | Analytics |
@@ -52,6 +56,27 @@ session. Use this worksheet when the ASC App Privacy UI is reachable again.
 - AppRefer/ATT attribution means device/advertising identifiers may be used for
   campaign attribution. Treat Device ID as tracking when ATT authorization and
   attribution are enabled.
+
+## Published ASC Data Usage Rows
+
+Readback after publish returned these 16 rows:
+
+- `NAME` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `EMAIL_ADDRESS` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `HEALTH` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `HEALTH` / `PRODUCT_PERSONALIZATION` / `DATA_LINKED_TO_YOU`
+- `OTHER_USER_CONTENT` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `CUSTOMER_SUPPORT` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `PURCHASE_HISTORY` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `USER_ID` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `USER_ID` / `ANALYTICS` / `DATA_LINKED_TO_YOU`
+- `DEVICE_ID` / `APP_FUNCTIONALITY` / `DATA_LINKED_TO_YOU`
+- `DEVICE_ID` / `ANALYTICS` / `DATA_LINKED_TO_YOU`
+- `DEVICE_ID` / no purpose / `DATA_USED_TO_TRACK_YOU`
+- `PRODUCT_INTERACTION` / `ANALYTICS` / `DATA_LINKED_TO_YOU`
+- `CRASH_DATA` / `ANALYTICS` / `DATA_LINKED_TO_YOU`
+- `PERFORMANCE_DATA` / `ANALYTICS` / `DATA_LINKED_TO_YOU`
+- `OTHER_DIAGNOSTIC_DATA` / `ANALYTICS` / `DATA_LINKED_TO_YOU`
 
 ## Do Not Declare Unless The App Changes
 
