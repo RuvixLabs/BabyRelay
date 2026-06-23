@@ -1,6 +1,6 @@
 # Provider Setup
 
-Last updated: 2026-06-22
+Last updated: 2026-06-23
 
 ## Firebase
 
@@ -22,7 +22,7 @@ Live sync state:
   the Ruvix-authenticated Firebase Management API after the first live smoke
   returned `CONFIGURATION_NOT_FOUND`.
 - Firestore rules are deployed to the `cloud.firestore` release:
-  `fe83434a-58a3-459f-a148-cdd4606a4570`.
+  `0db384ff-4323-4dcb-a647-c1a5e0fb8b16`.
 - A client-side optimized-subcollection live smoke passed on 2026-06-22 using
   two anonymous users and no admin bypass:
   - owner anonymous Auth token issued
@@ -214,7 +214,7 @@ Remaining App Store / subscription blockers:
   `--dart-define=FIREBASE_CONFIGURED=true` is present.
 - Firestore rules are committed in `firestore.rules` and deployed to the
   `cloud.firestore` release on `babyrelay-ruvix` as ruleset
-  `fe83434a-58a3-459f-a148-cdd4606a4570`.
+  `0db384ff-4323-4dcb-a647-c1a5e0fb8b16`.
 - RevenueCat SDK is installed. `RevenueCatPurchaseService` reads current and
   `special_offer` offerings, maps the three App Store product IDs, and unlocks
   entitlement `pro`. Purchase/restore marks the shared family subscription
