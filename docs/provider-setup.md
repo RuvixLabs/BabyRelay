@@ -214,6 +214,9 @@ Live AppStore Co-Pilot readback:
 - Export compliance: `ios/Runner/Info.plist` declares
   `ITSAppUsesNonExemptEncryption=false` because the app uses standard
   platform/network encryption only.
+- Content rights: confirmed in ASC on 2026-06-23 as
+  `DOES_NOT_USE_THIRD_PARTY_CONTENT` using `asc apps update` and
+  `asc apps content-rights view`.
 - App Review detail: not created yet because ASC now requires a real
   `contactPhone` value. The attempted review-detail create with
   `support@ruvixlabs.com` and no demo account was rejected only for the missing
@@ -221,9 +224,10 @@ Live AppStore Co-Pilot readback:
 - App availability: `asc pricing availability get` currently returns no
   availability record. The high-level ASC CLI can update existing availability
   but not initialize it; the raw `/v2/appAvailabilities` endpoint is pre-order
-  shaped and requires child `territoryAvailabilities`, so normal release
-  availability should be initialized in the App Store Connect UI before the
-  final submit attempt.
+  shaped and requires child `territoryAvailabilities`. A direct authenticated
+  read of `/v1/apps/6779147183/appAvailabilityV2` still returned Apple's
+  generic server-side `500` on 2026-06-23, so normal release availability should
+  be initialized in the App Store Connect UI before the final submit attempt.
 - Apple server notifications: confirmed in ASC on 2026-06-23 via explicit
   app-field readback. Production and sandbox RevenueCat notification URLs are
   both present and both use `V2`. Do not print or commit the full notification
@@ -321,11 +325,10 @@ Remaining Android / Play blockers:
 
 Remaining App Store / subscription blockers:
 
-- Re-try App Store Connect after Apple's app/version route recovers: confirm
-  pricing availability, privacy nutrition, content-rights declaration, and App
-  Review contact phone/details. A one-field 2026-06-23 content-rights PATCH to
-  `DOES_NOT_USE_THIRD_PARTY_CONTENT` still returned Apple's generic server-side
-  `500`, and readback remains `null`.
+- Re-try App Store Connect after Apple's app/version route recovers: initialize
+  pricing availability, complete privacy nutrition, and add App Review contact
+  phone/details. Content rights are now confirmed as
+  `DOES_NOT_USE_THIRD_PARTY_CONTENT`.
 - Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
   smoke against the real offering.
 - Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
