@@ -11,6 +11,9 @@ App Store Connect review. Current scope is `en-US`.
 | Subtitle | Baby Log & Care Sync | 30 | 20 |
 | Privacy Policy URL | https://appstorecopilot.com/legal/3omln7px/privacy | URL | - |
 | Terms of Service URL | https://appstorecopilot.com/legal/3omln7px/terms | URL | - |
+| Primary Category | HEALTH_AND_FITNESS | ASC | - |
+| Secondary Category | LIFESTYLE | ASC | - |
+| Age Rating | 4+ | ASC | - |
 
 ## Version Metadata
 
@@ -19,7 +22,7 @@ App Store Connect review. Current scope is `en-US`.
 | Keywords | newborn,infant,nanny,caregiver,feeding,diaper,nap,tracker,family,pumping,grandparent | 100 | 84 |
 | Promotional Text | Keep caregivers synced with one-tap sleep logs and shared timelines. Family care summaries are available with an optional subscription. | 170 | 135 |
 | What's New | BabyRelay is launching with one-tap sleep logging, shared baby timelines, care-team invites, and BabyRelay Family subscription features for multi-child support, care summaries, exports, and longer history. | 4000 | 205 |
-| Support URL | TBD before submission | URL | - |
+| Support URL | https://ruvixlabs.com | URL | - |
 
 ## Description
 
@@ -56,7 +59,9 @@ Description count: 1216 / 4000.
 
 ## Notes
 
-- Staged in AppStore Co-Pilot before live App Store Connect publish.
+- en-US app info and version metadata have been pushed to the editable App
+  Store Connect `1.0` version. `What's New` is intentionally not pushed for
+  the first live version.
 - Privacy Policy and Terms of Service are published through AppStore Co-Pilot
   and are linked from the app paywall and Settings.
 - Source screenshots captured from the iPhone simulator live at
@@ -77,7 +82,9 @@ Description count: 1216 / 4000.
   AppStore Co-Pilot for `APP_IPHONE_69` / `en-US` with local screenshot
   changes:
   `artifacts/app_store_screenshots/gpt-image-2-story-v3-popouts/2026-06-16/iphone_69/`.
-  It replaces the earlier staged screenshot set inside AppStore Co-Pilot but
-  has not been pushed live to App Store Connect.
+  It replaces the earlier staged screenshot set inside AppStore Co-Pilot and
+  has also been pushed to the editable App Store Connect `1.0` version. ASC
+  readback maps the accepted `1320x2868` frames to display set
+  `APP_IPHONE_67`; all six screenshot assets read back as `COMPLETE`.
 - The copy intentionally avoids medical, safe-sleep, or sleep-training outcome
   promises.

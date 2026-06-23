@@ -148,6 +148,8 @@ Live AppStore Co-Pilot readback:
 - Privacy Policy is published through AppStore Co-Pilot:
   `https://appstorecopilot.com/legal/3omln7px/privacy`. The URL returns `200`
   and is stored on both the project and en-US metadata record.
+- Support URL is stored on the AppStore Co-Pilot en-US metadata record as
+  `https://ruvixlabs.com`.
 - Terms of Service is published through AppStore Co-Pilot:
   `https://appstorecopilot.com/legal/3omln7px/terms`. The URL returns `200`
   and is linked from the app paywall and Settings.
@@ -169,8 +171,10 @@ Live AppStore Co-Pilot readback:
   AppStore Co-Pilot for `APP_IPHONE_69` / `en-US` with `syncStatus:
   local_changes`:
   `artifacts/app_store_screenshots/gpt-image-2-story-v3-popouts/2026-06-16/iphone_69/`.
-  The six stored AppStore Co-Pilot URLs were read back with HTTP 200. The set
-  has not been pushed to App Store Connect yet.
+  The six stored AppStore Co-Pilot URLs were read back with HTTP 200. The same
+  approved set has also been pushed to the editable App Store Connect `1.0`
+  version; ASC readback maps the accepted `1320x2868` frames to display type
+  `APP_IPHONE_67`, with all six screenshot assets in `COMPLETE` delivery state.
 
 ## App Store Connect
 
@@ -180,6 +184,46 @@ Live AppStore Co-Pilot readback:
 - ASC app ID: `6779147183`
 - ASC app name: `BabyRelay : Shared Baby Care`
 - ASC SKU: `BabyRelay`
+- Editable app version: `1.0`, state `PREPARE_FOR_SUBMISSION`
+- en-US live metadata pushed on 2026-06-23:
+  - App name: `BabyRelay: Shared Baby Care`
+  - Subtitle: `Baby Log & Care Sync`
+  - Privacy Policy URL:
+    `https://appstorecopilot.com/legal/3omln7px/privacy`
+  - Description, keywords, promotional text, and Support URL
+    `https://ruvixlabs.com`
+  - `What's New` is intentionally skipped for the first live version.
+- Categories:
+  - Primary: `HEALTH_AND_FITNESS`
+  - Secondary: `LIFESTYLE`
+- Age rating declaration:
+  - App Store age rating: `4+`
+  - Health or wellness topics: `true`
+  - Medical/treatment information: `NONE`
+  - Unrestricted web access, user-generated content, messaging/chat,
+    advertising, gambling, and loot boxes: `false`
+  - Developer age-rating info URL: `https://ruvixlabs.com`
+- App Store screenshots pushed on 2026-06-23:
+  - Version localization: `en-US`
+  - Source set:
+    `artifacts/app_store_screenshots/gpt-image-2-story-v3-popouts/2026-06-16/iphone_69/final/`
+  - ASC screenshot set: `APP_IPHONE_67`
+  - Count: `6`
+  - Dimensions: `1320x2868`
+  - Delivery state: all `COMPLETE`
+- Export compliance: `ios/Runner/Info.plist` declares
+  `ITSAppUsesNonExemptEncryption=false` because the app uses standard
+  platform/network encryption only.
+- App Review detail: not created yet because ASC now requires a real
+  `contactPhone` value. The attempted review-detail create with
+  `support@ruvixlabs.com` and no demo account was rejected only for the missing
+  phone field.
+- App availability: `asc pricing availability get` currently returns no
+  availability record. The high-level ASC CLI can update existing availability
+  but not initialize it; the raw `/v2/appAvailabilities` endpoint is pre-order
+  shaped and requires child `territoryAvailabilities`, so normal release
+  availability should be initialized in the App Store Connect UI before the
+  final submit attempt.
 - Apple server notifications: live ASC readback on 2026-06-16 shows
   production and sandbox notification URLs are not currently set. RevenueCat
   still has the server-to-server notification token, but the production/sandbox
