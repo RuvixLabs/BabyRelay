@@ -80,7 +80,10 @@ class RevenueCatPurchaseService extends PurchaseService {
       ...offerings.all.values,
     ].whereType<rc.Offering>()) {
       for (final package in offering.availablePackages) {
-        byProduct[package.storeProduct.identifier] = package;
+        final identifier = package.storeProduct.identifier;
+        byProduct[identifier] = package;
+        final canonical = ProductIds.canonical(identifier);
+        if (canonical != null) byProduct.putIfAbsent(canonical, () => package);
       }
     }
 

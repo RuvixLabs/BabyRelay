@@ -19,10 +19,16 @@ abstract final class ProductIds {
     PlanId.monthly: monthly,
   };
 
+  static String? canonical(String? productId) {
+    if (productId == null || productId.isEmpty) return productId;
+    return productId.split(':').first;
+  }
+
   static PlanId? planFor(String? productId) {
-    if (productId == null) return null;
+    final canonicalProductId = canonical(productId);
+    if (canonicalProductId == null) return null;
     for (final entry in byPlan.entries) {
-      if (entry.value == productId) return entry.key;
+      if (entry.value == canonicalProductId) return entry.key;
     }
     return null;
   }
@@ -66,7 +72,7 @@ enum RestoreOutcome { restored, nothingToRestore, failed }
 
 /// Subscription seam. Screens depend only on this interface; the shipped
 /// implementation today is [LocalPurchaseService], and the RevenueCat-backed
-/// one replaces it behind the same surface once `REVENUECAT_API_KEY` is
+/// one replaces it behind the same surface once a platform RevenueCat key is
 /// provided (entitlement id: [entitlementId]).
 abstract class PurchaseService extends ChangeNotifier {
   static const entitlementId = 'pro';

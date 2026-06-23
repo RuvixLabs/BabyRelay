@@ -7,10 +7,14 @@ Last updated: 2026-06-23
 - Company: Ruvix Labs
 - Firebase/GCP project ID: `babyrelay-ruvix`
 - iOS bundle ID: `com.ruvixlabs.babyrelay`
+- Android package name: `com.ruvixlabs.babyrelay`
 - Firebase iOS app ID: `1:500197010265:ios:3e9e3b96b065cb7b287a48`
+- Firebase Android app ID: `1:500197010265:android:cf90d1f6dc5b788a287a48`
 - Firebase Web app ID: `1:500197010265:web:d6c4297117240e90287a48`
 - Firestore database: `(default)`, Firestore Native, `nam5`
-- Local config: `ios/Runner/GoogleService-Info.plist`
+- Local configs:
+  - `ios/Runner/GoogleService-Info.plist`
+  - `android/app/google-services.json`
 
 Enabled services include Firebase Management, Firestore, Firebase Auth
 (`identitytoolkit`), Crashlytics, FCM, App Check, Installations, and Remote
@@ -105,6 +109,12 @@ Live RevenueCat readback:
     to `pro`
   - Monthly: `prod7eca500296`, `babyrelay_pro_monthly`, attached to `pro`
   - Annual: `prod5e1be41b9d`, `babyrelay_pro_annual`, attached to `pro`
+- Android / Google Play products are not created yet. The app code accepts a
+  platform-specific Android public SDK key through
+  `--dart-define=REVENUECAT_ANDROID_API_KEY=...`, and it tolerates Google Play
+  product identifiers that include a base-plan suffix
+  (`productId:basePlanId`). Create the Play app shell, Play subscriptions/base
+  plans, and RevenueCat Android app before supplying that key in release builds.
 
 RevenueCat initially created an accidental entitlement identifier
 `BabyRelay Pro`; the two products were moved to `pro`, and the accidental
@@ -196,6 +206,42 @@ Live AppStore Co-Pilot readback:
   subscriptions still need to travel with the App Store version submission, not
   standalone submission.
 
+## Google Play / Android
+
+- Android package name: `com.ruvixlabs.babyrelay`
+- Native Android project: `android/`
+- Firebase Android app ID:
+  `1:500197010265:android:cf90d1f6dc5b788a287a48`
+- Firebase config: `android/app/google-services.json`
+- Launcher icon: generated from the approved Android-safe glow-face source,
+  with legacy density icons, adaptive foreground layers, `ic_launcher.xml`,
+  `ic_launcher_round.xml`, and background color `#071537`.
+- Build status: `flutter build apk --debug --dart-define=FIREBASE_CONFIGURED=true
+  --dart-define=APPREFER_LINK_ID=babyrelay-meta` passed on 2026-06-23.
+- Device smoke: installed and launched on Android device `SM G973F`
+  (`RF8MC08242T`, Android 11). First Flutter frame appeared after the native
+  splash; logcat showed Firebase/Crashlytics initialization and no fatal
+  exception/ANR.
+- Play Console readback through the Ruvix Play service account is authenticated,
+  but the package does not exist yet:
+  `Package not found: com.ruvixlabs.babyrelay`.
+
+Remaining Android / Play blockers:
+
+- Create the Google Play app shell for `com.ruvixlabs.babyrelay` in the Ruvix
+  Play Console. The current `gpc` path can authenticate/read/upload existing
+  packages but cannot create a missing package.
+- Create Android upload signing for BabyRelay; do not reuse the ThreadCam
+  keystore.
+- Create Google Play subscriptions/base plans/offers matching the iOS shape:
+  `babyrelay_pro_special_annual`, `babyrelay_pro_annual`,
+  `babyrelay_pro_monthly`.
+- Create/configure the RevenueCat Android app, store its Android public SDK key
+  in `mc-vault`, attach Google Play products to entitlement `pro`, and wire
+  Google Play RTDN/Pub/Sub to RevenueCat before production submission.
+- Add Play listing metadata/screenshots/data-safety/app-content forms once the
+  Play shell exists.
+
 Remaining App Store / subscription blockers:
 
 - Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
@@ -219,7 +265,10 @@ Remaining App Store / subscription blockers:
   `special_offer` offerings, maps the three App Store product IDs, and unlocks
   entitlement `pro`. Purchase/restore marks the shared family subscription
   active so paid capacity gates apply to the family and join-by-code can accept
-  over-free-limit caregivers for a subscribed family.
+  over-free-limit caregivers for a subscribed family. Platform-specific keys
+  are preferred: `REVENUECAT_IOS_API_KEY` and
+  `REVENUECAT_ANDROID_API_KEY`; the old `REVENUECAT_API_KEY` define remains a
+  fallback for local/testing builds.
 - Gleap SDK is installed. Settings opens in-app support when
   `GLEAP_SDK_KEY` is supplied, otherwise it falls back to the support email.
 - App tracking transparency is installed. `APPREFER_LINK_ID=babyrelay-meta`

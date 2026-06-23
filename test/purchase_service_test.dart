@@ -29,6 +29,15 @@ void main() {
     expect(PurchaseService.entitlementId, 'pro');
   });
 
+  test('product ids map to plans with Google Play base-plan suffixes', () {
+    expect(
+      ProductIds.planFor('babyrelay_pro_special_annual:special-annual'),
+      PlanId.specialAnnual,
+    );
+    expect(ProductIds.planFor('babyrelay_pro_annual:annual'), PlanId.annual);
+    expect(ProductIds.planFor('babyrelay_pro_monthly:monthly'), PlanId.monthly);
+  });
+
   test('special annual purchase grants pro without a trial', () async {
     final outcome = await purchases.purchase(specialAnnual());
     expect(outcome, PurchaseOutcome.success);

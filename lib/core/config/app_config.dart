@@ -1,18 +1,21 @@
-/// Central build-time configuration.
-///
-/// Provider credentials are NEVER checked into the repo. Each one arrives as
-/// a `--dart-define` at build time (or stays empty, in which case the app
-/// runs fully local and the related feature shows a graceful disabled state):
-///
-/// ```sh
-/// flutter build ios \
-///   --dart-define=REVENUECAT_API_KEY=appl_... \
-///   --dart-define=GLEAP_SDK_KEY=... \
-///   --dart-define=APPREFER_LINK_ID=...
-/// ```
-///
-/// Firebase is configured by its platform files (GoogleService-Info.plist /
-/// google-services.json), so it gets a boolean define instead of a key.
+// Central build-time configuration.
+//
+// Provider credentials are NEVER checked into the repo. Each one arrives as
+// a `--dart-define` at build time (or stays empty, in which case the app
+// runs fully local and the related feature shows a graceful disabled state):
+//
+// ```sh
+// flutter build ios \
+//   --dart-define=REVENUECAT_IOS_API_KEY=appl_... \
+//   --dart-define=REVENUECAT_ANDROID_API_KEY=goog_... \
+//   --dart-define=GLEAP_SDK_KEY=... \
+//   --dart-define=APPREFER_LINK_ID=...
+// ```
+//
+// Firebase is configured by its platform files (GoogleService-Info.plist /
+// google-services.json), so it gets a boolean define instead of a key.
+import 'package:flutter/foundation.dart';
+
 abstract final class AppConfig {
   static const String appVersion = '0.1.0';
 
@@ -33,17 +36,33 @@ abstract final class AppConfig {
   static const bool firebaseConfigured = bool.fromEnvironment(
     'FIREBASE_CONFIGURED',
   );
-  static const String revenueCatApiKey = String.fromEnvironment(
+  static const String _legacyRevenueCatApiKey = String.fromEnvironment(
     'REVENUECAT_API_KEY',
   );
+  static const String revenueCatIosApiKey = String.fromEnvironment(
+    'REVENUECAT_IOS_API_KEY',
+  );
+  static const String revenueCatAndroidApiKey = String.fromEnvironment(
+    'REVENUECAT_ANDROID_API_KEY',
+  );
+
+  static String get revenueCatApiKey {
+    final platformKey = switch (defaultTargetPlatform) {
+      TargetPlatform.iOS => revenueCatIosApiKey,
+      TargetPlatform.android => revenueCatAndroidApiKey,
+      _ => '',
+    };
+    return platformKey.isNotEmpty ? platformKey : _legacyRevenueCatApiKey;
+  }
+
   static const String gleapSdkKey = String.fromEnvironment('GLEAP_SDK_KEY');
   static const String appReferLinkId = String.fromEnvironment(
     'APPREFER_LINK_ID',
   );
 }
 
-/// One production service the app integrates with, and whether this build
-/// has what it needs to turn that integration on.
+// One production service the app integrates with, and whether this build
+// has what it needs to turn that integration on.
 class Integration {
   const Integration({
     required this.name,
@@ -56,10 +75,10 @@ class Integration {
   final bool configured;
 }
 
-/// Snapshot of every provider seam, for the Settings status list and for
-/// startup decisions (what to initialize vs. leave in local mode).
+// Snapshot of every provider seam, for the Settings status list and for
+// startup decisions (what to initialize vs. leave in local mode).
 abstract final class Integrations {
-  static const List<Integration> all = [
+  static final List<Integration> all = [
     Integration(
       name: 'Firebase',
       detail: 'Auth, Firestore sync, Analytics, Crashlytics, Messaging',
