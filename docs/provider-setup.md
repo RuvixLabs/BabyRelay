@@ -224,15 +224,10 @@ Live AppStore Co-Pilot readback:
   shaped and requires child `territoryAvailabilities`, so normal release
   availability should be initialized in the App Store Connect UI before the
   final submit attempt.
-- Apple server notifications: RevenueCat app settings expose production and
-  sandbox subscription-status URLs for BabyRelay. On 2026-06-23, a live ASC
-  API patch using those URLs and `V2` for production/sandbox returned Apple's
-  generic server-side `500` response; subsequent app readbacks timed out, and
-  the authenticated ASC browser route for the BabyRelay version rendered only
-  the App Store Connect shell / "Sorry, something went wrong" state. The URLs
-  are still treated as not readback-confirmed in ASC and must be re-applied or
-  confirmed before submission. Evidence screenshot:
-  `artifacts/asc_browser/asc-version-shell-stuck-2026-06-23.png`.
+- Apple server notifications: confirmed in ASC on 2026-06-23 via explicit
+  app-field readback. Production and sandbox RevenueCat notification URLs are
+  both present and both use `V2`. Do not print or commit the full notification
+  URLs; derive them from RevenueCat app settings when needed.
 - Subscription group: `22150100`, `BabyRelay Family`, localized `en-US`
 - Subscriptions:
   - Special annual: `6779256297`, product ID
@@ -327,10 +322,10 @@ Remaining Android / Play blockers:
 Remaining App Store / subscription blockers:
 
 - Re-try App Store Connect after Apple's app/version route recovers: confirm
-  pricing availability, privacy nutrition, content-rights declaration, App
-  Review contact phone/details, and RevenueCat production/sandbox `V2` server
-  notification URLs. Do not submit until the notification URLs read back as
-  present.
+  pricing availability, privacy nutrition, content-rights declaration, and App
+  Review contact phone/details. A one-field 2026-06-23 content-rights PATCH to
+  `DOES_NOT_USE_THIRD_PARTY_CONTENT` still returned Apple's generic server-side
+  `500`, and readback remains `null`.
 - Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
   smoke against the real offering.
 - Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
