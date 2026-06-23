@@ -1,0 +1,18 @@
+{
+  "editId": "13624391299993348583",
+  "commit": {
+    "id": "13624391299993348583",
+    "expiryTimeSeconds": "1782210409"
+  },
+  "readback": {
+    "language": "en-US",
+    "title": "BabyRelay: Shared Baby Care",
+    "fullDescription": "BabyRelay keeps everyone caring for your baby on the same page.\n\nLog sleep, wakes, feeds, diapers, notes, and night wakes in a few taps. Each entry is tied to a child and caregiver, so parents, partners, grandparents, nannies, and other helpers can see what happened without digging through texts.\n\nBuilt around handoffs, not just tracking:\n\n- One-tap asleep and awake logging\n- A shared timeline for each child\n- Included next-up sleep guidance based on age, recent naps, and bedtime\n- Quick feed, diaper, note, and night-wake logs\n- Care-team invites for your included helper\n- Optional BabyRelay Family subscription features for extra children, larger care teams, care summaries, longer history, and exports\n- Delete controls for family data\n\nBabyRelay is for tired families who need a calmer answer to: when did they last sleep, eat, or get changed?\n\nBabyRelay Family is available as an optional subscription purchase. It unlocks extra children, larger care teams, care summaries, longer history, exports, and family subscription access.\n\nBabyRelay provides organization and schedule guidance only. It is not medical advice and does not replace your pediatrician, healthcare provider, or safe-sleep guidance.",
+    "shortDescription": "Shared baby logs, sleep guidance, and care handoffs for every caregiver."
+  },
+  "counts": {
+    "title": 27,
+    "shortDescription": 72,
+    "fullDescription": 1212
+  }
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "iosLocale": "en-US",
+    "playLocale": "en-US",
+    "source": "root English fallback",
+    "screenshots": [
+      {
+        "path": "/tmp/babyrelay-play-screenshots-en-us/Screenshot 1.png",
+        "filename": "Screenshot 1.png",
+        "width": 1320,
+        "height": 2868,
+        "sha256": "be12c22b29472554326f7938cc47177ac5fdfd47ea9de19809dd56a0e2b26e67"
+      },
+      {
+        "path": "/tmp/babyrelay-play-screenshots-en-us/Screenshot 2.png",
+        "filename": "Screenshot 2.png",
+        "width": 1320,
+        "height": 2868,
+        "sha256": "1eabbdc123a43b839aeafd9f00a62bea2beeee420d3dec2e81a3cc168b2ae5d0"
+      },
+      {
+        "path": "/tmp/babyrelay-play-screenshots-en-us/Screenshot 3.png",
+        "filename": "Screenshot 3.png",
+        "width": 1320,
+        "height": 2868,
+        "sha256": "0f78f3971eef7a3c764f4d8166b68b8d93171a7ff0510d775065067d4a55576c"
+      },
+      {
+        "path": "/tmp/babyrelay-play-screenshots-en-us/Screenshot 4.png",
+        "filename": "Screenshot 4.png",
+        "width": 1320,
+        "height": 2868,
+        "sha256": "5e4b9c78c9bb623ba5fe726f0b14341ba7a38766d5e507c91035b49b6518d729"
+      },
+      {
+        "path": "/tmp/babyrelay-play-screenshots-en-us/Screenshot 5.png",
+        "filename": "Screenshot 5.png",
+        "width": 1320,
+        "height": 2868,
+        "sha256": "1ce5f91be8a51ca711e86154d387357098548413a34ac366c831a0b00c3447f1"
+      },
+      {
+        "path": "/tmp/babyrelay-play-screenshots-en-us/Screenshot 6.png",
+        "filename": "Screenshot 6.png",
+        "width": 1320,
+        "height": 2868,
+        "sha256": "11738f9527ef418ca71c08230fa76e97ee8089e0cd5f5f922ea0302f0433f6a7"
+      }
+    ]
+  }
+]

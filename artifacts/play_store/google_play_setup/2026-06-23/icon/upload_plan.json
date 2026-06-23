@@ -1,0 +1,16 @@
+[
+  {
+    "iosLocale": "en-US",
+    "playLocale": "en-US",
+    "source": "root English fallback",
+    "screenshots": [
+      {
+        "path": "/tmp/babyrelay-play-icon-en-us/Screenshot 1.png",
+        "filename": "Screenshot 1.png",
+        "width": 512,
+        "height": 512,
+        "sha256": "6b17aefd78e7e3bd7b2f87d1750c7bb3cde896abd7f7e5358dc99a58ad53ec35"
+      }
+    ]
+  }
+]

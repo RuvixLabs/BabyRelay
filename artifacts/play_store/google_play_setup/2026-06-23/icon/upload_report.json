@@ -1,0 +1,57 @@
+{
+  "packageName": "com.ruvixlabs.babyrelay",
+  "imageType": "icon",
+  "dryRun": false,
+  "localeCount": 1,
+  "screenshotCount": 1,
+  "rootFallbackPlayLocales": [
+    "en-US"
+  ],
+  "upload": {
+    "editId": "03484024098127313613",
+    "commit": {
+      "id": "03484024098127313613",
+      "expiryTimeSeconds": "1782210379"
+    },
+    "uploaded": [
+      {
+        "iosLocale": "en-US",
+        "playLocale": "en-US",
+        "source": "root English fallback",
+        "uploadedCount": 1,
+        "responses": [
+          {
+            "image": {
+              "id": "13332853120019930953",
+              "url": "https://lh3.googleusercontent.com/4WbtYojyteU4VMZVhlqzHm0CaphPNpZC_XKMi4IVNwS-FncEh2zT7MFC7j-bL4n4eg",
+              "sha1": "02c0269a33a560470b12b60a7e76520840f11169",
+              "sha256": "6b17aefd78e7e3bd7b2f87d1750c7bb3cde896abd7f7e5358dc99a58ad53ec35"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "readback": [
+    {
+      "playLocale": "en-US",
+      "iosLocale": "en-US",
+      "count": 1,
+      "images": [
+        {
+          "id": "13332853120019930953",
+          "url": "https://lh3.googleusercontent.com/4WbtYojyteU4VMZVhlqzHm0CaphPNpZC_XKMi4IVNwS-FncEh2zT7MFC7j-bL4n4eg",
+          "sha1": "02c0269a33a560470b12b60a7e76520840f11169",
+          "sha256": "6b17aefd78e7e3bd7b2f87d1750c7bb3cde896abd7f7e5358dc99a58ad53ec35"
+        }
+      ]
+    }
+  ],
+  "readbackCounts": [
+    {
+      "count": 1,
+      "locales": 1
+    }
+  ],
+  "badReadback": []
+}

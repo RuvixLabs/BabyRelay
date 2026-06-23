@@ -109,12 +109,13 @@ Live RevenueCat readback:
     to `pro`
   - Monthly: `prod7eca500296`, `babyrelay_pro_monthly`, attached to `pro`
   - Annual: `prod5e1be41b9d`, `babyrelay_pro_annual`, attached to `pro`
-- Android / Google Play products are not created yet. The app code accepts a
-  platform-specific Android public SDK key through
-  `--dart-define=REVENUECAT_ANDROID_API_KEY=...`, and it tolerates Google Play
-  product identifiers that include a base-plan suffix
-  (`productId:basePlanId`). Create the Play app shell, Play subscriptions/base
-  plans, and RevenueCat Android app before supplying that key in release builds.
+- Google Play products now exist in the Ruvix Play app, but they are not yet
+  imported into RevenueCat because the BabyRelay RevenueCat Android app and
+  public SDK key still need to be created from the BabyRelay-specific RevenueCat
+  account. The app code accepts a platform-specific Android public SDK key
+  through `--dart-define=REVENUECAT_ANDROID_API_KEY=...`, and it tolerates
+  Google Play product identifiers that include a base-plan suffix
+  (`productId:basePlanId`).
 
 RevenueCat initially created an accidental entitlement identifier
 `BabyRelay Pro`; the two products were moved to `pro`, and the accidental
@@ -213,34 +214,65 @@ Live AppStore Co-Pilot readback:
 - Firebase Android app ID:
   `1:500197010265:android:cf90d1f6dc5b788a287a48`
 - Firebase config: `android/app/google-services.json`
+- Play Console developer: Ruvix Ltd, developer ID `7730130263000890927`
+- Play Console app ID: `4973846096696226350`
+- Play app name: `BabyRelay: Shared Baby Care`
+- Play app type/pricing: App, free, en-US primary locale
 - Launcher icon: generated from the approved Android-safe glow-face source,
   with legacy density icons, adaptive foreground layers, `ic_launcher.xml`,
   `ic_launcher_round.xml`, and background color `#071537`.
 - Build status: `flutter build apk --debug --dart-define=FIREBASE_CONFIGURED=true
   --dart-define=APPREFER_LINK_ID=babyrelay-meta` passed on 2026-06-23.
+- Advertising ID status: Play declaration is "No." The Android manifest removes
+  both `com.google.android.gms.permission.AD_ID` and
+  `android.permission.ACCESS_ADSERVICES_AD_ID` with `tools:node="remove"` so
+  Firebase/measurement transitive permissions do not land in the merged app
+  manifest.
 - Device smoke: installed and launched on Android device `SM G973F`
   (`RF8MC08242T`, Android 11). First Flutter frame appeared after the native
   splash; logcat showed Firebase/Crashlytics initialization and no fatal
   exception/ANR.
-- Play Console readback through the Ruvix Play service account is authenticated,
-  but the package does not exist yet:
-  `Package not found: com.ruvixlabs.babyrelay`.
+- Play listing draft:
+  - Title: `BabyRelay: Shared Baby Care`
+  - Short description: `Shared baby logs, sleep guidance, and care handoffs for
+    every caregiver.`
+  - Full description: synced from the approved App Store metadata
+  - Support email: `support@ruvixlabs.com`
+  - App icon: approved glow-face Play icon uploaded
+  - Phone screenshots: six approved shared-care screenshots uploaded for
+    `en-US`
+- Play App content is caught up:
+  - Privacy Policy URL:
+    `https://appstorecopilot.com/legal/3omln7px/privacy`
+  - Ads: no ads
+  - App access: no special restricted access
+  - Government apps: no
+  - Financial features: no financial features
+  - Health apps: sleep management
+  - Content rating: ESRB `Everyone`, PEGI `3`, USK `All ages`, generic `3+`;
+    interactive elements disclose `Users Interact` and `In-App Purchases`
+  - Target audience: `18 and over`
+  - Data safety: shared baby-care data, purchases, app activity, diagnostics,
+    and device IDs disclosed; encrypted in transit; deletion request URL points
+    to the published Privacy Policy
+- Play subscriptions/base plans:
+  - Monthly: `babyrelay_pro_monthly`, base plan `monthly`, period `P1M`, USA
+    price `$9.99`, active, 7-day trial offer `trial-7-day`, `173` regions
+  - Annual: `babyrelay_pro_annual`, base plan `annual`, period `P1Y`, USA
+    price `$59.99`, active, 7-day trial offer `trial-7-day`, `173` regions
+  - Special annual: `babyrelay_pro_special_annual`, base plan
+    `special-annual`, period `P1Y`, USA price `$29.99`, active, no trial,
+    `173` regions
 
 Remaining Android / Play blockers:
 
-- Create the Google Play app shell for `com.ruvixlabs.babyrelay` in the Ruvix
-  Play Console. The current `gpc` path can authenticate/read/upload existing
-  packages but cannot create a missing package.
 - Create Android upload signing for BabyRelay; do not reuse the ThreadCam
   keystore.
-- Create Google Play subscriptions/base plans/offers matching the iOS shape:
-  `babyrelay_pro_special_annual`, `babyrelay_pro_annual`,
-  `babyrelay_pro_monthly`.
 - Create/configure the RevenueCat Android app, store its Android public SDK key
   in `mc-vault`, attach Google Play products to entitlement `pro`, and wire
   Google Play RTDN/Pub/Sub to RevenueCat before production submission.
-- Add Play listing metadata/screenshots/data-safety/app-content forms once the
-  Play shell exists.
+- Upload an Android App Bundle to an internal track, run install/purchase smoke,
+  then complete the production release/publishing overview path.
 
 Remaining App Store / subscription blockers:
 

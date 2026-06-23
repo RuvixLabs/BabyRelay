@@ -1,0 +1,127 @@
+{
+  "packageName": "com.ruvixlabs.babyrelay",
+  "imageType": "phoneScreenshots",
+  "dryRun": false,
+  "localeCount": 1,
+  "screenshotCount": 6,
+  "rootFallbackPlayLocales": [
+    "en-US"
+  ],
+  "upload": {
+    "editId": "13739413656057437016",
+    "commit": {
+      "id": "13739413656057437016",
+      "expiryTimeSeconds": "1782210313"
+    },
+    "uploaded": [
+      {
+        "iosLocale": "en-US",
+        "playLocale": "en-US",
+        "source": "root English fallback",
+        "uploadedCount": 6,
+        "responses": [
+          {
+            "image": {
+              "id": "7979656378049228465",
+              "url": "https://lh3.googleusercontent.com/C_tBDP-W2izl_mpcHu9UvlRB5UYA-T9PisNplVRwe8ED0rOyJp_28OP4Wept5A-YK2kL",
+              "sha1": "165efad251ef0e35cf453484cd2035994c16def5",
+              "sha256": "be12c22b29472554326f7938cc47177ac5fdfd47ea9de19809dd56a0e2b26e67"
+            }
+          },
+          {
+            "image": {
+              "id": "13783776268373849514",
+              "url": "https://lh3.googleusercontent.com/Px0igwb-sgAO2Unk3PXStyc9kf59NRHZEp0wGETMpWXQH18-E4RCBHcNmgl7Li2X3UE",
+              "sha1": "7012133d1f0cef36d127bd0bcb608982574c2075",
+              "sha256": "1eabbdc123a43b839aeafd9f00a62bea2beeee420d3dec2e81a3cc168b2ae5d0"
+            }
+          },
+          {
+            "image": {
+              "id": "14381558623938814712",
+              "url": "https://lh3.googleusercontent.com/AEqoS3dMB3JaSYgw9gJTb5LGghap4WlooRQjUfo7uQ8kNqIHpa-6eUX2Zq4pSmMmLTw",
+              "sha1": "29443587ea4207f96f71c05f1ea9af1577138e85",
+              "sha256": "0f78f3971eef7a3c764f4d8166b68b8d93171a7ff0510d775065067d4a55576c"
+            }
+          },
+          {
+            "image": {
+              "id": "13518955282465858189",
+              "url": "https://lh3.googleusercontent.com/e_PLgmaGSSn33QiLHxtcvK0fgl8Ke_uPqeyGDpaCVx74RjuFhrI5MvabdWeprMAZDg47",
+              "sha1": "6e93b0ae2e17ccd6b16877dcc34564259a05f796",
+              "sha256": "5e4b9c78c9bb623ba5fe726f0b14341ba7a38766d5e507c91035b49b6518d729"
+            }
+          },
+          {
+            "image": {
+              "id": "16430934198826253966",
+              "url": "https://lh3.googleusercontent.com/RakHCKzZdUZqUZvdVsIxT0AF5DoXdlMsVA_Sul9yWvQ-XPoUrxdFJgyQWBpGOnQRKMXJ",
+              "sha1": "bd0926b55ff305f6203e73ee9bdb28076566076a",
+              "sha256": "1ce5f91be8a51ca711e86154d387357098548413a34ac366c831a0b00c3447f1"
+            }
+          },
+          {
+            "image": {
+              "id": "3448926769286216734",
+              "url": "https://lh3.googleusercontent.com/ak9ri4TLlBYHjvy10mqJeH48DvmyUZUnqMjQeax7N-GJY2zH4msAbwB5bw6sBMynJUI",
+              "sha1": "ab5317a541740387e1c0f206a4b1c9a09e05b2e3",
+              "sha256": "11738f9527ef418ca71c08230fa76e97ee8089e0cd5f5f922ea0302f0433f6a7"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "readback": [
+    {
+      "playLocale": "en-US",
+      "iosLocale": "en-US",
+      "count": 6,
+      "images": [
+        {
+          "id": "7979656378049228465",
+          "url": "https://lh3.googleusercontent.com/C_tBDP-W2izl_mpcHu9UvlRB5UYA-T9PisNplVRwe8ED0rOyJp_28OP4Wept5A-YK2kL",
+          "sha1": "165efad251ef0e35cf453484cd2035994c16def5",
+          "sha256": "be12c22b29472554326f7938cc47177ac5fdfd47ea9de19809dd56a0e2b26e67"
+        },
+        {
+          "id": "13783776268373849514",
+          "url": "https://lh3.googleusercontent.com/Px0igwb-sgAO2Unk3PXStyc9kf59NRHZEp0wGETMpWXQH18-E4RCBHcNmgl7Li2X3UE",
+          "sha1": "7012133d1f0cef36d127bd0bcb608982574c2075",
+          "sha256": "1eabbdc123a43b839aeafd9f00a62bea2beeee420d3dec2e81a3cc168b2ae5d0"
+        },
+        {
+          "id": "14381558623938814712",
+          "url": "https://lh3.googleusercontent.com/AEqoS3dMB3JaSYgw9gJTb5LGghap4WlooRQjUfo7uQ8kNqIHpa-6eUX2Zq4pSmMmLTw",
+          "sha1": "29443587ea4207f96f71c05f1ea9af1577138e85",
+          "sha256": "0f78f3971eef7a3c764f4d8166b68b8d93171a7ff0510d775065067d4a55576c"
+        },
+        {
+          "id": "13518955282465858189",
+          "url": "https://lh3.googleusercontent.com/e_PLgmaGSSn33QiLHxtcvK0fgl8Ke_uPqeyGDpaCVx74RjuFhrI5MvabdWeprMAZDg47",
+          "sha1": "6e93b0ae2e17ccd6b16877dcc34564259a05f796",
+          "sha256": "5e4b9c78c9bb623ba5fe726f0b14341ba7a38766d5e507c91035b49b6518d729"
+        },
+        {
+          "id": "16430934198826253966",
+          "url": "https://lh3.googleusercontent.com/RakHCKzZdUZqUZvdVsIxT0AF5DoXdlMsVA_Sul9yWvQ-XPoUrxdFJgyQWBpGOnQRKMXJ",
+          "sha1": "bd0926b55ff305f6203e73ee9bdb28076566076a",
+          "sha256": "1ce5f91be8a51ca711e86154d387357098548413a34ac366c831a0b00c3447f1"
+        },
+        {
+          "id": "3448926769286216734",
+          "url": "https://lh3.googleusercontent.com/ak9ri4TLlBYHjvy10mqJeH48DvmyUZUnqMjQeax7N-GJY2zH4msAbwB5bw6sBMynJUI",
+          "sha1": "ab5317a541740387e1c0f206a4b1c9a09e05b2e3",
+          "sha256": "11738f9527ef418ca71c08230fa76e97ee8089e0cd5f5f922ea0302f0433f6a7"
+        }
+      ]
+    }
+  ],
+  "readbackCounts": [
+    {
+      "count": 6,
+      "locales": 1
+    }
+  ],
+  "badReadback": []
+}

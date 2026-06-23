@@ -1,0 +1,169 @@
+{
+  "actions": [
+    {
+      "action": "created_subscription",
+      "productId": "babyrelay_pro_monthly",
+      "basePlanId": "monthly",
+      "regionVersion": "2025/03",
+      "regions": 173
+    },
+    {
+      "action": "activated_base_plan",
+      "productId": "babyrelay_pro_monthly",
+      "basePlanId": "monthly"
+    },
+    {
+      "action": "created_offer",
+      "productId": "babyrelay_pro_monthly",
+      "basePlanId": "monthly",
+      "offerId": "trial-7-day",
+      "regions": 173
+    },
+    {
+      "action": "activated_offer",
+      "productId": "babyrelay_pro_monthly",
+      "basePlanId": "monthly",
+      "offerId": "trial-7-day"
+    },
+    {
+      "action": "created_subscription",
+      "productId": "babyrelay_pro_annual",
+      "basePlanId": "annual",
+      "regionVersion": "2025/03",
+      "regions": 173
+    },
+    {
+      "action": "activated_base_plan",
+      "productId": "babyrelay_pro_annual",
+      "basePlanId": "annual"
+    },
+    {
+      "action": "created_offer",
+      "productId": "babyrelay_pro_annual",
+      "basePlanId": "annual",
+      "offerId": "trial-7-day",
+      "regions": 173
+    },
+    {
+      "action": "activated_offer",
+      "productId": "babyrelay_pro_annual",
+      "basePlanId": "annual",
+      "offerId": "trial-7-day"
+    },
+    {
+      "action": "created_subscription",
+      "productId": "babyrelay_pro_special_annual",
+      "basePlanId": "special-annual",
+      "regionVersion": "2025/03",
+      "regions": 173
+    },
+    {
+      "action": "activated_base_plan",
+      "productId": "babyrelay_pro_special_annual",
+      "basePlanId": "special-annual"
+    }
+  ],
+  "readback": [
+    {
+      "productId": "babyrelay_pro_annual",
+      "listings": [
+        {
+          "title": "BabyRelay Family Annual",
+          "benefits": [
+            "Extra children",
+            "Larger care teams",
+            "Care summaries",
+            "Longer history and exports"
+          ],
+          "languageCode": "en-US",
+          "description": "Annual shared baby care subscription"
+        }
+      ],
+      "basePlans": [
+        {
+          "basePlanId": "annual",
+          "state": "ACTIVE",
+          "period": "P1Y",
+          "regions": 173,
+          "offers": [
+            {
+              "offerId": "trial-7-day",
+              "state": "ACTIVE",
+              "regions": 173,
+              "phases": [
+                {
+                  "duration": "P7D",
+                  "recurrenceCount": 1,
+                  "regions": 173
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "productId": "babyrelay_pro_monthly",
+      "listings": [
+        {
+          "title": "BabyRelay Family Monthly",
+          "benefits": [
+            "Extra children",
+            "Larger care teams",
+            "Care summaries",
+            "Longer history and exports"
+          ],
+          "languageCode": "en-US",
+          "description": "Monthly shared baby care subscription"
+        }
+      ],
+      "basePlans": [
+        {
+          "basePlanId": "monthly",
+          "state": "ACTIVE",
+          "period": "P1M",
+          "regions": 173,
+          "offers": [
+            {
+              "offerId": "trial-7-day",
+              "state": "ACTIVE",
+              "regions": 173,
+              "phases": [
+                {
+                  "duration": "P7D",
+                  "recurrenceCount": 1,
+                  "regions": 173
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "productId": "babyrelay_pro_special_annual",
+      "listings": [
+        {
+          "title": "BabyRelay Special Annual",
+          "benefits": [
+            "Extra children",
+            "Larger care teams",
+            "Care summaries",
+            "Longer history and exports"
+          ],
+          "languageCode": "en-US",
+          "description": "Limited annual shared baby care offer"
+        }
+      ],
+      "basePlans": [
+        {
+          "basePlanId": "special-annual",
+          "state": "ACTIVE",
+          "period": "P1Y",
+          "regions": 173,
+          "offers": []
+        }
+      ]
+    }
+  ]
+}

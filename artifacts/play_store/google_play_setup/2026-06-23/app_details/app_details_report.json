@@ -1,0 +1,17 @@
+{
+  "existing": {
+    "defaultLanguage": "en-US"
+  },
+  "updated": {
+    "defaultLanguage": "en-US",
+    "contactEmail": "support@ruvixlabs.com"
+  },
+  "commit": {
+    "id": "04669497153999868466",
+    "expiryTimeSeconds": "1782210766"
+  },
+  "readback": {
+    "defaultLanguage": "en-US",
+    "contactEmail": "support@ruvixlabs.com"
+  }
+}

@@ -1,0 +1,104 @@
+Monetize with Play
+keyboard_backspace
+App content
+Content ratings
+Discard changes
+check
+Category
+check
+Questionnaire
+3
+Summary
+Summary
+
+Ratings shown below may differ from the ratings shown to users on Google Play.
+
+Google may reject your app or app update for misrepresentation of your appâs content
+Google may use your questionnaire responses to generate ratings for specific territories as required by local law
+Rating authorities participating in IARC may change your app's rating after they review it
+
+Google and IARC will share your contact information, questionnaire responses, ratings, developer support requests, and app details with rating authorities. Learn more
+
+Category
+All Other App Types
+User Content Sharing
+Interactions can be limited to invited friends only
+Miscellaneous
+Can purchase digital goods
+Your ratings
+Brazil
+Rating authority: ClassificaÃ§Ã£o Indicativa (ClassInd)
+Rating
+Rated 14+
+Content descriptors
+-
+Interactive elements
+Users Interact
+In-App Purchases
+North America
+Rating authority: Entertainment Software Rating Board (ESRB)
+Rating
+Everyone
+Content descriptors
+-
+Interactive elements
+Users Interact
+In-App Purchases
+Europe
+Rating authority: Pan-European Game Information (PEGI)
+Rating
+PEGI 3
+Content descriptors
+-
+Interactive elements
+Users Interact
+In-App Purchases
+Germany
+Rating authority: Unterhaltungssoftware Selbstkontrolle (USK)
+Rating
+USK: All ages
+Content descriptors
+-
+Interactive elements
+Users Interact
+In-App Purchases
+Rest of world
+Rating authority: IARC Generic
+Rating
+Rated for 3+
+Content descriptors
+-
+Interactive elements
+Users Interact
+In-App Purchases
+Russia
+Rating authority: Google Play
+Rating
+Rated for 3+
+Content descriptors
+-
+Interactive elements
+Users Interact
+In-App Purchases
+South Korea
+Rating authority: Google Play
+warning
+Games that aren't suitable for users under 19 may be removed from Google Play in South Korea, unless they're rated by GRAC. Learn more
+Rating
+Rated for 3+
+Content descriptors
+-
+Interactive elements
+Users Interact
+In-App Purchases
+check_circle
+If you save, changes will be saved in Publishing overview, ready for you to send for review
+Back
+Save
+Product updates
+Status dashboard
+Help
+Â© 2026 Google
+Privacy
+Developer Distribution Agreement
+Terms of Service"
