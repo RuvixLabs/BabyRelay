@@ -113,18 +113,21 @@ class RepositorySleepRuntimeService implements SleepRuntimeService {
 
     final liveChild = family.childById(liveSleep.childId);
     if (liveChild == null) return;
+    final activeSleepSummary = _activeSleepSummary(family, ongoing);
     _liveEventId = liveSleep.id;
     await _platform.showOngoingSleep(
       eventId: liveSleep.id,
       childName: liveChild.nickname,
       startedAt: liveSleep.startAt,
       activeSleepCount: ongoing.length,
+      activeSleepSummary: activeSleepSummary,
     );
     await _platform.startOrUpdateLiveActivity(
       eventId: liveSleep.id,
       childName: liveChild.nickname,
       startedAt: liveSleep.startAt,
       activeSleepCount: ongoing.length,
+      activeSleepSummary: activeSleepSummary,
     );
   }
 
@@ -141,6 +144,18 @@ class RepositorySleepRuntimeService implements SleepRuntimeService {
       hash = (hash * 0x01000193) & 0x7fffffff;
     }
     return 10000 + (hash % 500000);
+  }
+
+  String _activeSleepSummary(FamilyState family, List<CareEvent> ongoing) {
+    final childIds = ongoing.map((sleep) => sleep.childId).toSet();
+    final names = [
+      for (final child in family.children)
+        if (childIds.contains(child.id)) child.nickname,
+    ];
+    if (names.isEmpty) return 'Sleep timer running';
+    if (names.length == 1) return '${names.single} sleeping';
+    if (names.length == 2) return '${names.first} + ${names.last} sleeping';
+    return '${names.first} + ${names.length - 1} more sleeping';
   }
 }
 
@@ -184,6 +199,7 @@ abstract class SleepRuntimePlatform {
     required String childName,
     required DateTime startedAt,
     required int activeSleepCount,
+    required String activeSleepSummary,
   });
 
   Future<void> cancelOngoingSleep();
@@ -193,6 +209,7 @@ abstract class SleepRuntimePlatform {
     required String childName,
     required DateTime startedAt,
     required int activeSleepCount,
+    required String activeSleepSummary,
   });
 
   Future<void> endLiveActivity();
@@ -310,6 +327,7 @@ class FlutterSleepRuntimePlatform implements SleepRuntimePlatform {
     required String childName,
     required DateTime startedAt,
     required int activeSleepCount,
+    required String activeSleepSummary,
   }) async {
     if (defaultTargetPlatform != TargetPlatform.android) return;
     final title = activeSleepCount > 1
@@ -318,7 +336,9 @@ class FlutterSleepRuntimePlatform implements SleepRuntimePlatform {
     await _notifications.show(
       id: _ongoingNotificationId,
       title: title,
-      body: 'Started ${formatTime(startedAt)}. Tap to reopen BabyRelay.',
+      body: activeSleepCount > 1
+          ? activeSleepSummary
+          : 'Started ${formatTime(startedAt)}. Tap to reopen BabyRelay.',
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'sleep_live',
@@ -350,6 +370,7 @@ class FlutterSleepRuntimePlatform implements SleepRuntimePlatform {
     required String childName,
     required DateTime startedAt,
     required int activeSleepCount,
+    required String activeSleepSummary,
   }) async {
     if (defaultTargetPlatform != TargetPlatform.iOS) return;
     try {
@@ -358,6 +379,7 @@ class FlutterSleepRuntimePlatform implements SleepRuntimePlatform {
         'childName': childName,
         'startedAtMillis': startedAt.millisecondsSinceEpoch,
         'activeSleepCount': activeSleepCount,
+        'activeSleepSummary': activeSleepSummary,
       });
     } catch (_) {
       // ActivityKit is unavailable on older iOS versions and in some simulator

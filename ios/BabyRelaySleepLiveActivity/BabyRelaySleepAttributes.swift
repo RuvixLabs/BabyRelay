@@ -7,6 +7,7 @@ struct BabyRelaySleepAttributes: ActivityAttributes {
     var childName: String
     var startedAt: Date
     var activeSleepCount: Int
+    var activeSleepSummary: String
   }
 
   var eventId: String

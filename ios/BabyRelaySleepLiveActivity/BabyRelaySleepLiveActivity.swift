@@ -21,24 +21,41 @@ struct BabyRelaySleepLiveActivity: Widget {
     } dynamicIsland: { context in
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
-          Label(context.state.childName, systemImage: "moon.stars.fill")
+          Label(
+            context.state.activeSleepCount > 1
+              ? "\(context.state.activeSleepCount) asleep"
+              : context.state.childName,
+            systemImage: "moon.stars.fill"
+          )
             .font(.caption.weight(.semibold))
         }
         DynamicIslandExpandedRegion(.trailing) {
-          SleepTimerText(startedAt: context.state.startedAt, font: .title3.monospacedDigit().weight(.bold))
+          SleepTimerText(
+            startedAt: context.state.startedAt,
+            font: .title3.monospacedDigit().weight(.bold)
+          )
         }
         DynamicIslandExpandedRegion(.bottom) {
           Text(context.state.activeSleepCount > 1
-               ? "\(context.state.activeSleepCount) sleep timers running"
+               ? context.state.activeSleepSummary
                : "BabyRelay is tracking this sleep")
             .font(.caption2)
             .foregroundStyle(.white.opacity(0.74))
         }
       } compactLeading: {
-        Image(systemName: "moon.stars.fill")
-          .foregroundStyle(.white)
+        if context.state.activeSleepCount > 1 {
+          Text("\(context.state.activeSleepCount)")
+            .font(.caption2.monospacedDigit().weight(.bold))
+            .foregroundStyle(.white)
+        } else {
+          Image(systemName: "moon.stars.fill")
+            .foregroundStyle(.white)
+        }
       } compactTrailing: {
-        SleepTimerText(startedAt: context.state.startedAt, font: .caption2.monospacedDigit().weight(.bold))
+        SleepTimerText(
+          startedAt: context.state.startedAt,
+          font: .caption2.monospacedDigit().weight(.bold)
+        )
       } minimal: {
         Image(systemName: "moon.fill")
           .foregroundStyle(.white)
@@ -67,9 +84,12 @@ private struct LockScreenSleepView: View {
         Text("\(context.state.childName) is sleeping")
           .font(.caption.weight(.semibold))
           .foregroundStyle(.white.opacity(0.78))
-        SleepTimerText(startedAt: context.state.startedAt, font: .largeTitle.monospacedDigit().weight(.heavy))
+        SleepTimerText(
+          startedAt: context.state.startedAt,
+          font: .largeTitle.monospacedDigit().weight(.heavy)
+        )
         Text(context.state.activeSleepCount > 1
-             ? "\(context.state.activeSleepCount) active sleep timers"
+             ? context.state.activeSleepSummary
              : "Started \(context.state.startedAt.formatted(date: .omitted, time: .shortened))")
           .font(.caption2)
           .foregroundStyle(.white.opacity(0.70))

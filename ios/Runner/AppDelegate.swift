@@ -44,27 +44,29 @@ import UIKit
       let payload = arguments as? [String: Any],
       let eventId = payload["eventId"] as? String,
       let childName = payload["childName"] as? String,
-      let startedAtMillis = payload["startedAtMillis"] as? Double
+      let startedAtMillis = millisValue(payload["startedAtMillis"])
     else {
       return
     }
     let activeSleepCount = payload["activeSleepCount"] as? Int ?? 1
+    let activeSleepSummary = payload["activeSleepSummary"] as? String ?? "\(childName) is sleeping"
     let startedAt = Date(timeIntervalSince1970: startedAtMillis / 1000)
     let state = BabyRelaySleepAttributes.ContentState(
       childName: childName,
       startedAt: startedAt,
-      activeSleepCount: activeSleepCount
+      activeSleepCount: activeSleepCount,
+      activeSleepSummary: activeSleepSummary
     )
 
-    if let activity = sleepActivity as? Activity<BabyRelaySleepAttributes>,
-       activity.attributes.eventId == eventId {
+    if let activity = existingSleepActivity(eventId: eventId) {
+      sleepActivity = activity
       Task {
         await activity.update(ActivityContent(state: state, staleDate: nil))
       }
       return
     }
 
-    endSleepActivity()
+    endSleepActivities(except: eventId)
     let attributes = BabyRelaySleepAttributes(eventId: eventId, childName: childName)
     do {
       sleepActivity = try Activity.request(
@@ -77,16 +79,54 @@ import UIKit
     }
   }
 
+  private func millisValue(_ raw: Any?) -> Double? {
+    if let value = raw as? Double {
+      return value
+    }
+    if let value = raw as? Int {
+      return Double(value)
+    }
+    if let value = raw as? Int64 {
+      return Double(value)
+    }
+    if let value = raw as? NSNumber {
+      return value.doubleValue
+    }
+    return nil
+  }
+
+  @available(iOS 16.2, *)
+  private func existingSleepActivity(eventId: String) -> Activity<BabyRelaySleepAttributes>? {
+    if let activity = sleepActivity as? Activity<BabyRelaySleepAttributes>,
+       activity.attributes.eventId == eventId {
+      return activity
+    }
+    return Activity<BabyRelaySleepAttributes>.activities.first {
+      $0.attributes.eventId == eventId
+    }
+  }
+
+  @available(iOS 16.2, *)
+  private func endSleepActivities(except eventIdToKeep: String? = nil) {
+    for activity in Activity<BabyRelaySleepAttributes>.activities {
+      if activity.attributes.eventId == eventIdToKeep {
+        sleepActivity = activity
+        continue
+      }
+      Task {
+        await activity.end(nil, dismissalPolicy: .immediate)
+      }
+    }
+    if eventIdToKeep == nil {
+      sleepActivity = nil
+    }
+  }
+
   private func endSleepActivity() {
-    guard #available(iOS 16.2, *),
-      let activity = sleepActivity as? Activity<BabyRelaySleepAttributes>
-    else {
+    guard #available(iOS 16.2, *) else {
       sleepActivity = nil
       return
     }
-    sleepActivity = nil
-    Task {
-      await activity.end(nil, dismissalPolicy: .immediate)
-    }
+    endSleepActivities()
   }
 }
