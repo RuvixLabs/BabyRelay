@@ -16,6 +16,7 @@ class CareEvent extends Equatable {
     required this.startAt,
     this.endAt,
     required this.loggedById,
+    this.loggedByDeviceId,
     this.editedByIds = const [],
     this.note,
     this.feedKind,
@@ -32,6 +33,7 @@ class CareEvent extends Equatable {
   final DateTime startAt;
   final DateTime? endAt;
   final String loggedById;
+  final String? loggedByDeviceId;
   final List<String> editedByIds;
   final String? note;
   final FeedKind? feedKind;
@@ -49,6 +51,7 @@ class CareEvent extends Equatable {
     DateTime? endAt,
     bool clearEndAt = false,
     String? loggedById,
+    String? loggedByDeviceId,
     List<String>? editedByIds,
     String? note,
     bool clearNote = false,
@@ -63,6 +66,7 @@ class CareEvent extends Equatable {
       startAt: startAt ?? this.startAt,
       endAt: clearEndAt ? null : (endAt ?? this.endAt),
       loggedById: loggedById ?? this.loggedById,
+      loggedByDeviceId: loggedByDeviceId ?? this.loggedByDeviceId,
       editedByIds: editedByIds ?? this.editedByIds,
       note: clearNote ? null : (note ?? this.note),
       feedKind: feedKind ?? this.feedKind,
@@ -78,6 +82,7 @@ class CareEvent extends Equatable {
     'startAt': startAt.toIso8601String(),
     'endAt': endAt?.toIso8601String(),
     'loggedById': loggedById,
+    'loggedByDeviceId': loggedByDeviceId,
     'editedByIds': editedByIds,
     'note': note,
     'feedKind': feedKind?.name,
@@ -94,6 +99,7 @@ class CareEvent extends Equatable {
         ? null
         : DateTime.parse(json['endAt'] as String),
     loggedById: json['loggedById'] as String,
+    loggedByDeviceId: json['loggedByDeviceId'] as String?,
     editedByIds: (json['editedByIds'] as List<dynamic>? ?? []).cast<String>(),
     note: json['note'] as String?,
     feedKind: json['feedKind'] == null
@@ -113,6 +119,7 @@ class CareEvent extends Equatable {
     startAt,
     endAt,
     loggedById,
+    loggedByDeviceId,
     editedByIds,
     note,
     feedKind,

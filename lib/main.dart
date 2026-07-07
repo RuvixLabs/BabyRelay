@@ -12,9 +12,12 @@ import 'core/analytics/analytics_service.dart';
 import 'core/analytics/firebase_analytics_service.dart';
 import 'core/attribution/attribution_service.dart';
 import 'core/config/app_config.dart';
+import 'core/device/device_identity.dart';
 import 'core/purchases/purchase_service.dart';
 import 'core/purchases/revenuecat_purchase_service.dart';
 import 'core/reviews/review_prompt_service.dart';
+import 'core/sleep/sleep_remote_message_handler.dart';
+import 'core/sleep/sleep_remote_sync_service.dart';
 import 'core/sleep/sleep_runtime_service.dart';
 import 'core/support/support_service.dart';
 import 'core/tutorial/tutorial_service.dart';
@@ -27,7 +30,8 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   final store = await SharedPrefsStore.create();
-  final familyRepository = FamilyRepository(store);
+  final deviceId = await DeviceIdentity.getOrCreate(store);
+  final familyRepository = FamilyRepository(store, deviceId: deviceId);
   final tutorialService = TutorialService(store);
   final reviewPromptService = ReviewPromptService(store);
   AnalyticsService analytics = AnalyticsService();
@@ -38,6 +42,9 @@ Future<void> main() async {
   if (AppConfig.firebaseConfigured) {
     try {
       await Firebase.initializeApp();
+      FirebaseMessaging.onBackgroundMessage(
+        babyRelayFirebaseMessagingBackgroundHandler,
+      );
       FlutterError.onError =
           FirebaseCrashlytics.instance.recordFlutterFatalError;
       PlatformDispatcher.instance.onError = (error, stack) {
@@ -48,6 +55,10 @@ Future<void> main() async {
       await FirebaseMessaging.instance.setAutoInitEnabled(true);
       final sync = await FirestoreFamilySyncAdapter.create();
       await familyRepository.attachSync(sync);
+      await SleepRemoteSyncService.create(
+        familyRepository: familyRepository,
+        deviceId: deviceId,
+      );
     } catch (error, stack) {
       FlutterError.reportError(
         FlutterErrorDetails(

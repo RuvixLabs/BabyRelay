@@ -26,6 +26,11 @@ Provider creation status is tracked in `docs/provider-setup.md`.
   bounded recent event changes, persists them locally, and supports
   join-by-code. `firestore.rules` ships with invite-aware family read/update
   rules and subcollection access rules.
+- **Remote sleep wake-up path**: devices persist a stable local device ID,
+  register FCM tokens, and, on iOS, bridge ActivityKit push-to-start/update
+  tokens into Firestore. Cloud Functions fan out sleep event writes to other
+  family devices: iOS receives ActivityKit start/update/end pushes and Android
+  receives foreground/background ongoing-sleep notification messages.
 - **Subscriptions**: `PurchaseService` (abstract) + `LocalPurchaseService` +
   `RevenueCatPurchaseService`. Purchase/restore UX covers success, cancelled,
   failed, and nothing-to-restore states, with busy guards and store-driven
@@ -97,6 +102,7 @@ local fallback behavior.
 | RevenueCat sandbox purchase | TestFlight/sandbox build with the App Store SDK key | Validate current/special offerings and entitlement `pro` end to end |
 | Android upload/release track | BabyRelay Android upload signing + first AAB internal track upload | Validate installable release artifact, Play signing, and publishing overview readiness |
 | Android RevenueCat / RTDN | BabyRelay RevenueCat Android app, Android public SDK key, Play products imported, RTDN/Pub/Sub wired | Supply `REVENUECAT_ANDROID_API_KEY` and validate Android package fetching, purchase, restore, and entitlement `pro` |
+| Remote sleep push fanout | Deploy updated Firestore rules + Cloud Functions with an approved Ruvix Firebase context; upload APNs Auth Key/capabilities in Apple/Firebase; TestFlight/physical iPhone remote-push smoke | Confirms owner sleep start/end wakes caregiver lock-screen Live Activity and Android ongoing notification without using the source device |
 | AppStore Co-Pilot RevenueCat secret | BabyRelay RevenueCat secret API key created/stored | Enables AppStore Co-Pilot RevenueCat catalog tools for project `irq0wa833wWMRsASUxfK` |
 | AppRefer redirect | Real App Store URL once the listing exists | `trk.apprefer.com` can redirect; optional future wrapping in `InviteService.decorateLink` |
 | App Store assets/metadata | en-US launch metadata is documented in `docs/app-store-metadata.md` and reflected in AppStore Co-Pilot project `irq0wa833wWMRsASUxfK`. Privacy Policy is published at `https://appstorecopilot.com/legal/3omln7px/privacy`; Terms of Service is published at `https://appstorecopilot.com/legal/3omln7px/terms`; Support URL is `https://ruvixlabs.com`; all are linked or stored where appropriate. AppStore Co-Pilot compliance detects `hasSubscriptions: true` and currently returns zero issues. The approved no-paywall `gpt-image-2` v3 pop-out screenshots are staged in AppStore Co-Pilot and pushed to the editable ASC `1.0` version; ASC readback maps the accepted `1320x2868` frames to `APP_IPHONE_67`, six assets, all `COMPLETE`. Categories, age rating, content rights, and privacy nutrition are set. Still needs build selection/upload, review contact phone/details, App Store availability initialization, subscription attachment/submission, and final ASC publish. | AppStore Co-Pilot / ASC |

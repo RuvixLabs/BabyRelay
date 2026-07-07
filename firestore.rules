@@ -95,13 +95,49 @@ service cloud.firestore {
         request.resource.data.type in ['sleep', 'feed', 'diaper', 'note', 'nightWaking'] &&
         request.resource.data.startAt is string &&
         request.resource.data.startAtMillis is int &&
-        request.resource.data.loggedById is string;
+        request.resource.data.loggedById is string &&
+        (!('loggedByDeviceId' in request.resource.data) ||
+          request.resource.data.loggedByDeviceId is string);
     }
 
     function validInviteWrite(code) {
       return request.resource.data.code == code &&
         request.resource.data.familyId is string &&
         memberOfFamilyAfter(request.resource.data.familyId);
+    }
+
+    function ownsUserDoc(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validUserDocument(userId) {
+      return request.resource.data.id == userId &&
+        (!('currentFamilyId' in request.resource.data) ||
+          request.resource.data.currentFamilyId is string);
+    }
+
+    function validDeviceDocument(userId, deviceId) {
+      return request.resource.data.id == deviceId &&
+        request.resource.data.userId == userId &&
+        request.resource.data.familyId is string &&
+        request.resource.data.platform in ['ios', 'android', 'unknown'] &&
+        (!('fcmToken' in request.resource.data) ||
+          request.resource.data.fcmToken is string) &&
+        (!('activityKitPushToStartToken' in request.resource.data) ||
+          request.resource.data.activityKitPushToStartToken is string) &&
+        (!('active' in request.resource.data) ||
+          request.resource.data.active is bool);
+    }
+
+    function validActivityTokenDocument(userId, deviceId, eventId) {
+      return request.resource.data.id == eventId &&
+        request.resource.data.eventId == eventId &&
+        request.resource.data.userId == userId &&
+        request.resource.data.deviceId == deviceId &&
+        request.resource.data.familyId is string &&
+        request.resource.data.updateToken is string &&
+        (!('active' in request.resource.data) ||
+          request.resource.data.active is bool);
     }
 
     match /families/{familyId} {
@@ -148,6 +184,27 @@ service cloud.firestore {
         memberOfExistingFamily(resource.data.familyId);
       allow delete: if resource.data.familyId is string &&
         memberOfExistingFamily(resource.data.familyId);
+    }
+
+    match /users/{userId} {
+      allow get, delete: if ownsUserDoc(userId);
+      allow create, update: if ownsUserDoc(userId) &&
+        validUserDocument(userId);
+      allow list: if false;
+
+      match /devices/{deviceId} {
+        allow get, delete: if ownsUserDoc(userId);
+        allow create, update: if ownsUserDoc(userId) &&
+          validDeviceDocument(userId, deviceId);
+        allow list: if false;
+
+        match /activities/{eventId} {
+          allow get, delete: if ownsUserDoc(userId);
+          allow create, update: if ownsUserDoc(userId) &&
+            validActivityTokenDocument(userId, deviceId, eventId);
+          allow list: if false;
+        }
+      }
     }
   }
 }

@@ -237,11 +237,14 @@ abstract class FamilySyncAdapter {
 /// writes go to `families/{familyId}/...` and the change stream comes from
 /// snapshots instead of [notifyListeners].
 class FamilyRepository extends ChangeNotifier {
-  FamilyRepository(this._store, {FamilySyncAdapter? sync}) : _sync = sync;
+  FamilyRepository(this._store, {FamilySyncAdapter? sync, String? deviceId})
+    : _sync = sync,
+      _deviceId = deviceId;
 
   static const int freeCaregiverLimit = 2;
   static const _storageKey = 'babyrelay.family.v1';
   final LocalStore _store;
+  final String? _deviceId;
   FamilySyncAdapter? _sync;
   StreamSubscription<FamilyState>? _remoteSubscription;
   String? _watchedFamilyId;
@@ -483,6 +486,7 @@ class FamilyRepository extends ChangeNotifier {
       type: CareEventType.sleep,
       startAt: at ?? DateTime.now(),
       loggedById: _state.currentCaregiverId,
+      loggedByDeviceId: _deviceId,
     );
     await _commitEvent(event);
     return event;
@@ -517,6 +521,7 @@ class FamilyRepository extends ChangeNotifier {
       startAt: startAt,
       endAt: endAt,
       loggedById: _state.currentCaregiverId,
+      loggedByDeviceId: _deviceId,
       note: trimmedNote == null || trimmedNote.isEmpty ? null : trimmedNote,
     );
     await _commitEvent(event);
@@ -536,6 +541,7 @@ class FamilyRepository extends ChangeNotifier {
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
       loggedById: _state.currentCaregiverId,
+      loggedByDeviceId: _deviceId,
       feedKind: kind,
       note: note,
     );
@@ -555,6 +561,7 @@ class FamilyRepository extends ChangeNotifier {
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
       loggedById: _state.currentCaregiverId,
+      loggedByDeviceId: _deviceId,
       diaperKind: kind,
     );
     await _commitEvent(event);
@@ -573,6 +580,7 @@ class FamilyRepository extends ChangeNotifier {
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
       loggedById: _state.currentCaregiverId,
+      loggedByDeviceId: _deviceId,
       note: note,
     );
     await _commitEvent(event);
@@ -591,6 +599,7 @@ class FamilyRepository extends ChangeNotifier {
       startAt: at ?? DateTime.now(),
       endAt: at ?? DateTime.now(),
       loggedById: _state.currentCaregiverId,
+      loggedByDeviceId: _deviceId,
       note: note,
     );
     await _commitEvent(event);
@@ -648,6 +657,7 @@ class FamilyRepository extends ChangeNotifier {
       startAt: first.startAt,
       endAt: keepOpen ? null : (aEnd.isAfter(bEnd) ? aEnd : bEnd),
       loggedById: first.loggedById,
+      loggedByDeviceId: first.loggedByDeviceId,
       editedByIds: {
         ...a.editedByIds,
         ...b.editedByIds,
@@ -894,6 +904,7 @@ class FamilyRepository extends ChangeNotifier {
       startAt: start,
       endAt: end ?? (type == CareEventType.sleep ? end : start),
       loggedById: by ?? me,
+      loggedByDeviceId: _deviceId,
       feedKind: feed,
       diaperKind: diaper,
       note: note,
