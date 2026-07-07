@@ -1,6 +1,6 @@
 # Provider Setup
 
-Last updated: 2026-06-23
+Last updated: 2026-07-07
 
 ## Firebase
 
@@ -17,8 +17,9 @@ Last updated: 2026-06-23
   - `android/app/google-services.json`
 
 Enabled services include Firebase Management, Firestore, Firebase Auth
-(`identitytoolkit`), Crashlytics, FCM, App Check, Installations, and Remote
-Config.
+(`identitytoolkit`), Crashlytics, FCM, App Check, Installations, Remote
+Config, Cloud Functions, Cloud Run, Cloud Build, Eventarc, Artifact Registry,
+and Pub/Sub.
 
 Live sync state:
 
@@ -26,7 +27,13 @@ Live sync state:
   the Ruvix-authenticated Firebase Management API after the first live smoke
   returned `CONFIGURATION_NOT_FOUND`.
 - Firestore rules are deployed to the `cloud.firestore` release:
-  `0db384ff-4323-4dcb-a647-c1a5e0fb8b16`.
+  `31cc5f6a-3b80-4f03-89f1-45363b801e82`.
+- Cloud Function `onSleepEventWritten` is deployed as a Gen 2 function in
+  `us-central1`, runtime `nodejs22`, revision
+  `onsleepeventwritten-00002-cay`, with Eventarc trigger
+  `projects/babyrelay-ruvix/locations/nam5/triggers/onsleepeventwritten-372265`
+  on Firestore `(default)` writes matching
+  `families/{familyId}/events/{eventId}`.
 - A client-side optimized-subcollection live smoke passed on 2026-06-22 using
   two anonymous users and no admin bypass:
   - owner anonymous Auth token issued
@@ -38,10 +45,23 @@ Live sync state:
   - owner wrote one shared care event document after join
   - joiner read the owner-written shared event
   - smoke invite/family cleanup completed
+- A remote-sleep backend live smoke passed on 2026-07-07 after the Functions
+  deploy using two fresh anonymous users and no admin bypass:
+  - owner created a synthetic family, child, invite code, owner device, and
+    ongoing sleep event with `loggedByDeviceId`
+  - caregiver read the family by invite before membership, joined through the
+    invite-aware update rule, wrote its own private device token document, and
+    read the owner-written sleep event
+  - owner was denied reading the caregiver's private device doc
+  - deployed `onSleepEventWritten` produced a successful Cloud Run request
+    (`200`) after the sleep write
+  - synthetic family and invite docs read back `404` after cleanup
 - The Firebase CLI is not logged in as `joe@ruvixlabs.com` in this worker pane,
-  so Auth provisioning and rules deployment were done with the Ruvix gcloud
-  context plus Firebase/Rules REST APIs. Future CLI deploys should explicitly
-  select the Ruvix context before mutating live Firebase state.
+  so Auth provisioning/rules deployment use the Ruvix gcloud context plus
+  Firebase/Rules REST APIs, and Functions deploy uses the stored Ruvix Firebase
+  token without printing it.
+  Future CLI deploys should explicitly select the Ruvix context before mutating
+  live Firebase state.
 
 ## AppRefer
 
@@ -364,7 +384,12 @@ Remaining App Store / subscription blockers:
   `--dart-define=FIREBASE_CONFIGURED=true` is present.
 - Firestore rules are committed in `firestore.rules` and deployed to the
   `cloud.firestore` release on `babyrelay-ruvix` as ruleset
-  `0db384ff-4323-4dcb-a647-c1a5e0fb8b16`.
+  `31cc5f6a-3b80-4f03-89f1-45363b801e82`.
+- Cloud Function `onSleepEventWritten` is deployed on Node.js 22 and fans out
+  Firestore sleep event writes to family devices through FCM / ActivityKit
+  payloads. Backend smoke has verified rules, token-doc writes, trigger
+  invocation, and cleanup; a real APNs/FCM delivery smoke still needs physical
+  or TestFlight devices with valid push tokens.
 - RevenueCat SDK is installed. `RevenueCatPurchaseService` reads current and
   `special_offer` offerings, maps the three App Store product IDs, and unlocks
   entitlement `pro`. Purchase/restore marks the shared family subscription
