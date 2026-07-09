@@ -1,6 +1,6 @@
 # Provider Setup
 
-Last updated: 2026-07-07
+Last updated: 2026-07-09
 
 ## Firebase
 
@@ -27,10 +27,10 @@ Live sync state:
   the Ruvix-authenticated Firebase Management API after the first live smoke
   returned `CONFIGURATION_NOT_FOUND`.
 - Firestore rules are deployed to the `cloud.firestore` release:
-  `31cc5f6a-3b80-4f03-89f1-45363b801e82`.
+  `22a5e94c-4d73-433e-a5d5-d71b9537f7f3`.
 - Cloud Function `onSleepEventWritten` is deployed as a Gen 2 function in
   `us-central1`, runtime `nodejs22`, revision
-  `onsleepeventwritten-00002-cay`, with Eventarc trigger
+  `onsleepeventwritten-00003-pon`, with Eventarc trigger
   `projects/babyrelay-ruvix/locations/nam5/triggers/onsleepeventwritten-372265`
   on Firestore `(default)` writes matching
   `families/{familyId}/events/{eventId}`.
@@ -60,10 +60,21 @@ Live sync state:
   - deployed `onSleepEventWritten` produced a successful Cloud Run request
     (`200`) after the sleep write
   - synthetic family and invite docs read back `404` after cleanup
+- A two-user release smoke passed on 2026-07-09 after the hardened rules and
+  revision `00003` deploy, again using client Auth tokens and no admin bypass:
+  - owner and caregiver joined through the live invite flow
+  - caregiver listed its own device and ActivityKit activity subcollections
+  - caregiver deleted its own caregiver document and self-removed from the
+    family while the owner remained
+  - post-leave access to the member-only sleep event returned `403`
+  - the sleep create/delete produced two revision `00003` Cloud Run requests,
+    both `200`
+  - all synthetic documents and Auth users were cleaned up
 - The Firebase CLI is not logged in as `joe@ruvixlabs.com` in this worker pane,
   so Auth provisioning/rules deployment use the Ruvix gcloud context plus
-  Firebase/Rules REST APIs, and Functions deploy uses the stored Ruvix Firebase
-  token without printing it.
+  Firebase/Rules REST APIs. The 2026-07-09 Functions deploy used
+  `gcloud functions deploy` with the explicit `ruvix-labs` configuration,
+  project, trigger, service accounts, limits, and no-retry policy.
   Future CLI deploys should explicitly select the Ruvix context before mutating
   live Firebase state.
 
@@ -77,11 +88,15 @@ Live sync state:
 - SDK key vault services:
   - `babyrelay-apprefer-api-key`
   - `babyrelay-apprefer-test-api-key`
+- SDK enabled: `true`
+- Store destinations:
+  - iOS: `https://apps.apple.com/app/id6779147183`
+  - Android: `https://play.google.com/store/apps/details?id=com.ruvixlabs.babyrelay`
+- RevenueCat integration: `connected=true`
 
 `https://apprefer.com/api/c/babyrelay-meta` returns the AppRefer capture page.
-`https://trk.apprefer.com/api/c/babyrelay-meta` will return 404 until the app
-has a real store destination URL, because the tracking host cannot redirect
-without an App Store / Play destination.
+The AppRefer foundation is configured. Release proof still requires a real
+paid click through install/open and a matching RevenueCat purchase readback.
 
 ## RevenueCat
 
@@ -112,6 +127,10 @@ Live RevenueCat readback:
   - App Store Connect API key: configured with Ruvix key ID `D88WNB6D69`
   - Server-to-server notification token exists in RevenueCat
 - Active entitlement: `pro`
+- AppRefer webhook: `whintgr70a141be8d`, enabled, scoped to
+  `BabyRelay (App Store)`, all events, production + sandbox. It points to the
+  per-app AppRefer RevenueCat endpoint, uses the vaulted authorization secret,
+  and returned `Response 200` in the RevenueCat test tool on 2026-07-09.
 - Products:
   - `babyrelay_pro_special_annual` (`P1Y`, App Store special offer)
   - `babyrelay_pro_monthly` (`P1M`)
@@ -259,14 +278,21 @@ Live AppStore Co-Pilot readback:
 - App availability: initialized on 2026-07-09 for all 175 territories, with new
   territories enabled and no pre-order. The previous Apple route/API blocker is
   cleared.
-- Browser / web-session retry: the Ruvix agent-browser profile is authenticated
-  and shows the `J Mambwe Ruvix Ltd` account. Click-based navigation recovered
-  the editable version form once on 2026-06-23, which proved the live metadata,
-  screenshots, Support URL, and App Review fields were visible. Direct App
-  Privacy/Pricing routes still usually render only shell/blank panes or
-  Apple-side `500` states. The experimental `asc web apps availability create`
-  helper exists, but it needs a separate cached Apple web session; `asc web auth
-  status` currently reports no cached session.
+- App price: free, initialized in the app price schedule.
+- Signed build `1.0 (3)`:
+  - Build ID: `59a88169-b775-4a97-aa98-50977cbccaad`
+  - Processing state: `VALID`
+  - Attached to App Store version `1.0`
+  - TestFlight state: `IN_BETA_TESTING` in `BabyRelay Internal`
+  - TestFlight contact and en-US What to Test notes are complete; validator has
+    zero errors, warnings, or blockers.
+- Browser / web-session state: the registered Ruvix ASC profile currently lands
+  on Apple sign-in and verifies with `mutation_allowed=false`. Reauthenticate
+  that same registered profile before completing the regulated-medical-device
+  declaration or first-time subscription selection; do not substitute another
+  company or normal Chrome profile. Earlier authenticated readback already
+  proved the live metadata, screenshots, Support URL, App Review fields,
+  privacy nutrition, and pricing/availability state.
 - App Privacy / privacy nutrition: completed on 2026-06-23 through the
   authenticated browser's Iris endpoints because the visual App Privacy pane did
   not render and `asc web privacy` had no cached Apple web session. ASC readback
@@ -281,11 +307,13 @@ Live AppStore Co-Pilot readback:
 - Subscriptions:
   - Special annual: `6779256297`, product ID
     `babyrelay_pro_special_annual`, period `ONE_YEAR`, USA price `$29.99`,
-    no free trial, available in `50` territories
+    no free trial, available and priced in `175` territories
   - Monthly: `6779156238`, product ID `babyrelay_pro_monthly`, period
-    `ONE_MONTH`, USA price `$9.99`, no intro trial
+    `ONE_MONTH`, USA price `$9.99`, no intro trial, available and priced in
+    `175` territories
   - Annual: `6779156833`, product ID `babyrelay_pro_annual`, period
-    `ONE_YEAR`, USA price `$59.99`, 7-day free trial in `175` territories
+    `ONE_YEAR`, USA price `$59.99`, 7-day free trial, available and priced in
+    `175` territories
 - Review screenshot: `artifacts/app_store_review/babyrelay_paywall_review.png`
   captured from the real Flutter paywall at `1206x2622`. The uploaded screenshot
   includes the visible launch-offer timer and shows Monthly without a trial
@@ -295,11 +323,9 @@ Live AppStore Co-Pilot readback:
   - Special annual: `e0323cd6-0cc3-4f4f-b936-feee23f629c8`
   - Annual: `e66325c4-9dec-4025-8bcd-491eeafd5755`
   - Monthly: `4eecee8b-68a0-4c29-9fb5-39bf4b6943f3`
-- Current ASC product state: all subscriptions still read back
-  `MISSING_METADATA`. Product localization, pricing, availability, free trials,
-  group localization, and review screenshots are present; first-time
-  subscriptions still need to travel with the App Store version submission, not
-  standalone submission.
+- Current ASC product state: all three subscriptions read `READY_TO_SUBMIT`.
+  They must be selected on App Store version 1.0 and travel with that first app
+  submission, not through a standalone subscription submission.
 
 ## Google Play / Android
 
@@ -370,16 +396,16 @@ Remaining Android / Play blockers:
 
 Remaining App Store / subscription blockers:
 
-- Archive, upload, process, and select the first `1.0` build. ASC currently
-  reports no other validator blocker.
-- Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
-  smoke against the real offering.
+- Reauthenticate the registered Ruvix ASC browser profile and set the web-only
+  regulated medical device declaration to `No`.
+- Select all three first-time subscriptions on version 1.0 and add the version
+  to the existing draft review submission.
+- Run sandbox purchase/restore on TestFlight build `1.0 (3)` against the real
+  offering.
 - Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
   direct RevenueCat catalog management.
-- Submit the subscriptions with the App Store version and a build; do not use a
-  standalone subscription submission path for first-time products.
-- Wire AppRefer purchase forwarding via RevenueCat webhook for sandbox and
-  production events.
+- Do not press final Submit until the physical two-device remote Live Activity
+  and sandbox purchase/restore checks pass.
 
 ## App code wiring
 
@@ -388,7 +414,7 @@ Remaining App Store / subscription blockers:
   `--dart-define=FIREBASE_CONFIGURED=true` is present.
 - Firestore rules are committed in `firestore.rules` and deployed to the
   `cloud.firestore` release on `babyrelay-ruvix` as ruleset
-  `31cc5f6a-3b80-4f03-89f1-45363b801e82`.
+  `22a5e94c-4d73-433e-a5d5-d71b9537f7f3`.
 - Cloud Function `onSleepEventWritten` is deployed on Node.js 22 and fans out
   Firestore sleep event writes to family devices through FCM / ActivityKit
   payloads. Backend smoke has verified rules, token-doc writes, trigger
@@ -408,4 +434,5 @@ Remaining App Store / subscription blockers:
   build requires the live `APPREFER_API_KEY`; the SDK initializes only after the
   first-visible-launch ATT path and bridges `appreferId` into RevenueCat.
   `APPREFER_LINK_ID=babyrelay-meta` remains the caregiver-link identifier, and
-  AppRefer redirecting still needs the live store destination URL.
+  canonical iOS and Android store destinations plus RevenueCat server
+  forwarding are configured. A real paid click/install/purchase proof remains.

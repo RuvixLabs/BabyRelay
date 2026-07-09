@@ -55,7 +55,11 @@ BabyRelay provides organization and schedule guidance only. It is not medical
 advice and does not replace your pediatrician, healthcare provider, or
 safe-sleep guidance.
 
-Description count: 1216 / 4000.
+Terms of Use: https://appstorecopilot.com/legal/3omln7px/terms
+
+Privacy Policy: https://appstorecopilot.com/legal/3omln7px/privacy
+
+Description count: 1347 / 4000.
 
 ## Notes
 
