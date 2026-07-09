@@ -1,0 +1,63 @@
+{
+  "projectId": "irq0wa833wWMRsASUxfK",
+  "displayType": "APP_IPHONE_69",
+  "locale": "en-US",
+  "uploadedAt": "2026-06-16T15:53:48.924Z",
+  "note": "Pure gpt-image-2 story-v2 candidate set. No paywall screenshots. Uploaded to separate R2 path, not pushed to App Store Connect and not promoted over current final set.",
+  "uploaded": [
+    {
+      "position": 0,
+      "file": "01_01_whole_team_log.png",
+      "headline": "One baby log for the whole care team.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/01_01_whole_team_log.png",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/01_01_whole_team_log.png",
+      "sizeBytes": 6405185,
+      "model": "gpt-image-2"
+    },
+    {
+      "position": 1,
+      "file": "02_02_log_moment.png",
+      "headline": "Log the moment it happens.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/02_02_log_moment.png",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/02_02_log_moment.png",
+      "sizeBytes": 6469130,
+      "model": "gpt-image-2"
+    },
+    {
+      "position": 2,
+      "file": "03_03_next_up_guidance.png",
+      "headline": "Know what’s next, not just what happened.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/03_03_next_up_guidance.png",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/03_03_next_up_guidance.png",
+      "sizeBytes": 6095856,
+      "model": "gpt-image-2"
+    },
+    {
+      "position": 3,
+      "file": "04_04_child_timelines.png",
+      "headline": "Every child gets their own timeline.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/04_04_child_timelines.png",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/04_04_child_timelines.png",
+      "sizeBytes": 6207191,
+      "model": "gpt-image-2"
+    },
+    {
+      "position": 4,
+      "file": "05_05_handoff_summary.png",
+      "headline": "Send a handoff without rewriting the day.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/05_05_handoff_summary.png",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/05_05_handoff_summary.png",
+      "sizeBytes": 6209471,
+      "model": "gpt-image-2"
+    },
+    {
+      "position": 5,
+      "file": "06_06_care_team_sync.png",
+      "headline": "Keep every caregiver in sync.",
+      "url": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/06_06_care_team_sync.png",
+      "key": "user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/final/gpt-image-2-story-v2/6.9/06_06_care_team_sync.png",
+      "sizeBytes": 5795562,
+      "model": "gpt-image-2"
+    }
+  ]
+}

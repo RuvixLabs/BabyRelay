@@ -87,15 +87,37 @@ Read `docs/plans/core/overview.md` before scaffolding or implementing. That docu
 
 ## Commands
 
-The Flutter app has not been scaffolded yet. Once scaffolded, document the real commands here.
-
 ```bash
 # Development
-# flutter pub get
-# flutter run
+flutter pub get
+flutter run            # iOS simulator or device
 
 # Checks
-# flutter analyze
-# flutter test
+flutter analyze
+flutter test
+dart format lib test
 ```
 
+## Current Implementation Notes
+
+The MVP is implemented as a local-first release candidate:
+
+- `lib/data/local_store.dart` is the persistence seam (SharedPreferences now,
+  Firestore-backed sync when configured). `FamilyRepository` is the single
+  source of truth for the shared family state and exposes the mutation API used
+  by both local previews and production sync.
+- `lib/data/firestore_family_sync.dart` implements Firebase anonymous Auth,
+  Firestore family snapshot sync, invite-code joining, and member-limit checks
+  behind `FamilySyncAdapter`.
+- `lib/domain/engine/sleep_prediction_engine.dart` implements the wake-window
+  table, short-nap adjustment, bedtime compression, drift clamp, and 4-of-7
+  transition detection from `docs/plans/core/overview.md`. Pure Dart, tested.
+- `lib/domain/services/handoff_service.dart` generates the plain-language
+  handoff summary. Pure Dart, tested.
+- `PurchaseService` has local and RevenueCat implementations (`pro`
+  entitlement, special annual launch offer plus monthly/annual trial plans).
+  `AnalyticsService` enforces the allowlist + no-PII rule and can forward to
+  Firebase Analytics when configured.
+- Free tier allows owner + 1 caregiver; inviting beyond that gates on the
+  paywall and production join-by-code enforces the same limit.
+- Settings has a "Load sample day" action that seeds a believable demo day.

@@ -1,0 +1,17 @@
+{
+  "app": "BabyRelay",
+  "company": "Ruvix Labs",
+  "date": "2026-06-16",
+  "model": "gpt-image-2",
+  "purpose": "Hand-cradle app icon exploration",
+  "contactSheet": "contact_sheet.png",
+  "changedLiveAppIcon": false,
+  "concepts": [
+    { "id": "01", "name": "cupped_hands", "path": "generated/01_cupped_hands.png" },
+    { "id": "02", "name": "side_hands", "path": "generated/02_side_hands.png" },
+    { "id": "03", "name": "night_cradle", "path": "generated/03_night_cradle.png" },
+    { "id": "04", "name": "shared_care_ring", "path": "generated/04_shared_care_ring.png" },
+    { "id": "05", "name": "handoff_baby", "path": "generated/05_handoff_baby.png" },
+    { "id": "06", "name": "protective_parentheses", "path": "generated/06_protective_parentheses.png" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "500197010265",
+    "project_id": "babyrelay-ruvix",
+    "storage_bucket": "babyrelay-ruvix.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:500197010265:android:cf90d1f6dc5b788a287a48",
+        "android_client_info": {
+          "package_name": "com.ruvixlabs.babyrelay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYVhUGA18F28HNOgzzShyn1J8DIidk9RE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

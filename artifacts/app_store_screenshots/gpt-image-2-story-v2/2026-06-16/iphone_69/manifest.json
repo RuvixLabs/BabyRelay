@@ -1,0 +1,104 @@
+[
+  {
+    "order": 1,
+    "id": "01_whole_team_log",
+    "raw": "artifacts/app_store_screenshots/raw/2026-06-16/01_welcome.png",
+    "headline": "One baby log for the whole care team.",
+    "subhead": "Parents, partners, grandparents, and nannies see the same history.",
+    "focus": "the first-launch screen that explains BabyRelay as a shared care log",
+    "motif": "crescent baby illustration, passing-hands care symbols, warm nursery paper textures",
+    "model": "gpt-image-2",
+    "generatedPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/generated/01_01_whole_team_log.png",
+    "finalPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/final/01_01_whole_team_log.png",
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "prompt": "Use case: ads-marketing\nAsset type: 6.9-inch iPhone App Store screenshot, vertical portrait poster\nPrimary request: Create a premium, pure gpt-image-2 App Store screenshot for BabyRelay that tells a clear product story.\nInputs: Image 1 is the real BabyRelay app screenshot to place inside the phone. Image 2 is the preferred visual style reference; use it only for mood, depth, typography feel, and nursery editorial craft.\nPreservation: Preserve Image 1 as the product truth inside the phone frame. Keep the app UI recognizable, readable, and honest. Do not invent app screens or product features.\nStory role: this frame should explain one specific BabyRelay benefit and fit a sequence: shared log → quick daily logging → next-up guidance → multiple children → handoff → care team.\nCanvas: tall portrait App Store screenshot, elegant cream paper/nursery editorial composition with high contrast, warm clay accents, sage leaves, cocoa black text, moonlight gold, and soft realistic shadows.\nText (verbatim): headline \"One baby log for the whole care team.\" and subhead \"Parents, partners, grandparents, and nannies see the same history.\".\nComposition: large readable benefit-led headline at top, concise subhead below, iPhone frame centered/lower as product hero. Use tasteful baby-care props around the phone; avoid generic gradients or flat empty templates.\nFocus: the first-launch screen that explains BabyRelay as a shared care log.\nMotifs: crescent baby illustration, passing-hands care symbols, warm nursery paper textures.\nConstraints: no paywall screenshot, no fake awards, no App Store badges, no star ratings, no medical claims, no sleep-training promises, no watermarks, no extra headline text, no QR-code focus. Do not make it childish or cluttered. Keep product UI legible and the story clear."
+  },
+  {
+    "order": 2,
+    "id": "02_log_moment",
+    "raw": "artifacts/app_store_screenshots/raw/2026-06-16/03_today_mae.png",
+    "headline": "Log the moment it happens.",
+    "subhead": "Sleep, feeds, diapers, and notes take seconds.",
+    "focus": "the Today screen with quick action buttons for Asleep, Feed, Diaper, Note, and Night wake",
+    "motif": "small tap/ripple details, tiny care icons, morning light across soft fabric",
+    "model": "gpt-image-2",
+    "generatedPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/generated/02_02_log_moment.png",
+    "finalPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/final/02_02_log_moment.png",
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "prompt": "Use case: ads-marketing\nAsset type: 6.9-inch iPhone App Store screenshot, vertical portrait poster\nPrimary request: Create a premium, pure gpt-image-2 App Store screenshot for BabyRelay that tells a clear product story.\nInputs: Image 1 is the real BabyRelay app screenshot to place inside the phone. Image 2 is the approved GPT-image-2 style anchor; match its editorial nursery style, realistic iPhone frame, cream paper background, warm clay/sage/cocoa palette, premium serif headline treatment, and soft depth.\nPreservation: Preserve Image 1 as the product truth inside the phone frame. Keep the app UI recognizable, readable, and honest. Do not invent app screens or product features.\nStory role: this frame should explain one specific BabyRelay benefit and fit a sequence: shared log → quick daily logging → next-up guidance → multiple children → handoff → care team.\nCanvas: tall portrait App Store screenshot, elegant cream paper/nursery editorial composition with high contrast, warm clay accents, sage leaves, cocoa black text, moonlight gold, and soft realistic shadows.\nText (verbatim): headline \"Log the moment it happens.\" and subhead \"Sleep, feeds, diapers, and notes take seconds.\".\nComposition: large readable benefit-led headline at top, concise subhead below, iPhone frame centered/lower as product hero. Use tasteful baby-care props around the phone; avoid generic gradients or flat empty templates.\nFocus: the Today screen with quick action buttons for Asleep, Feed, Diaper, Note, and Night wake.\nMotifs: small tap/ripple details, tiny care icons, morning light across soft fabric.\nConstraints: no paywall screenshot, no fake awards, no App Store badges, no star ratings, no medical claims, no sleep-training promises, no watermarks, no extra headline text, no QR-code focus. Do not make it childish or cluttered. Keep product UI legible and the story clear."
+  },
+  {
+    "order": 3,
+    "id": "03_next_up_guidance",
+    "raw": "artifacts/app_store_screenshots/raw/2026-06-16/04_today_theo.png",
+    "headline": "Know what’s next, not just what happened.",
+    "subhead": "Nap windows update from the day’s care history.",
+    "focus": "the next-up nap card and child timeline that turn logs into guidance",
+    "motif": "sun-to-moon path, stitched timeline, wooden clock and soft star shapes",
+    "model": "gpt-image-2",
+    "generatedPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/generated/03_03_next_up_guidance.png",
+    "finalPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/final/03_03_next_up_guidance.png",
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "prompt": "Use case: ads-marketing\nAsset type: 6.9-inch iPhone App Store screenshot, vertical portrait poster\nPrimary request: Create a premium, pure gpt-image-2 App Store screenshot for BabyRelay that tells a clear product story.\nInputs: Image 1 is the real BabyRelay app screenshot to place inside the phone. Image 2 is the approved GPT-image-2 style anchor; match its editorial nursery style, realistic iPhone frame, cream paper background, warm clay/sage/cocoa palette, premium serif headline treatment, and soft depth.\nPreservation: Preserve Image 1 as the product truth inside the phone frame. Keep the app UI recognizable, readable, and honest. Do not invent app screens or product features.\nStory role: this frame should explain one specific BabyRelay benefit and fit a sequence: shared log → quick daily logging → next-up guidance → multiple children → handoff → care team.\nCanvas: tall portrait App Store screenshot, elegant cream paper/nursery editorial composition with high contrast, warm clay accents, sage leaves, cocoa black text, moonlight gold, and soft realistic shadows.\nText (verbatim): headline \"Know what’s next, not just what happened.\" and subhead \"Nap windows update from the day’s care history.\".\nComposition: large readable benefit-led headline at top, concise subhead below, iPhone frame centered/lower as product hero. Use tasteful baby-care props around the phone; avoid generic gradients or flat empty templates.\nFocus: the next-up nap card and child timeline that turn logs into guidance.\nMotifs: sun-to-moon path, stitched timeline, wooden clock and soft star shapes.\nConstraints: no paywall screenshot, no fake awards, no App Store badges, no star ratings, no medical claims, no sleep-training promises, no watermarks, no extra headline text, no QR-code focus. Do not make it childish or cluttered. Keep product UI legible and the story clear."
+  },
+  {
+    "order": 4,
+    "id": "04_child_timelines",
+    "raw": "artifacts/app_store_screenshots/raw/2026-06-16/05_child_switcher.png",
+    "headline": "Every child gets their own timeline.",
+    "subhead": "Switch siblings without mixing feeds, naps, or notes.",
+    "focus": "the child switcher sheet with Mae and Theo, no tab bar visible underneath",
+    "motif": "two gentle avatar color halos, folded blanket layers, paired keepsake cards",
+    "model": "gpt-image-2",
+    "generatedPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/generated/04_04_child_timelines.png",
+    "finalPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/final/04_04_child_timelines.png",
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "prompt": "Use case: ads-marketing\nAsset type: 6.9-inch iPhone App Store screenshot, vertical portrait poster\nPrimary request: Create a premium, pure gpt-image-2 App Store screenshot for BabyRelay that tells a clear product story.\nInputs: Image 1 is the real BabyRelay app screenshot to place inside the phone. Image 2 is the approved GPT-image-2 style anchor; match its editorial nursery style, realistic iPhone frame, cream paper background, warm clay/sage/cocoa palette, premium serif headline treatment, and soft depth.\nPreservation: Preserve Image 1 as the product truth inside the phone frame. Keep the app UI recognizable, readable, and honest. Do not invent app screens or product features.\nStory role: this frame should explain one specific BabyRelay benefit and fit a sequence: shared log → quick daily logging → next-up guidance → multiple children → handoff → care team.\nCanvas: tall portrait App Store screenshot, elegant cream paper/nursery editorial composition with high contrast, warm clay accents, sage leaves, cocoa black text, moonlight gold, and soft realistic shadows.\nText (verbatim): headline \"Every child gets their own timeline.\" and subhead \"Switch siblings without mixing feeds, naps, or notes.\".\nComposition: large readable benefit-led headline at top, concise subhead below, iPhone frame centered/lower as product hero. Use tasteful baby-care props around the phone; avoid generic gradients or flat empty templates.\nFocus: the child switcher sheet with Mae and Theo, no tab bar visible underneath.\nMotifs: two gentle avatar color halos, folded blanket layers, paired keepsake cards.\nConstraints: no paywall screenshot, no fake awards, no App Store badges, no star ratings, no medical claims, no sleep-training promises, no watermarks, no extra headline text, no QR-code focus. Do not make it childish or cluttered. Keep product UI legible and the story clear."
+  },
+  {
+    "order": 5,
+    "id": "05_handoff_summary",
+    "raw": "artifacts/app_store_screenshots/raw/2026-06-16/06_handoff_theo.png",
+    "headline": "Send a handoff without rewriting the day.",
+    "subhead": "BabyRelay turns the timeline into a ready-to-share summary.",
+    "focus": "the handoff summary screen with sleep, next nap, feed, and note context",
+    "motif": "two hands passing a small care note, paper note texture, subtle thread/arrow marks",
+    "model": "gpt-image-2",
+    "generatedPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/generated/05_05_handoff_summary.png",
+    "finalPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/final/05_05_handoff_summary.png",
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "prompt": "Use case: ads-marketing\nAsset type: 6.9-inch iPhone App Store screenshot, vertical portrait poster\nPrimary request: Create a premium, pure gpt-image-2 App Store screenshot for BabyRelay that tells a clear product story.\nInputs: Image 1 is the real BabyRelay app screenshot to place inside the phone. Image 2 is the approved GPT-image-2 style anchor; match its editorial nursery style, realistic iPhone frame, cream paper background, warm clay/sage/cocoa palette, premium serif headline treatment, and soft depth.\nPreservation: Preserve Image 1 as the product truth inside the phone frame. Keep the app UI recognizable, readable, and honest. Do not invent app screens or product features.\nStory role: this frame should explain one specific BabyRelay benefit and fit a sequence: shared log → quick daily logging → next-up guidance → multiple children → handoff → care team.\nCanvas: tall portrait App Store screenshot, elegant cream paper/nursery editorial composition with high contrast, warm clay accents, sage leaves, cocoa black text, moonlight gold, and soft realistic shadows.\nText (verbatim): headline \"Send a handoff without rewriting the day.\" and subhead \"BabyRelay turns the timeline into a ready-to-share summary.\".\nComposition: large readable benefit-led headline at top, concise subhead below, iPhone frame centered/lower as product hero. Use tasteful baby-care props around the phone; avoid generic gradients or flat empty templates.\nFocus: the handoff summary screen with sleep, next nap, feed, and note context.\nMotifs: two hands passing a small care note, paper note texture, subtle thread/arrow marks.\nConstraints: no paywall screenshot, no fake awards, no App Store badges, no star ratings, no medical claims, no sleep-training promises, no watermarks, no extra headline text, no QR-code focus. Do not make it childish or cluttered. Keep product UI legible and the story clear."
+  },
+  {
+    "order": 6,
+    "id": "06_care_team_sync",
+    "raw": "artifacts/app_store_screenshots/raw/2026-06-16/07_care_team.png",
+    "headline": "Keep every caregiver in sync.",
+    "subhead": "Invite helpers once. Every update stays shared.",
+    "focus": "the Care team screen showing owner, caregiver, invite button, and how invites work",
+    "motif": "family-circle dots, sage leaf accents, tiny connection path between caregiver avatars",
+    "model": "gpt-image-2",
+    "generatedPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/generated/06_06_care_team_sync.png",
+    "finalPath": "/Users/missioncontrol/Documents/Ruvix-Labs/BabyRelay/artifacts/app_store_screenshots/gpt-image-2-story-v2/2026-06-16/iphone_69/final/06_06_care_team_sync.png",
+    "finalSize": {
+      "width": 1320,
+      "height": 2868
+    },
+    "prompt": "Use case: ads-marketing\nAsset type: 6.9-inch iPhone App Store screenshot, vertical portrait poster\nPrimary request: Create a premium, pure gpt-image-2 App Store screenshot for BabyRelay that tells a clear product story.\nInputs: Image 1 is the real BabyRelay app screenshot to place inside the phone. Image 2 is the approved GPT-image-2 style anchor; match its editorial nursery style, realistic iPhone frame, cream paper background, warm clay/sage/cocoa palette, premium serif headline treatment, and soft depth.\nPreservation: Preserve Image 1 as the product truth inside the phone frame. Keep the app UI recognizable, readable, and honest. Do not invent app screens or product features.\nStory role: this frame should explain one specific BabyRelay benefit and fit a sequence: shared log → quick daily logging → next-up guidance → multiple children → handoff → care team.\nCanvas: tall portrait App Store screenshot, elegant cream paper/nursery editorial composition with high contrast, warm clay accents, sage leaves, cocoa black text, moonlight gold, and soft realistic shadows.\nText (verbatim): headline \"Keep every caregiver in sync.\" and subhead \"Invite helpers once. Every update stays shared.\".\nComposition: large readable benefit-led headline at top, concise subhead below, iPhone frame centered/lower as product hero. Use tasteful baby-care props around the phone; avoid generic gradients or flat empty templates.\nFocus: the Care team screen showing owner, caregiver, invite button, and how invites work.\nMotifs: family-circle dots, sage leaf accents, tiny connection path between caregiver avatars.\nConstraints: no paywall screenshot, no fake awards, no App Store badges, no star ratings, no medical claims, no sleep-training promises, no watermarks, no extra headline text, no QR-code focus. Do not make it childish or cluttered. Keep product UI legible and the story clear."
+  }
+]

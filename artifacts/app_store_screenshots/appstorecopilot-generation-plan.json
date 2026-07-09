@@ -1,0 +1,103 @@
+{
+  "projectId": "irq0wa833wWMRsASUxfK",
+  "createdAt": "2026-06-16T14:09:47.654Z",
+  "params": {
+    "projectId": "irq0wa833wWMRsASUxfK",
+    "provider": "kie",
+    "model": "nano-banana-2",
+    "appContext": {
+      "name": "BabyRelay: Shared Baby Care",
+      "description": "A shared baby care timeline for families and caregivers: sleep, feeds, diapers, notes, handoffs, invites, and multiple children."
+    },
+    "styleSource": {
+      "type": "custom",
+      "style": {
+        "gradientColors": {
+          "primary": "#F7F0E8",
+          "secondary": "#F0D3BE"
+        },
+        "fontStyle": "warm editorial nursery, Fraunces-like serif headlines, readable rounded sans body",
+        "styleDescription": "Premium App Store screenshot set for an iPhone baby-care app. Cream/dawn background, clay/coral CTAs, sage accents, dark cocoa text, subtle moon/star/sun/care-symbol details. Product screenshot remains the hero inside an iPhone frame. Avoid generic gradients, crowded badges, fake UI, medical claims, dark heavy palettes, or childish clutter.",
+        "decorativeElements": [
+          "tiny crescent moon",
+          "soft sun arc",
+          "stitched care tag",
+          "small handoff arrows",
+          "subtle star speckles"
+        ]
+      }
+    },
+    "deviceFrame": "iphone",
+    "resizeToSizes": [
+      "APP_IPHONE_69"
+    ],
+    "screenshots": [
+      {
+        "rawImageUrl": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/raw/babyrelay-raw-01_welcome.jpg",
+        "headline": "Shared baby care, instantly calm",
+        "subtitle": "Parents, partners, grandparents, and nannies on the same page.",
+        "enhancement": {
+          "focusArea": "the onboarding hero and headline",
+          "visualTechnique": "none",
+          "contextualNote": "The raw screen already contains the central product promise and transparent illustration.",
+          "enhancementPrompt": "Preserve all in-phone UI exactly. Frame the phone in a warm editorial nursery App Store layout with soft cream space, clay accent details, and tiny crescent/star care motifs outside the device only."
+        }
+      },
+      {
+        "rawImageUrl": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/raw/babyrelay-raw-03_today_mae.jpg",
+        "headline": "Know what’s next",
+        "subtitle": "Sleep windows, feeds, diapers, and notes in one calm timeline.",
+        "enhancement": {
+          "focusArea": "the Next Up card and one-tap care actions",
+          "visualTechnique": "none",
+          "contextualNote": "The screen already shows a clear next nap window and quick logs.",
+          "enhancementPrompt": "Preserve the in-phone UI exactly. Use generous whitespace and subtle nursery motifs outside the phone to highlight the prediction card without inventing extra UI."
+        }
+      },
+      {
+        "rawImageUrl": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/raw/babyrelay-raw-05_child_switcher.jpg",
+        "headline": "One family, every child",
+        "subtitle": "Switch siblings without mixing care histories.",
+        "enhancement": {
+          "focusArea": "the child switcher sheet with Mae and Theo",
+          "visualTechnique": "none",
+          "contextualNote": "The raw screen demonstrates multiple children in one care team.",
+          "enhancementPrompt": "Preserve the child switcher sheet exactly and keep the tab bar hidden beneath the modal. Use outside-device design accents only."
+        }
+      },
+      {
+        "rawImageUrl": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/raw/babyrelay-raw-06_handoff_theo.jpg",
+        "headline": "Send calmer handoffs",
+        "subtitle": "Share the day before the next caregiver arrives.",
+        "enhancement": {
+          "focusArea": "the handoff summary card and share button",
+          "visualTechnique": "none",
+          "contextualNote": "The screen shows the caregiver handoff text clearly.",
+          "enhancementPrompt": "Preserve all phone UI and text. Add only marketing framing outside the device."
+        }
+      },
+      {
+        "rawImageUrl": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/raw/babyrelay-raw-08_invite_qr.jpg",
+        "headline": "Invite your care team",
+        "subtitle": "Share a code or link and keep care synced.",
+        "enhancement": {
+          "focusArea": "the caregiver invite QR and code",
+          "visualTechnique": "none",
+          "contextualNote": "The screen shows the real QR invite modal.",
+          "enhancementPrompt": "Preserve QR/code readability and do not distort it. Outside the device, use warm illustrated care symbols sparingly."
+        }
+      },
+      {
+        "rawImageUrl": "https://screens.appstorecopilot.com/user/GK524x5pDvUn8E55SSc6obfimjZ2/irq0wa833wWMRsASUxfK/raw/babyrelay-raw-07_care_team.jpg",
+        "headline": "Care stays coordinated",
+        "subtitle": "See who is on the team and what everyone can access.",
+        "enhancement": {
+          "focusArea": "the care team roster and invite button",
+          "visualTechnique": "none",
+          "contextualNote": "The screen shows owner/caregiver roles and invite entry.",
+          "enhancementPrompt": "Preserve phone UI. Keep the marketing shell restrained and premium, no extra badges or false claims."
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+platform :ios, '15.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks! :linkage => :static
+
+  # Firestore pulls in a large C++/gRPC tree when built from source. Use the
+  # matching precompiled Firestore XCFrameworks to keep local simulator builds
+  # fast; update the tag whenever FirebaseFirestore changes in Podfile.lock.
+  pod 'FirebaseFirestore',
+      :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git',
+      :tag => '12.14.0'
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+  end
+
+  # Invertase's Firestore binary pods produce static framework archives for
+  # Firestore/gRPC. CocoaPods can still emit dynamic `-framework` load flags in
+  # the aggregate Runner xcconfigs, which makes simulator apps abort at launch
+  # with dyld "Library not loaded" because those archives are not embeddable
+  # dynamic frameworks. Force-load the binary dependency archives instead, but
+  # let CocoaPods link the main FirebaseFirestore target so Xcode archive keeps
+  # the generated framework target ordering intact.
+  firestore_dynamic_flags = [
+    '-framework "FirebaseFirestoreInternal"',
+    '-weak_framework "FirebaseFirestoreInternal"',
+    '-framework "absl"',
+    '-framework "grpc"',
+    '-framework "grpcpp"',
+    '-framework "openssl_grpc"',
+  ]
+  firestore_static_archives = [
+    '${PODS_ROOT}/FirebaseFirestoreInternalBinary/FirebaseFirestoreInternal.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/FirebaseFirestoreInternal.framework/FirebaseFirestoreInternal',
+    '${PODS_ROOT}/FirebaseFirestoreAbseilBinary/absl.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/absl.framework/absl',
+    '${PODS_ROOT}/FirebaseFirestoreGRPCCoreBinary/grpc.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/grpc.framework/grpc',
+    '${PODS_ROOT}/FirebaseFirestoreGRPCCPPBinary/grpcpp.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/grpcpp.framework/grpcpp',
+    '${PODS_ROOT}/FirebaseFirestoreGRPCBoringSSLBinary/openssl_grpc.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/openssl_grpc.framework/openssl_grpc',
+  ]
+  force_load_flags = firestore_static_archives
+    .map { |archive| "-force_load \"#{archive}\"" }
+    .join(' ')
+
+  Dir.glob(File.join(installer.sandbox.target_support_files_root, 'Pods-Runner', 'Pods-Runner*.xcconfig')).each do |config_path|
+    lines = File.readlines(config_path, chomp: true)
+    changed = false
+    unless lines.any? { |line| line.start_with?('FIRESTORE_XCFRAMEWORK_SLICE') }
+      lines << 'FIRESTORE_XCFRAMEWORK_SLICE[sdk=iphoneos*] = ios-arm64'
+      lines << 'FIRESTORE_XCFRAMEWORK_SLICE[sdk=iphonesimulator*] = ios-arm64_x86_64-simulator'
+      changed = true
+    end
+    lines.map! do |line|
+      if line.start_with?('OTHER_LDFLAGS =') && line.include?('FirebaseFirestore')
+        firestore_dynamic_flags.each { |flag| line = line.gsub(flag, '') }
+        line = line.gsub(/-force_load\s+"[^"]*(FirebaseFirestore|absl|grpc)[^"]*"/, '')
+        line = line.gsub(/\s+/, ' ').strip
+        unless line.include?('FirebaseFirestoreInternal.xcframework')
+          line = "#{line} #{force_load_flags}"
+        end
+        changed = true
+      end
+      line
+    end
+    File.write(config_path, lines.join("\n") + "\n") if changed
+  end
+end

@@ -1,0 +1,215 @@
+"Loading Google Play Console
+menu
+notifications_unread
+Unread notifications
+Ruvix Ltd
+joe@ruvixlabs.com
+keyboard_backspace
+All apps
+dashboard
+Dashboard
+bar_chart
+Statistics
+overview
+Publishing overview
+shield
+Protected with Play
+rocket_launch
+Test and release
+vital_signs
+Monitor and improve
+Reach and devices
+expand_more
+Ratings and reviews
+expand_more
+Android vitals
+expand_more
+Policy and programs
+expand_less
+Policy status
+App content
+Teacher Approved
+finance_mode
+Grow users
+sell
+Monetize with Play
+keyboard_backspace
+App content
+Data safety
+Export to CSV
+Import from CSV
+Help users understand how your app collects and shares their data. Show more
+check
+Overview
+check
+Data collection and security
+check
+Data types
+check
+Data usage and handling
+5
+Preview
+Store listing preview
+Collapse all
+Based on what you've told us, the following information will be shown to users on Google Play
+Data shared
+Data that may be shared with other companies or organizations
+account_circle
+Personal info
+Name, Other info
+brightness_1
+Hide details
+expand_less
+Data shared, and for what purpose
+Name
+
+App functionality
+
+Other info
+
+App functionality, Personalization
+
+favorite
+Health and fitness
+Health info
+brightness_1
+Hide details
+expand_less
+Data shared, and for what purpose
+Health info
+
+App functionality, Personalization
+
+touch_app
+App activity
+Other user-generated content
+brightness_1
+Hide details
+expand_less
+Data shared, and for what purpose
+Other user-generated content
+
+App functionality
+
+Data collected
+Data this app may collect
+account_circle
+Personal info
+Name, Email address, User IDs, Other info
+brightness_1
+Hide details
+expand_less
+Data collected, and for what purpose
+Name
+
+App functionality
+
+Email address
+
+App functionality, Analytics, Fraud prevention, security, and compliance, Account management
+
+User IDs
+
+App functionality, Analytics, Fraud prevention, security, and compliance, Account management
+
+Other info
+
+App functionality, Personalization
+
+credit_card
+Financial info
+Purchase history
+brightness_1
+Hide details
+expand_less
+Data collected, and for what purpose
+Purchase history
+
+App functionality, Account management
+
+favorite
+Health and fitness
+Health info
+brightness_1
+Hide details
+expand_less
+Data collected, and for what purpose
+Health info
+brightness_1
+Optional
+
+App functionality, Personalization
+
+performance_max
+App info and performance
+Crash logs, Diagnostics
+brightness_1
+Hide details
+expand_less
+Data collected, and for what purpose
+Crash logs
+
+Analytics
+
+Diagnostics
+
+Analytics
+
+touch_app
+App activity
+App interactions, Other user-generated content
+brightness_1
+Hide details
+expand_less
+Data collected, and for what purpose
+App interactions
+
+Analytics
+
+Other user-generated content
+brightness_1
+Optional
+
+App functionality
+
+perm_device_information
+Device or other IDs
+Device or other IDs
+brightness_1
+Hide details
+expand_less
+Data collected, and for what purpose
+Device or other IDs
+
+App functionality, Analytics, Fraud prevention, security, and compliance
+
+Data deletion
+Data that can be deleted by users.
+insert_chart
+Manage app data
+
+You can submit a request to delete certain data that the developer collected through this app, without deleting your entire account.This data can include things like activity history, transaction history, and images and video. https://appstorecopilot.com/legal/3omln7px/privacy
+
+Security practices
+lock
+Data is encrypted in transit
+
+Your data is transferred over a secure connection
+
+Privacy policy
+
+https://appstorecopilot.com/legal/3omln7px/privacy
+
+Step 5 of 5, Preview
+If you save, changes will be saved in Publishing overview, ready for you to send for review
+Discard
+Back
+Save as draft
+Save
+Product updates
+Status dashboard
+Help
+Â© 2026 Google
+Privacy
+Developer Distribution Agreement
+Terms of Service"

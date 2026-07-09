@@ -1,0 +1,21 @@
+{
+  "subscriptions": {
+    "monthly": "6779156238",
+    "annual": "6779156833",
+    "special_annual": "6779256297"
+  },
+  "beforeIntroOfferCounts": {
+    "monthly": 175,
+    "annual": 175,
+    "special_annual": 0
+  },
+  "deletedMonthlyIntroOffers": 175,
+  "deleteStatuses": {
+    "204": 175
+  },
+  "afterIntroOfferCounts": {
+    "monthly": 0,
+    "annual": 175,
+    "special_annual": 0
+  }
+}

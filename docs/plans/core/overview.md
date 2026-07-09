@@ -108,7 +108,8 @@ Onboarding should seed the deterministic guidance model.
 
 ### Paywall
 
-RevenueCat-backed, trial-first.
+RevenueCat-backed, with a limited annual launch offer ahead of the standard
+trial plans.
 
 The paid story is:
 - unlimited caregivers
@@ -161,43 +162,55 @@ Future care modules can add deterministic guidance for feeds, medication reminde
 
 ## Firestore Model
 
-Family is the subscription and access unit.
+Family is the subscription and access unit. The release-candidate sync model is
+subcollection-first so high-write care logs do not rewrite or rebroadcast an
+ever-growing family snapshot.
 
 ```text
 families/{familyId}
-  createdBy: uid
+  ownerId: uid
+  memberIds: uid[]
   inviteCode: string
-  subscriptionOwnerUid: uid
-  createdAt: timestamp
+  selectedChildId: childId
+  onboarded: boolean
+  liveEventLimit: number
+  createdAt?: timestamp
+  updatedAt?: timestamp
 
-families/{familyId}/members/{uid}
+families/{familyId}/caregivers/{uid}
+  id: uid
   role: owner|caregiver
-  displayName: string
-  avatarColor: string
+  name: string
+  colorIndex: number
   joinedAt: timestamp
   removedAt?: timestamp
+  lastActiveAt?: timestamp
 
-families/{familyId}/babies/{babyId}
-  name: string
+families/{familyId}/children/{childId}
+  id: childId
+  nickname: string
   dob: timestamp
-  settings:
-    targetWakeTime: string
-    targetBedtime: string
-    scheduleOverride?: string
-  createdAt: timestamp
+  wakeTimeMinutes: number
+  bedtimeMinutes: number
+  napsPerDayEstimate: number
+  colorIndex: number
+  scheduleOverrideNaps?: number
 
-families/{familyId}/babies/{babyId}/events/{eventId}
-  type: sleep|wake|feed|diaper|medicine|note|nightWaking
-  startAt: timestamp
-  endAt?: timestamp
-  loggedBy: uid
-  editedBy: uid[]
-  source: tap|edit|merge
+families/{familyId}/events/{eventId}
+  id: eventId
+  childId: childId
+  type: sleep|feed|diaper|note|nightWaking
+  startAt: string
+  startAtMillis: number
+  endAt?: string
+  loggedById: uid
+  editedByIds: uid[]
+  feedKind?: bottle|nursing|solids
+  diaperKind?: wet|dirty|both
   note?: string
-  createdAt: timestamp
   updatedAt: timestamp
 
-families/{familyId}/babies/{babyId}/dailySummaries/{yyyy-mm-dd}
+families/{familyId}/children/{childId}/dailySummaries/{yyyy-mm-dd}
   napsCount: number
   totalDaySleepMinutes: number
   lastWakeAt: timestamp
@@ -211,6 +224,12 @@ users/{uid}
   rcAppUserId: string
   createdAt: timestamp
 ```
+
+The app keeps the repository API local-first, but
+`FirestoreFamilySyncAdapter` writes deltas to these subcollections. The live
+listener watches family metadata, children, caregivers, and the most recent 500
+care events. Older event history remains in Firestore for future paged export
+or archive views without making every app open/listener pay for all-time logs.
 
 Security:
 - Users only access families where they are active members.
@@ -241,6 +260,12 @@ Core events:
 onboarding_started
 onboarding_step_viewed
 onboarding_completed
+review_prompt_viewed
+review_prompt_positive
+review_prompt_dismissed
+native_review_available
+native_review_requested
+native_review_failed
 baby_profile_created
 care_event_logged
 care_event_edited
@@ -279,7 +304,7 @@ Free:
 Premium: `BabyRelay Family`
 - $9.99/month
 - $59.99/year
-- 7-day trial
+- 7-day annual trial
 - unlimited caregivers
 - handoff sheets
 - cross-caregiver notifications
@@ -288,13 +313,16 @@ Premium: `BabyRelay Family`
 - export/share summaries
 
 Paywall placements:
-- Soft paywall after onboarding.
+- Soft paywall after onboarding; native review ask waits for a real product win
+  such as completing a care-tracking action or copying/sharing a handoff
+  summary, and appears at most once per prompt version.
 - Hard gate on inviting a second caregiver.
-- Trial-first copy.
+- Launch-offer copy by default, with trial copy on the standard annual plan.
+  Monthly is direct-paid and should not show a trial.
 
 RevenueCat:
 - entitlement: `pro`
-- products: monthly and annual
+- products: special annual, annual, and monthly
 - do not hardcode store product IDs in business logic
 
 ## 4-Week Build Plan
@@ -407,4 +435,3 @@ The product must prove this in under 20 seconds:
 4. The handoff sheet explains the day in plain language.
 
 That is the ad, the product, and the retention mechanic.
-

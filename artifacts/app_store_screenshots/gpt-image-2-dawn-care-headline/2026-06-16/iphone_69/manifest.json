@@ -1,0 +1,19 @@
+{
+  "id": "01_dawn_with_care_headline",
+  "model": "gpt-image-2",
+  "sourcePath": "artifacts/app_store_screenshots/gpt-image-2-midnight-no-tabbar-explore/2026-06-16/iphone_69/generated/05_dawn_from_night.png",
+  "generatedPath": "artifacts/app_store_screenshots/gpt-image-2-dawn-care-headline/2026-06-16/iphone_69/generated/01_dawn_with_care_headline.png",
+  "requestedChange": "Variant 05 Dawn from night with variant 06 headline/subhead",
+  "headline": "One calm place for baby care.",
+  "subhead": "The whole day becomes a timeline everyone can trust.",
+  "prompt": "Edit this App Store screenshot concept.\n\nCHANGE ONLY THE TOP MARKETING COPY:\nHeadline text, verbatim: \"One calm place for baby care.\"\nSubhead text, verbatim: \"The whole day becomes a timeline everyone can trust.\"\n\nKEEP EVERYTHING ELSE THE SAME:\n- Preserve the dawn-from-night background direction: dark navy sky, peach dawn glow, soft horizon light behind the phone.\n- Preserve the large iPhone placement, phone angle, product UI, BabyRelay app content, lighting, colors, depth, and premium App Store poster feel.\n- Preserve the no-tab-bar framing. Do not reveal or create the bottom app navigation.\n- Preserve the existing clean product presentation and readable phone UI.\n\nSTRICT CONSTRAINTS:\nNo bottom app tab bar, no Today/Care team/Settings bottom labels, no paywall, no subscription offer, no fake App Store badges, no fake ratings, no awards, no medical claims, no sleep-training promise, no QR code, no watermark. Do not add extra text beyond the headline and subhead.",
+  "finalPath": "artifacts/app_store_screenshots/gpt-image-2-dawn-care-headline/2026-06-16/iphone_69/final/01_dawn_with_care_headline.png",
+  "generatedSize": {
+    "width": 1328,
+    "height": 2880
+  },
+  "finalSize": {
+    "width": 1320,
+    "height": 2868
+  }
+}

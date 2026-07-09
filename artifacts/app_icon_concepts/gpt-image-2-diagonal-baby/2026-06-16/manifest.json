@@ -1,0 +1,17 @@
+{
+  "app": "BabyRelay",
+  "company": "Ruvix Labs",
+  "date": "2026-06-16",
+  "model": "gpt-image-2",
+  "purpose": "Diagonal baby-only app icon exploration",
+  "contactSheet": "contact_sheet.png",
+  "changedLiveAppIcon": false,
+  "concepts": [
+    { "id": "01", "name": "flat_diagonal", "path": "generated/01_flat_diagonal.png" },
+    { "id": "02", "name": "soft_clay_diagonal", "path": "generated/02_soft_clay_diagonal.png" },
+    { "id": "03", "name": "paper_cut_diagonal", "path": "generated/03_paper_cut_diagonal.png" },
+    { "id": "04", "name": "moon_swaddle", "path": "generated/04_moon_swaddle.png" },
+    { "id": "05", "name": "glow_diagonal", "path": "generated/05_glow_diagonal.png" },
+    { "id": "06", "name": "minimal_capsule", "path": "generated/06_minimal_capsule.png" }
+  ]
+}

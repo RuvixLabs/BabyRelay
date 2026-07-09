@@ -1,0 +1,50 @@
+"Loading Google Play Console
+menu
+notifications_unread
+Unread notifications
+Ruvix Ltd
+joe@ruvixlabs.com
+keyboard_backspace
+All apps
+dashboard
+Dashboard
+bar_chart
+Statistics
+overview
+Publishing overview
+shield
+Protected with Play
+rocket_launch
+Test and release
+vital_signs
+Monitor and improve
+Reach and devices
+expand_more
+Ratings and reviews
+expand_more
+Android vitals
+expand_more
+Policy and programs
+expand_less
+Policy status
+App content
+Teacher Approved
+finance_mode
+Grow users
+sell
+Monetize with Play
+App content
+Let us know about the content of your app. This is to make sure your app complies with Google Play policies. Learn more
+Need attention
+Actioned
+privacy_tip
+
+You're all caught up. See completed declarations on the Actioned tab. Any policy declarations that you need to complete in the future will be shown here.
+
+Product updates
+Status dashboard
+Help
+Â© 2026 Google
+Privacy
+Developer Distribution Agreement
+Terms of Service"

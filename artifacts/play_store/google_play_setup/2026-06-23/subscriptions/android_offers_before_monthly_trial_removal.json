@@ -1,0 +1,36 @@
+{
+  "babyrelay_pro_monthly": {
+    "basePlanId": "monthly",
+    "offers": [
+      {
+        "offerId": "trial-7-day",
+        "state": "ACTIVE",
+        "phaseCount": 1,
+        "phaseDurations": [
+          "P7D"
+        ],
+        "regionCount": 173,
+        "otherRegionsConfig": true
+      }
+    ]
+  },
+  "babyrelay_pro_annual": {
+    "basePlanId": "annual",
+    "offers": [
+      {
+        "offerId": "trial-7-day",
+        "state": "ACTIVE",
+        "phaseCount": 1,
+        "phaseDurations": [
+          "P7D"
+        ],
+        "regionCount": 173,
+        "otherRegionsConfig": true
+      }
+    ]
+  },
+  "babyrelay_pro_special_annual": {
+    "basePlanId": "special-annual",
+    "offers": []
+  }
+}

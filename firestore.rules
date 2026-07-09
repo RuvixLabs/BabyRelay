@@ -1,0 +1,228 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isFamilyMember() {
+      return signedIn() && request.auth.uid in resource.data.memberIds;
+    }
+
+    function willBeFamilyMember() {
+      return signedIn() && request.auth.uid in request.resource.data.memberIds;
+    }
+
+    function memberIdsUnchanged() {
+      return request.resource.data.memberIds == resource.data.memberIds;
+    }
+
+    function subscriptionFieldsUnchanged() {
+      return request.resource.data.familySubscriptionActive == resource.data.familySubscriptionActive &&
+        request.resource.data.familySubscriptionPlanId == resource.data.familySubscriptionPlanId &&
+        request.resource.data.familySubscriptionOwnerId == resource.data.familySubscriptionOwnerId;
+    }
+
+    function onlyAddsSignedInMember() {
+      return request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1 &&
+        request.resource.data.memberIds.hasAll(resource.data.memberIds) &&
+        request.auth.uid in request.resource.data.memberIds;
+    }
+
+    function inviteForFamily(familyId, code) {
+      return exists(/databases/$(database)/documents/inviteCodes/$(code)) &&
+        get(/databases/$(database)/documents/inviteCodes/$(code)).data.familyId == familyId;
+    }
+
+    function canReadByInvite(familyId) {
+      return signedIn() &&
+        resource.data.inviteCode is string &&
+        resource.data.inviteCode.size() == 6 &&
+        inviteForFamily(familyId, resource.data.inviteCode);
+    }
+
+    function isInviteJoin(familyId) {
+      return signedIn() &&
+        !(request.auth.uid in resource.data.memberIds) &&
+        request.auth.uid in request.resource.data.memberIds &&
+        onlyAddsSignedInMember() &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        request.resource.data.inviteCode == resource.data.inviteCode &&
+        subscriptionFieldsUnchanged() &&
+        inviteForFamily(familyId, resource.data.inviteCode);
+    }
+
+    function isSelfLeave() {
+      return signedIn() &&
+        request.auth.uid in resource.data.memberIds &&
+        resource.data.ownerId != request.auth.uid &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        request.resource.data.memberIds ==
+          resource.data.memberIds.removeAll([request.auth.uid]) &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'memberIds',
+          'updatedBy',
+          'updatedAt'
+        ]);
+    }
+
+    function memberOfFamilyAfter(familyId) {
+      return signedIn() &&
+        request.auth.uid in getAfter(
+          /databases/$(database)/documents/families/$(familyId)
+        ).data.memberIds;
+    }
+
+    function memberOfExistingFamily(familyId) {
+      return signedIn() &&
+        request.auth.uid in get(
+          /databases/$(database)/documents/families/$(familyId)
+        ).data.memberIds;
+    }
+
+    function ownsExistingFamily(familyId) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/families/$(familyId)).data.ownerId == request.auth.uid;
+    }
+
+    function ownsFamilyAfter(familyId) {
+      return signedIn() &&
+        getAfter(/databases/$(database)/documents/families/$(familyId)).data.ownerId == request.auth.uid;
+    }
+
+    function validChildDocument(childId) {
+      return request.resource.data.id == childId &&
+        request.resource.data.nickname is string &&
+        request.resource.data.dob is string;
+    }
+
+    function validCaregiverDocument(caregiverId) {
+      return request.resource.data.id == caregiverId &&
+        request.resource.data.name is string &&
+        request.resource.data.role in ['owner', 'caregiver'];
+    }
+
+    function validEventDocument(eventId) {
+      return request.resource.data.id == eventId &&
+        request.resource.data.childId is string &&
+        request.resource.data.type in ['sleep', 'feed', 'diaper', 'note', 'nightWaking'] &&
+        request.resource.data.startAt is string &&
+        request.resource.data.startAtMillis is int &&
+        request.resource.data.loggedById is string &&
+        (!('loggedByDeviceId' in request.resource.data) ||
+          request.resource.data.loggedByDeviceId is string);
+    }
+
+    function validInviteWrite(code) {
+      return request.resource.data.code == code &&
+        request.resource.data.familyId is string &&
+        memberOfFamilyAfter(request.resource.data.familyId);
+    }
+
+    function ownsUserDoc(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function validUserDocument(userId) {
+      return request.resource.data.id == userId &&
+        (!('currentFamilyId' in request.resource.data) ||
+          request.resource.data.currentFamilyId is string);
+    }
+
+    function validDeviceDocument(userId, deviceId) {
+      return request.resource.data.id == deviceId &&
+        request.resource.data.userId == userId &&
+        request.resource.data.familyId is string &&
+        request.resource.data.platform in ['ios', 'android', 'unknown'] &&
+        (!('fcmToken' in request.resource.data) ||
+          request.resource.data.fcmToken is string) &&
+        (!('activityKitPushToStartToken' in request.resource.data) ||
+          request.resource.data.activityKitPushToStartToken is string) &&
+        (!('active' in request.resource.data) ||
+          request.resource.data.active is bool);
+    }
+
+    function validActivityTokenDocument(userId, deviceId, eventId) {
+      return request.resource.data.id == eventId &&
+        request.resource.data.eventId == eventId &&
+        request.resource.data.userId == userId &&
+        request.resource.data.deviceId == deviceId &&
+        request.resource.data.familyId is string &&
+        request.resource.data.updateToken is string &&
+        (!('active' in request.resource.data) ||
+          request.resource.data.active is bool);
+    }
+
+    match /families/{familyId} {
+      allow get: if isFamilyMember() || canReadByInvite(familyId);
+      allow list: if false;
+      allow create: if willBeFamilyMember();
+      allow update: if (
+        isFamilyMember() &&
+        willBeFamilyMember() &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        (subscriptionFieldsUnchanged() || resource.data.ownerId == request.auth.uid) &&
+        (memberIdsUnchanged() || resource.data.ownerId == request.auth.uid)
+      ) || isInviteJoin(familyId) || isSelfLeave();
+      allow delete: if isFamilyMember() && resource.data.ownerId == request.auth.uid;
+
+      match /children/{childId} {
+        allow read: if memberOfExistingFamily(familyId);
+        allow create, update: if memberOfFamilyAfter(familyId) &&
+          validChildDocument(childId);
+        allow delete: if memberOfExistingFamily(familyId);
+      }
+
+      match /caregivers/{caregiverId} {
+        allow read: if memberOfExistingFamily(familyId);
+        allow create, update: if memberOfFamilyAfter(familyId) &&
+          validCaregiverDocument(caregiverId) &&
+          (caregiverId == request.auth.uid || ownsFamilyAfter(familyId));
+        allow delete: if ownsExistingFamily(familyId) || (
+          caregiverId == request.auth.uid &&
+          memberOfExistingFamily(familyId)
+        );
+      }
+
+      match /events/{eventId} {
+        allow read: if memberOfExistingFamily(familyId);
+        allow create, update: if memberOfFamilyAfter(familyId) &&
+          validEventDocument(eventId);
+        allow delete: if memberOfExistingFamily(familyId);
+      }
+    }
+
+    match /inviteCodes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if validInviteWrite(code);
+      allow update: if validInviteWrite(code) &&
+        memberOfExistingFamily(resource.data.familyId);
+      allow delete: if resource.data.familyId is string &&
+        memberOfExistingFamily(resource.data.familyId);
+    }
+
+    match /users/{userId} {
+      allow get, delete: if ownsUserDoc(userId);
+      allow create, update: if ownsUserDoc(userId) &&
+        validUserDocument(userId);
+      allow list: if false;
+
+      match /devices/{deviceId} {
+        allow get, list, delete: if ownsUserDoc(userId);
+        allow create, update: if ownsUserDoc(userId) &&
+          validDeviceDocument(userId, deviceId);
+        allow list: if false;
+
+        match /activities/{eventId} {
+          allow get, list, delete: if ownsUserDoc(userId);
+          allow create, update: if ownsUserDoc(userId) &&
+            validActivityTokenDocument(userId, deviceId, eventId);
+          allow list: if false;
+        }
+      }
+    }
+  }
+}

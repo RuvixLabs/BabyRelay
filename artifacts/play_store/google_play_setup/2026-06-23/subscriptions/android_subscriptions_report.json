@@ -1,0 +1,52 @@
+{
+  "updatedAt": "2026-06-23T10:45:52.401882+00:00",
+  "packageName": "com.ruvixlabs.babyrelay",
+  "sourceOfTruth": "Google Play Android Publisher API",
+  "note": "Current readback after removing the monthly active trial. Play cannot delete a non-draft offer, so the previous monthly trial offer remains as INACTIVE and is not available to new subscribers.",
+  "readback": [
+    {
+      "productId": "babyrelay_pro_monthly",
+      "basePlanId": "monthly",
+      "period": "P1M",
+      "usaPrice": "9.99 USD",
+      "basePlanState": "ACTIVE",
+      "offers": [
+        {
+          "offerId": "trial-7-day",
+          "state": "INACTIVE",
+          "phaseDurations": [
+            "P7D"
+          ],
+          "regionCount": 173,
+          "otherRegionsConfig": true
+        }
+      ]
+    },
+    {
+      "productId": "babyrelay_pro_annual",
+      "basePlanId": "annual",
+      "period": "P1Y",
+      "usaPrice": "59.99 USD",
+      "basePlanState": "ACTIVE",
+      "offers": [
+        {
+          "offerId": "trial-7-day",
+          "state": "ACTIVE",
+          "phaseDurations": [
+            "P7D"
+          ],
+          "regionCount": 173,
+          "otherRegionsConfig": true
+        }
+      ]
+    },
+    {
+      "productId": "babyrelay_pro_special_annual",
+      "basePlanId": "special-annual",
+      "period": "P1Y",
+      "usaPrice": "29.99 USD",
+      "basePlanState": "ACTIVE",
+      "offers": []
+    }
+  ]
+}

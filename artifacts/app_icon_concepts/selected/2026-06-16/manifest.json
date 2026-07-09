@@ -1,0 +1,25 @@
+{
+  "app": "BabyRelay",
+  "company": "Ruvix Labs",
+  "date": "2026-06-16",
+  "selectedConcept": "gpt-image-2-happy-baby-face/07_glow_face",
+  "ios": {
+    "appIconSet": "ios/Runner/Assets.xcassets/AppIcon.appiconset",
+    "source": "babyrelay_app_icon_glow_face_1024.png",
+    "preview": "babyrelay_app_icon_glow_face_preview_board.png"
+  },
+  "android": {
+    "hasNativeProjectInRepo": false,
+    "readyToCopyPack": "android/",
+    "playStoreIcon": "android/play_store_icon_512.png",
+    "adaptiveSafeSource": "android/android_glow_face_safe_source_1024.png",
+    "preview": "android/android_icon_preview_board.png",
+    "backgroundColor": "#071537",
+    "note": "Android uses a completed-swaddle source to avoid bottom cut-off in circle/squircle masks."
+  },
+  "validation": [
+    "Verified 19 opaque iOS AppIcon PNGs with expected dimensions.",
+    "Verified 13 opaque Android icon PNGs with expected dimensions.",
+    "flutter build ios --simulator --debug --no-pub passed."
+  ]
+}
