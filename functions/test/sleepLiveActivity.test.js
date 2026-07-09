@@ -5,9 +5,11 @@ const test = require("node:test");
 
 const {
   REMOTE_SLEEP_TYPE_KEY,
+  REMOTE_SLEEP_END_TYPE,
   REMOTE_SLEEP_UPDATE_TYPE,
   activeSleepSummary,
   buildAndroidSleepMessage,
+  buildIosFallbackSleepMessage,
   buildIosLiveActivityMessage,
   liveSleepState,
   shouldProcessSleepWrite,
@@ -92,6 +94,62 @@ test("iOS remote start payload uses FCM live_activity_token and ActivityKit aps 
     activeSleepCount: 1,
     activeSleepSummary: "Mae sleeping",
   });
+});
+
+test("iOS Live Activity update and end payloads keep the expected event shape", () => {
+  const state = {
+    eventId: "sleep_1",
+    childName: "Mae",
+    startedAtMillis: 456000,
+    activeSleepCount: 1,
+    activeSleepSummary: "Mae sleeping",
+  };
+  const update = buildIosLiveActivityMessage({
+    fcmToken: "fcm",
+    liveActivityToken: "update-token",
+    event: "update",
+    nowSeconds: 123,
+    state,
+  });
+  const end = buildIosLiveActivityMessage({
+    fcmToken: "fcm",
+    liveActivityToken: "update-token",
+    event: "end",
+    nowSeconds: 124,
+    state,
+  });
+
+  assert.equal(update.apns.payload.aps.event, "update");
+  assert.equal(update.apns.headers["apns-priority"], "5");
+  assert.equal(update.apns.payload.aps.attributes, undefined);
+  assert.equal(end.apns.payload.aps.event, "end");
+  assert.equal(end.apns.payload.aps["dismissal-date"], 124);
+});
+
+test("iOS fallback sends high-priority start and end caregiver alerts", () => {
+  const update = buildIosFallbackSleepMessage({
+    fcmToken: "ios-fcm",
+    state: {
+      eventId: "sleep_1",
+      childName: "Mae",
+      startedAtMillis: 456000,
+      activeSleepCount: 1,
+      activeSleepSummary: "Mae sleeping",
+    },
+  });
+  const end = buildIosFallbackSleepMessage({
+    fcmToken: "ios-fcm",
+    state: null,
+  });
+
+  assert.equal(update.apns.headers["apns-priority"], "10");
+  assert.equal(update.apns.payload.aps.alert.title, "Mae is sleeping");
+  assert.equal(update.data[REMOTE_SLEEP_TYPE_KEY], REMOTE_SLEEP_UPDATE_TYPE);
+  assert.equal(end.apns.payload.aps.alert.title, "Sleep ended");
+  assert.equal(end.data[REMOTE_SLEEP_TYPE_KEY], REMOTE_SLEEP_END_TYPE);
+  for (const value of Object.values(update.data)) {
+    assert.equal(typeof value, "string");
+  }
 });
 
 test("Android remote message carries only string data payload values", () => {

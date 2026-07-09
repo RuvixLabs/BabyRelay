@@ -89,6 +89,109 @@ void main() {
 
     await service.dispose();
   });
+
+  test(
+    'initial FCM failure stays subscribed and later refresh registers',
+    () async {
+      final repo = await onboardedRepo();
+      final store = _FakeTokenStore();
+      final messaging = _FakeMessagingSource(
+        initialToken: 'unused',
+        tokenFailures: 1,
+      );
+      final activity = _FakeActivityKitTokenSource();
+      final service = SleepRemoteSyncService(
+        familyRepository: repo,
+        userId: 'user_a',
+        deviceId: 'device_a',
+        tokenStore: store,
+        messaging: messaging,
+        activityKitTokens: activity,
+        platform: 'ios',
+        initialTokenRetryDelays: const [],
+      );
+
+      await service.start();
+      expect(store.deviceWrites.single.fcmToken, isNull);
+
+      messaging.emitToken('fcm_after_apns');
+      activity.emit(
+        const ActivityKitTokenUpdate(
+          kind: ActivityKitTokenKind.pushToStart,
+          token: 'activity_after_apns',
+        ),
+      );
+      await _drainAsync();
+
+      expect(store.deviceWrites.last.fcmToken, 'fcm_after_apns');
+      expect(store.pushToStartTokens.single.token, 'activity_after_apns');
+      await service.dispose();
+    },
+  );
+
+  test('bounded retry waits for APNs before requesting an FCM token', () async {
+    final repo = await onboardedRepo();
+    final store = _FakeTokenStore();
+    final messaging = _FakeMessagingSource(
+      initialToken: 'fcm_after_retry',
+      apnsTokens: [null, 'apns_ready'],
+    );
+    final service = SleepRemoteSyncService(
+      familyRepository: repo,
+      userId: 'user_a',
+      deviceId: 'device_a',
+      tokenStore: store,
+      messaging: messaging,
+      activityKitTokens: _FakeActivityKitTokenSource(),
+      platform: 'ios',
+      initialTokenRetryDelays: const [Duration.zero],
+      delay: (_) async {},
+    );
+
+    await service.start();
+    await _drainAsync();
+
+    expect(messaging.getTokenCalls, 1);
+    expect(store.deviceWrites.last.fcmToken, 'fcm_after_retry');
+    await service.dispose();
+  });
+
+  test(
+    'auth deletion stops writes and a new identity is adopted safely',
+    () async {
+      final repo = await onboardedRepo();
+      final store = _FakeTokenStore();
+      final messaging = _FakeMessagingSource(initialToken: 'fcm_a');
+      final authChanges = StreamController<String?>.broadcast();
+      final service = SleepRemoteSyncService(
+        familyRepository: repo,
+        userId: 'user_a',
+        deviceId: 'device_a',
+        tokenStore: store,
+        messaging: messaging,
+        activityKitTokens: _FakeActivityKitTokenSource(),
+        platform: 'ios',
+        userIdChanges: authChanges.stream,
+      );
+
+      await service.start();
+      authChanges.add(null);
+      await _drainAsync();
+      final writesAfterDelete = store.deviceWrites.length;
+
+      messaging.emitToken('fcm_after_delete');
+      await _drainAsync();
+      expect(store.deviceWrites, hasLength(writesAfterDelete));
+
+      authChanges.add('user_b');
+      await _drainAsync();
+      expect(store.deviceWrites.last.userId, 'user_b');
+      expect(store.deviceWrites.last.fcmToken, 'fcm_after_delete');
+
+      await service.dispose();
+      await authChanges.close();
+    },
+  );
 }
 
 Future<void> _drainAsync() async {
@@ -190,14 +293,34 @@ class _FakeTokenStore implements SleepRemoteTokenStore {
 }
 
 class _FakeMessagingSource implements RemoteMessagingTokenSource {
-  _FakeMessagingSource({required this.initialToken});
+  _FakeMessagingSource({
+    required this.initialToken,
+    this.tokenFailures = 0,
+    List<String?>? apnsTokens,
+  }) : _apnsTokens = List<String?>.from(apnsTokens ?? const ['apns_ready']);
 
   final String initialToken;
+  int tokenFailures;
+  final List<String?> _apnsTokens;
+  int getTokenCalls = 0;
   final _tokenController = StreamController<String>.broadcast();
   final _messageController = StreamController<Map<String, dynamic>>.broadcast();
 
   @override
-  Future<String?> getToken() async => initialToken;
+  Future<String?> getAPNSToken() async {
+    if (_apnsTokens.length > 1) return _apnsTokens.removeAt(0);
+    return _apnsTokens.isEmpty ? null : _apnsTokens.first;
+  }
+
+  @override
+  Future<String?> getToken() async {
+    getTokenCalls += 1;
+    if (tokenFailures > 0) {
+      tokenFailures -= 1;
+      throw StateError('apns-token-not-set');
+    }
+    return initialToken;
+  }
 
   @override
   Stream<String> get onTokenRefresh => _tokenController.stream;

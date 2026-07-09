@@ -67,6 +67,12 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
   DocumentReference<Map<String, dynamic>> _inviteRef(String code) =>
       _firestore.collection('inviteCodes').doc(code.toUpperCase());
 
+  DocumentReference<Map<String, dynamic>> _userRef(String userId) =>
+      _firestore.collection('users').doc(userId);
+
+  CollectionReference<Map<String, dynamic>> _devicesRef(String userId) =>
+      _userRef(userId).collection('devices');
+
   Map<String, dynamic> _familyDocument(
     FamilyState state, {
     required bool isNewFamily,
@@ -455,7 +461,55 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
   }
 
   @override
-  Future<void> deleteFamily(FamilyState state) async {
+  Future<void> deleteCurrentUserRemoteData(FamilyState state) async {
+    if (state.currentCaregiver?.isOwner == true) {
+      await _deleteFamily(state);
+    } else {
+      await _leaveFamily(state);
+    }
+    await _deletePrivateUserData(userId);
+    _lastSyncedStateByFamily.remove(state.familyId);
+  }
+
+  @override
+  Future<bool> deleteCurrentAuthIdentity() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null || currentUser.uid != userId) return true;
+    try {
+      await currentUser.delete();
+      return true;
+    } on FirebaseAuthException {
+      // Private Firestore data and family membership are already gone. Sign
+      // out so the old anonymous identity cannot be reused on this device.
+      await _auth.signOut();
+      return false;
+    }
+  }
+
+  Future<void> _leaveFamily(FamilyState state) async {
+    if (state.familyId.isEmpty) return;
+    await _firestore.runTransaction((transaction) async {
+      final familyReference = _familyRef(state.familyId);
+      final familySnapshot = await transaction.get(familyReference);
+      final family = familySnapshot.data();
+      if (!familySnapshot.exists || family == null) return;
+      if (family['ownerId'] == userId) {
+        throw StateError('The family owner must delete the family.');
+      }
+      final memberIds = (family['memberIds'] as List<dynamic>? ?? const [])
+          .cast<String>();
+      if (memberIds.contains(userId)) {
+        transaction.update(familyReference, {
+          'memberIds': memberIds.where((id) => id != userId).toList()..sort(),
+          'updatedBy': userId,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+      transaction.delete(_caregiversRef(state.familyId).doc(userId));
+    });
+  }
+
+  Future<void> _deleteFamily(FamilyState state) async {
     if (state.familyId.isEmpty) return;
     await _deleteCollectionDocuments(_eventsRef(state.familyId));
     await _deleteCollectionDocuments(_childrenRef(state.familyId));
@@ -467,6 +521,26 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
     }
     await batch.commit();
     _lastSyncedStateByFamily.remove(state.familyId);
+  }
+
+  Future<void> _deletePrivateUserData(String uid) async {
+    QuerySnapshot<Map<String, dynamic>> devices;
+    do {
+      devices = await _devicesRef(uid).limit(100).get();
+      for (final device in devices.docs) {
+        await _deleteCollectionDocuments(
+          device.reference.collection('activities'),
+        );
+      }
+      if (devices.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final device in devices.docs) {
+          batch.delete(device.reference);
+        }
+        await batch.commit();
+      }
+    } while (devices.docs.length == 100);
+    await _userRef(uid).delete();
   }
 
   Future<void> _deleteCollectionDocuments(
@@ -500,9 +574,7 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
   }
 
   @override
-  Future<void> dispose() async {
-    await _auth.currentUser?.reload();
-  }
+  Future<void> dispose() async {}
 
   FamilyState _stateFromParts({
     required String familyId,

@@ -51,7 +51,7 @@ class _BabyRelayAppState extends State<BabyRelayApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.attributionService.requestTrackingAuthorizationIfNeeded();
+      unawaited(widget.attributionService.initializeAfterFirstFrame());
     });
   }
 

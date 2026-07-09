@@ -7,7 +7,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "lint": "node --check index.js && node --check lib/sleepLiveActivity.js",
+    "lint": "node --check index.js && node --check lib/sleepLiveActivity.js && node --check lib/tokenCleanup.js",
     "test": "node --test"
   },
   "dependencies": {

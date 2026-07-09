@@ -11,7 +11,7 @@
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>com.ruvixlabs.babyrelay</key>
-		<string>BabyRelay Firebase Ad Hoc 2026-06-17</string>
+		<string>BabyRelay Firebase Ad Hoc 2026-07-07 Push</string>
 	</dict>
 	<key>signingCertificate</key>
 	<string>Apple Distribution</string>

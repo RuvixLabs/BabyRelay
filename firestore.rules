@@ -53,6 +53,21 @@ service cloud.firestore {
         inviteForFamily(familyId, resource.data.inviteCode);
     }
 
+    function isSelfLeave() {
+      return signedIn() &&
+        request.auth.uid in resource.data.memberIds &&
+        resource.data.ownerId != request.auth.uid &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        request.resource.data.memberIds ==
+          resource.data.memberIds.removeAll([request.auth.uid]) &&
+        request.resource.data.updatedBy == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'memberIds',
+          'updatedBy',
+          'updatedAt'
+        ]);
+    }
+
     function memberOfFamilyAfter(familyId) {
       return signedIn() &&
         request.auth.uid in getAfter(
@@ -150,7 +165,7 @@ service cloud.firestore {
         request.resource.data.ownerId == resource.data.ownerId &&
         (subscriptionFieldsUnchanged() || resource.data.ownerId == request.auth.uid) &&
         (memberIdsUnchanged() || resource.data.ownerId == request.auth.uid)
-      ) || isInviteJoin(familyId);
+      ) || isInviteJoin(familyId) || isSelfLeave();
       allow delete: if isFamilyMember() && resource.data.ownerId == request.auth.uid;
 
       match /children/{childId} {
@@ -165,7 +180,10 @@ service cloud.firestore {
         allow create, update: if memberOfFamilyAfter(familyId) &&
           validCaregiverDocument(caregiverId) &&
           (caregiverId == request.auth.uid || ownsFamilyAfter(familyId));
-        allow delete: if ownsExistingFamily(familyId);
+        allow delete: if ownsExistingFamily(familyId) || (
+          caregiverId == request.auth.uid &&
+          memberOfExistingFamily(familyId)
+        );
       }
 
       match /events/{eventId} {
@@ -193,13 +211,13 @@ service cloud.firestore {
       allow list: if false;
 
       match /devices/{deviceId} {
-        allow get, delete: if ownsUserDoc(userId);
+        allow get, list, delete: if ownsUserDoc(userId);
         allow create, update: if ownsUserDoc(userId) &&
           validDeviceDocument(userId, deviceId);
         allow list: if false;
 
         match /activities/{eventId} {
-          allow get, delete: if ownsUserDoc(userId);
+          allow get, list, delete: if ownsUserDoc(userId);
           allow create, update: if ownsUserDoc(userId) &&
             validActivityTokenDocument(userId, deviceId, eventId);
           allow list: if false;

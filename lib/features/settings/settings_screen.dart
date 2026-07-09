@@ -301,12 +301,15 @@ class SettingsScreen extends StatelessWidget {
     FamilyRepository repo,
     AnalyticsService analytics,
   ) async {
+    final isOwner = repo.state.currentCaregiver?.isOwner == true;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete everything?'),
-        content: const Text(
-          'This permanently erases every child\'s profile, the full timeline, and the care team on this device. There is no undo.',
+        content: Text(
+          isOwner
+              ? 'This permanently deletes the family, every child profile, the full timeline, your account, and all care-team access. There is no undo.'
+              : 'This permanently leaves the care team and deletes your account and this device\'s private notification data. The shared family history remains for the owner. There is no undo.',
         ),
         actions: [
           TextButton(

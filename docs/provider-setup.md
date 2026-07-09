@@ -34,6 +34,10 @@ Live sync state:
   `projects/babyrelay-ruvix/locations/nam5/triggers/onsleepeventwritten-372265`
   on Firestore `(default)` writes matching
   `families/{familyId}/events/{eventId}`.
+- On 2026-07-09, the registered Ruvix Firebase profile was authenticated as
+  `joe@ruvixlabs.com`. The historical Ruvix APNs auth key was capability-proved
+  without exposing it and uploaded to both the development and production FCM
+  slots for iOS app `1:500197010265:ios:3e9e3b96b065cb7b287a48`.
 - A client-side optimized-subcollection live smoke passed on 2026-06-22 using
   two anonymous users and no admin bypass:
   - owner anonymous Auth token issued
@@ -200,7 +204,19 @@ Live AppStore Co-Pilot readback:
 
 - Ruvix bundle ID: `7PA3RQ369P`
 - Bundle identifier: `com.ruvixlabs.babyrelay`
-- In-App Purchase capability: enabled
+- Enabled bundle capabilities:
+  - `IN_APP_PURCHASE`
+  - `PUSH_NOTIFICATIONS` (enabled through the Ruvix ASC API on 2026-07-07)
+- Firebase App Distribution ad hoc profile:
+  - Old profile `RM7Y2M2HC3` / `BabyRelay Firebase Ad Hoc 2026-06-17` became
+    `INVALID` after push capability was enabled.
+  - Replacement profile `38C6N549R4` / `BabyRelay Firebase Ad Hoc 2026-07-07
+    Push` is `ACTIVE`, uses team `S399W94VV8`, contains 27 devices including
+    Joe's iPhone 15, and includes `aps-environment=production`.
+  - Installed locally at
+    `~/Library/MobileDevice/Provisioning Profiles/d7cff848-2931-4533-9e19-833e446f7a59.mobileprovision`.
+  - `ios/ExportOptions-Firebase.plist` points Firebase App Distribution exports
+    at this replacement profile.
 - ASC app ID: `6779147183`
 - ASC app name: `BabyRelay : Shared Baby Care`
 - ASC SKU: `BabyRelay`
@@ -237,22 +253,12 @@ Live AppStore Co-Pilot readback:
 - Content rights: confirmed in ASC on 2026-06-23 as
   `DOES_NOT_USE_THIRD_PARTY_CONTENT` using `asc apps update` and
   `asc apps content-rights view`.
-- App Review detail: not created yet because ASC now requires a real
-  `contactPhone` value. The attempted review-detail create with
-  `support@ruvixlabs.com` and no demo account was rejected only for the missing
-  phone field.
-- App availability: `asc pricing availability get` currently returns no
-  availability record. The high-level ASC CLI can update existing availability
-  but not initialize it. A direct authenticated browser read of
-  `/iris/v2/appAvailabilities/6779147183?include=territoryAvailabilities` still
-  returned or hung into Apple's generic server-side `500` on 2026-06-23. The
-  browser-based create route `/iris/v2/appAvailabilities` was probed safely with
-  invalid payloads; Apple confirmed the required `availableInNewTerritories`,
-  `app`, and `territoryAvailabilities` shape. A correctly shaped single-USA
-  inline create with local territory ID still returned Apple's generic `500`, so
-  normal release availability remains an Apple-side blocker that should be
-  retried in the ASC UI or `asc web apps availability create` after web-session
-  auth is available.
+- App Review detail: the established real Ruvix review contact is saved, with
+  BabyRelay-specific review notes. Contact details are intentionally not copied
+  into this repository.
+- App availability: initialized on 2026-07-09 for all 175 territories, with new
+  territories enabled and no pre-order. The previous Apple route/API blocker is
+  cleared.
 - Browser / web-session retry: the Ruvix agent-browser profile is authenticated
   and shows the `J Mambwe Ruvix Ltd` account. Click-based navigation recovered
   the editable version form once on 2026-06-23, which proved the live metadata,
@@ -364,10 +370,8 @@ Remaining Android / Play blockers:
 
 Remaining App Store / subscription blockers:
 
-- Re-try App Store Connect after Apple's app/version route recovers: initialize
-  pricing availability and add App Review contact phone/details. Content rights
-  are confirmed as `DOES_NOT_USE_THIRD_PARTY_CONTENT`, and privacy nutrition is
-  now published.
+- Archive, upload, process, and select the first `1.0` build. ASC currently
+  reports no other validator blocker.
 - Build with `babyrelay-revenuecat-ios-sdk-key` and run a sandbox purchase
   smoke against the real offering.
 - Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
@@ -400,6 +404,8 @@ Remaining App Store / subscription blockers:
   fallback for local/testing builds.
 - Gleap SDK is installed. Settings opens in-app support when
   `GLEAP_SDK_KEY` is supplied, otherwise it falls back to the support email.
-- App tracking transparency is installed. `APPREFER_LINK_ID=babyrelay-meta`
-  enables the ATT request seam; AppRefer redirecting still needs the live store
-  destination URL.
+- App tracking transparency and AppRefer SDK `0.4.1` are installed. A release
+  build requires the live `APPREFER_API_KEY`; the SDK initializes only after the
+  first-visible-launch ATT path and bridges `appreferId` into RevenueCat.
+  `APPREFER_LINK_ID=babyrelay-meta` remains the caregiver-link identifier, and
+  AppRefer redirecting still needs the live store destination URL.

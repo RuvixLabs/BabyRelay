@@ -51,9 +51,10 @@ post_install do |installer|
   # Firestore/gRPC. CocoaPods can still emit dynamic `-framework` load flags in
   # the aggregate Runner xcconfigs, which makes simulator apps abort at launch
   # with dyld "Library not loaded" because those archives are not embeddable
-  # dynamic frameworks. Force-load the static archives instead.
+  # dynamic frameworks. Force-load the binary dependency archives instead, but
+  # let CocoaPods link the main FirebaseFirestore target so Xcode archive keeps
+  # the generated framework target ordering intact.
   firestore_dynamic_flags = [
-    '-framework "FirebaseFirestore"',
     '-framework "FirebaseFirestoreInternal"',
     '-weak_framework "FirebaseFirestoreInternal"',
     '-framework "absl"',
@@ -62,7 +63,6 @@ post_install do |installer|
     '-framework "openssl_grpc"',
   ]
   firestore_static_archives = [
-    '${PODS_CONFIGURATION_BUILD_DIR}/FirebaseFirestoreBinary/FirebaseFirestore.framework/FirebaseFirestore',
     '${PODS_ROOT}/FirebaseFirestoreInternalBinary/FirebaseFirestoreInternal.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/FirebaseFirestoreInternal.framework/FirebaseFirestoreInternal',
     '${PODS_ROOT}/FirebaseFirestoreAbseilBinary/absl.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/absl.framework/absl',
     '${PODS_ROOT}/FirebaseFirestoreGRPCCoreBinary/grpc.xcframework/${FIRESTORE_XCFRAMEWORK_SLICE}/grpc.framework/grpc',
@@ -86,7 +86,7 @@ post_install do |installer|
         firestore_dynamic_flags.each { |flag| line = line.gsub(flag, '') }
         line = line.gsub(/-force_load\s+"[^"]*(FirebaseFirestore|absl|grpc)[^"]*"/, '')
         line = line.gsub(/\s+/, ' ').strip
-        unless line.include?('FirebaseFirestoreBinary/FirebaseFirestore.framework/FirebaseFirestore')
+        unless line.include?('FirebaseFirestoreInternal.xcframework')
           line = "#{line} #{force_load_flags}"
         end
         changed = true

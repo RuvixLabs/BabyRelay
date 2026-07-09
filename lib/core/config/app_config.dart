@@ -9,6 +9,7 @@
 //   --dart-define=REVENUECAT_IOS_API_KEY=appl_... \
 //   --dart-define=REVENUECAT_ANDROID_API_KEY=goog_... \
 //   --dart-define=GLEAP_SDK_KEY=... \
+//   --dart-define=APPREFER_API_KEY=pk_live_... \
 //   --dart-define=APPREFER_LINK_ID=...
 // ```
 //
@@ -17,7 +18,7 @@
 import 'package:flutter/foundation.dart';
 
 abstract final class AppConfig {
-  static const String appVersion = '0.1.0';
+  static const String appVersion = '1.0';
 
   /// Always-available support channel; the Gleap widget replaces this as the
   /// primary path once [gleapSdkKey] is provided.
@@ -56,9 +57,32 @@ abstract final class AppConfig {
   }
 
   static const String gleapSdkKey = String.fromEnvironment('GLEAP_SDK_KEY');
+  static const String appReferApiKey = String.fromEnvironment(
+    'APPREFER_API_KEY',
+  );
   static const String appReferLinkId = String.fromEnvironment(
     'APPREFER_LINK_ID',
   );
+
+  static void validateReleaseConfiguration() {
+    validateAppReferReleaseKey(
+      releaseMode: kReleaseMode,
+      apiKey: appReferApiKey,
+    );
+  }
+}
+
+void validateAppReferReleaseKey({
+  required bool releaseMode,
+  required String apiKey,
+}) {
+  if (!releaseMode) return;
+  final isLiveKey = RegExp(r'^pk_live_[A-Za-z0-9_-]{8,}$').hasMatch(apiKey);
+  if (!isLiveKey) {
+    throw StateError(
+      'Release builds require a non-placeholder live APPREFER_API_KEY.',
+    );
+  }
 }
 
 // One production service the app integrates with, and whether this build
@@ -91,8 +115,8 @@ abstract final class Integrations {
     ),
     Integration(
       name: 'AppRefer',
-      detail: 'Attribution on caregiver invite links',
-      configured: AppConfig.appReferLinkId != '',
+      detail: 'Install attribution and RevenueCat identity bridge',
+      configured: AppConfig.appReferApiKey != '',
     ),
     Integration(
       name: 'Gleap',

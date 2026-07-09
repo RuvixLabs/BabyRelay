@@ -360,7 +360,10 @@ class _FakeFamilySyncAdapter implements FamilySyncAdapter {
   }
 
   @override
-  Future<void> deleteFamily(FamilyState state) async {}
+  Future<void> deleteCurrentUserRemoteData(FamilyState state) async {}
+
+  @override
+  Future<bool> deleteCurrentAuthIdentity() async => true;
 
   @override
   Future<void> dispose() => _controller.close();

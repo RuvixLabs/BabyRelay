@@ -376,6 +376,59 @@ void main() {
     },
   );
 
+  test(
+    'caregiver deletion leaves the family and cannot rehydrate on reopen',
+    () async {
+      final network = SharedFakeFamilySyncNetwork();
+      final ownerStore = InMemoryStore();
+      final joinerStore = InMemoryStore();
+      final ownerRepo = FamilyRepository(
+        ownerStore,
+        sync: network.adapterFor('owner_uid'),
+      );
+      final joinerRepo = FamilyRepository(
+        joinerStore,
+        sync: network.adapterFor('joiner_uid'),
+      );
+
+      await ownerRepo.completeOnboarding(
+        firstChild: BabyProfile(
+          id: '',
+          nickname: 'Mae',
+          dob: DateTime.now().subtract(const Duration(days: 210)),
+          wakeTimeMinutes: 7 * 60,
+          bedtimeMinutes: 19 * 60,
+          napsPerDayEstimate: 3,
+        ),
+        primaryCaregiverName: 'Sara',
+      );
+      final familyId = ownerRepo.state.familyId;
+      await joinerRepo.joinFamilyByInviteCode(
+        code: ownerRepo.state.inviteCode,
+        caregiverName: 'Nana',
+        allowOverFreeCaregiverLimit: true,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      await joinerRepo.deleteAllData();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(joinerRepo.state.onboarded, isFalse);
+      expect(await joinerStore.read('babyrelay.family.v1'), isNull);
+      expect(
+        network._families[familyId]!.activeCaregivers.map((c) => c.id),
+        ['owner_uid'],
+        reason: 'fanout member source must exclude the deleted caregiver',
+      );
+      expect(ownerRepo.state.activeCaregivers.map((c) => c.id), ['owner_uid']);
+
+      final reopened = FamilyRepository(joinerStore);
+      await reopened.load();
+      expect(reopened.state.onboarded, isFalse);
+      expect(reopened.state.familyId, isEmpty);
+    },
+  );
+
   test('persisted JSON carries the schema version and round-trips', () async {
     await onboard();
     await repo.logFeed(FeedKind.bottle);
@@ -686,18 +739,128 @@ void main() {
     await repo.deleteAllData();
 
     expect(sync.deletedFamilyIds, [familyId]);
+    expect(sync.deletedUserIds, [sync.userId]);
+    expect(sync.watchCancelCount, 1);
+    expect(sync.disposeCount, 1);
   });
+
+  test(
+    'remote snapshot emitted during deletion cannot restore local data',
+    () async {
+      final sync = FakeFamilySyncAdapter(emitRemoteDuringDelete: true);
+      repo = FamilyRepository(store, sync: sync);
+      await onboard();
+
+      await repo.deleteAllData();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(repo.state.onboarded, isFalse);
+      expect(repo.state.familyId, isEmpty);
+      expect(await store.read('babyrelay.family.v1'), isNull);
+    },
+  );
+
+  test(
+    'auth failure after remote cleanup never restores stale family data',
+    () async {
+      final sync = FakeFamilySyncAdapter(failAuthDeletion: true);
+      repo = FamilyRepository(store, sync: sync);
+      await onboard();
+
+      await expectLater(repo.deleteAllData(), throwsStateError);
+
+      expect(sync.deletedFamilyIds, hasLength(1));
+      expect(repo.state.onboarded, isFalse);
+      final reopened = FamilyRepository(store);
+      await reopened.load();
+      expect(reopened.state.onboarded, isFalse);
+      expect(reopened.state.familyId, isEmpty);
+    },
+  );
+
+  test('local key failure stays empty after remote cleanup', () async {
+    final failingStore = _DeleteFailingStore();
+    final sync = FakeFamilySyncAdapter();
+    final deletingRepo = FamilyRepository(failingStore, sync: sync);
+    await deletingRepo.completeOnboarding(
+      firstChild: BabyProfile(
+        id: '',
+        nickname: 'Mae',
+        dob: DateTime.now().subtract(const Duration(days: 210)),
+        wakeTimeMinutes: 7 * 60,
+        bedtimeMinutes: 19 * 60,
+        napsPerDayEstimate: 3,
+      ),
+      primaryCaregiverName: 'Sara',
+    );
+
+    await expectLater(deletingRepo.deleteAllData(), throwsStateError);
+
+    expect(sync.deletedFamilyIds, hasLength(1));
+    expect(deletingRepo.state.onboarded, isFalse);
+    final reopened = FamilyRepository(failingStore);
+    await reopened.load();
+    expect(reopened.state.onboarded, isFalse);
+    expect(reopened.state.familyId, isEmpty);
+  });
+
+  test(
+    'auth sign-out fallback is reported without retaining family data',
+    () async {
+      final sync = FakeFamilySyncAdapter(authIdentityDeleted: false);
+      repo = FamilyRepository(store, sync: sync);
+      await onboard();
+
+      final result = await repo.deleteAllData();
+
+      expect(result.authIdentityDeleted, isFalse);
+      expect(repo.state.onboarded, isFalse);
+      expect(await store.read('babyrelay.family.v1'), isNull);
+    },
+  );
+}
+
+class _DeleteFailingStore implements LocalStore {
+  final Map<String, String> _data = {};
+
+  @override
+  Future<void> delete(String key) async {
+    throw StateError('local delete failed');
+  }
+
+  @override
+  Future<String?> read(String key) async => _data[key];
+
+  @override
+  Future<void> write(String key, String value) async {
+    _data[key] = value;
+  }
 }
 
 class FakeFamilySyncAdapter implements FamilySyncAdapter {
-  FakeFamilySyncAdapter({this.joinedTemplate, this.userId = 'sync-user'});
+  FakeFamilySyncAdapter({
+    this.joinedTemplate,
+    this.userId = 'sync-user',
+    this.emitRemoteDuringDelete = false,
+    this.failAuthDeletion = false,
+    this.authIdentityDeleted = true,
+  });
 
   final FamilyState? joinedTemplate;
   final savedStates = <FamilyState>[];
   final previousInviteCodes = <String>[];
   final joinedCodes = <String>[];
   final deletedFamilyIds = <String>[];
-  final _controller = StreamController<FamilyState>.broadcast();
+  final leftFamilyIds = <String>[];
+  final deletedUserIds = <String>[];
+  final bool emitRemoteDuringDelete;
+  final bool failAuthDeletion;
+  final bool authIdentityDeleted;
+  int watchCancelCount = 0;
+  int disposeCount = 0;
+  late final _controller = StreamController<FamilyState>.broadcast(
+    onCancel: () => watchCancelCount += 1,
+  );
   int _familyCounter = 0;
 
   @override
@@ -746,12 +909,27 @@ class FakeFamilySyncAdapter implements FamilySyncAdapter {
   }
 
   @override
-  Future<void> deleteFamily(FamilyState state) async {
-    deletedFamilyIds.add(state.familyId);
+  Future<void> deleteCurrentUserRemoteData(FamilyState state) async {
+    if (state.currentCaregiver?.isOwner == true) {
+      deletedFamilyIds.add(state.familyId);
+    } else {
+      leftFamilyIds.add(state.familyId);
+    }
+    deletedUserIds.add(userId);
+    if (emitRemoteDuringDelete) _controller.add(state);
   }
 
   @override
-  Future<void> dispose() => _controller.close();
+  Future<bool> deleteCurrentAuthIdentity() async {
+    if (failAuthDeletion) throw StateError('auth delete failed');
+    return authIdentityDeleted;
+  }
+
+  @override
+  Future<void> dispose() async {
+    disposeCount += 1;
+    await _controller.close();
+  }
 }
 
 class SharedFakeFamilySyncNetwork {
@@ -883,7 +1061,31 @@ class _SharedFakeFamilySyncAdapter implements FamilySyncAdapter {
   }
 
   @override
-  Future<void> deleteFamily(FamilyState state) => _network.deleteFamily(state);
+  Future<void> deleteCurrentUserRemoteData(FamilyState state) async {
+    if (state.currentCaregiver?.isOwner == true) {
+      await _network.deleteFamily(state);
+      return;
+    }
+    final current = _network._families[state.familyId];
+    if (current == null) return;
+    final next = current.copyWith(
+      caregivers: current.caregivers
+          .where((caregiver) => caregiver.id != userId)
+          .toList(),
+      currentCaregiverId: current.currentCaregiverId == userId
+          ? current.caregivers
+                    .where((caregiver) => caregiver.id != userId)
+                    .map((caregiver) => caregiver.id)
+                    .firstOrNull ??
+                ''
+          : current.currentCaregiverId,
+    );
+    _network._families[state.familyId] = next;
+    _network._controllers[state.familyId]?.add(next);
+  }
+
+  @override
+  Future<bool> deleteCurrentAuthIdentity() async => true;
 
   @override
   Future<void> dispose() async {}

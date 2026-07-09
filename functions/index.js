@@ -8,11 +8,16 @@ const {GoogleAuth} = require("google-auth-library");
 
 const {
   buildAndroidSleepMessage,
+  buildIosFallbackSleepMessage,
   buildIosLiveActivityMessage,
   isOngoingSleep,
   liveSleepState,
   shouldProcessSleepWrite,
 } = require("./lib/sleepLiveActivity");
+const {
+  clearInvalidTokenIfCurrent,
+  invalidTokenTarget,
+} = require("./lib/tokenCleanup");
 
 admin.initializeApp();
 
@@ -122,16 +127,31 @@ async function sendDeviceSleepSurface({
         fcmToken: device.fcmToken,
         state,
       }),
+      invalidTokenHandlersForDevice(device),
     );
     return;
   }
 
   if (device.platform !== "ios") return;
+  let endedActivityCount = 0;
   if (endedEventId && (!state || state.eventId !== endedEventId)) {
-    await endIosActivitiesForDevice(device, endedEventId, nowSeconds);
+    endedActivityCount = await endIosActivitiesForDevice(
+      device,
+      endedEventId,
+      nowSeconds,
+    );
   }
   if (!state) {
-    await endIosActivitiesForDevice(device, endedEventId, nowSeconds);
+    if (endedActivityCount === 0) {
+      endedActivityCount = await endIosActivitiesForDevice(
+        device,
+        endedEventId,
+        nowSeconds,
+      );
+    }
+    if (endedActivityCount === 0) {
+      await sendIosFallbackNotification(device, null);
+    }
     return;
   }
 
@@ -147,6 +167,14 @@ async function sendDeviceSleepSurface({
         state,
         nowSeconds,
       }),
+      {
+        onInvalidFcmToken: () => clearDeviceFcmToken(device),
+        onInvalidApnsToken: () => clearActivityUpdateToken(
+          activityRef,
+          activity.updateToken,
+        ),
+        tokenKind: "activity_update",
+      },
     );
     return;
   }
@@ -154,8 +182,11 @@ async function sendDeviceSleepSurface({
     return;
   }
 
-  if (!device.activityKitPushToStartToken) return;
-  await sendFcmMessage(
+  if (!device.activityKitPushToStartToken) {
+    await sendIosFallbackNotification(device, state);
+    return;
+  }
+  const startSent = await sendFcmMessage(
     buildIosLiveActivityMessage({
       fcmToken: device.fcmToken,
       liveActivityToken: device.activityKitPushToStartToken,
@@ -163,7 +194,13 @@ async function sendDeviceSleepSurface({
       state,
       nowSeconds,
     }),
+    {
+      onInvalidFcmToken: () => clearDeviceFcmToken(device),
+      onInvalidApnsToken: () => clearPushToStartToken(device),
+      tokenKind: "activity_push_to_start",
+    },
   );
+  if (!startSent) return;
   await activityRef.set({
     id: state.eventId,
     eventId: state.eventId,
@@ -201,6 +238,14 @@ async function endIosActivitiesForDevice(device, endedEventId, nowSeconds) {
           },
           nowSeconds,
         }),
+        {
+          onInvalidFcmToken: () => clearDeviceFcmToken(device),
+          onInvalidApnsToken: () => clearActivityUpdateToken(
+            doc.ref,
+            activity.updateToken,
+          ),
+          tokenKind: "activity_end",
+        },
       ).then(() => doc.ref.set({
         active: false,
         endedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -209,9 +254,63 @@ async function endIosActivitiesForDevice(device, endedEventId, nowSeconds) {
     );
   }
   await Promise.all(updates);
+  return updates.length;
 }
 
-async function sendFcmMessage(message) {
+async function sendIosFallbackNotification(device, state) {
+  await sendFcmMessage(
+    buildIosFallbackSleepMessage({
+      fcmToken: device.fcmToken,
+      state,
+    }),
+    invalidTokenHandlersForDevice(device),
+  );
+}
+
+function invalidTokenHandlersForDevice(device) {
+  return {
+    onInvalidFcmToken: () => clearDeviceFcmToken(device),
+    tokenKind: "fcm_registration",
+  };
+}
+
+async function clearDeviceFcmToken(device) {
+  return clearInvalidTokenIfCurrent({
+    firestore: db,
+    ref: device.ref,
+    field: "fcmToken",
+    sentToken: device.fcmToken,
+    deactivate: true,
+    deleteValue: admin.firestore.FieldValue.delete(),
+    serverTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function clearPushToStartToken(device) {
+  return clearInvalidTokenIfCurrent({
+    firestore: db,
+    ref: device.ref,
+    field: "activityKitPushToStartToken",
+    sentToken: device.activityKitPushToStartToken,
+    deactivate: false,
+    deleteValue: admin.firestore.FieldValue.delete(),
+    serverTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function clearActivityUpdateToken(activityRef, token) {
+  return clearInvalidTokenIfCurrent({
+    firestore: db,
+    ref: activityRef,
+    field: "updateToken",
+    sentToken: token,
+    deactivate: true,
+    deleteValue: admin.firestore.FieldValue.delete(),
+    serverTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+async function sendFcmMessage(message, handlers = {}) {
   try {
     const client = await messagingAuth.getClient();
     const projectId = process.env.GCLOUD_PROJECT ||
@@ -222,10 +321,21 @@ async function sendFcmMessage(message) {
       method: "POST",
       data: {message},
     });
+    return true;
   } catch (error) {
     const code = error && error.response && error.response.status;
     if (code === 404 || code === 410) {
-      logger.info("Pruning invalid sleep push token", {code});
+      const target = invalidTokenTarget(error, message);
+      const cleanup = target === "apns"
+        ? handlers.onInvalidApnsToken
+        : handlers.onInvalidFcmToken;
+      const removed = cleanup ? await cleanup() : false;
+      logger.info("Invalid sleep push token handled", {
+        code,
+        removed,
+        tokenKind: handlers.tokenKind || target,
+      });
+      return false;
     } else {
       throw error;
     }

@@ -27,6 +27,7 @@ import 'data/local_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppConfig.validateReleaseConfiguration();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   final store = await SharedPrefsStore.create();
@@ -88,7 +89,7 @@ Future<void> main() async {
     gleapSdkKey: AppConfig.gleapSdkKey,
   );
   final attributionService = AttributionService(
-    configured: AppConfig.appReferLinkId.isNotEmpty,
+    apiKey: AppConfig.appReferApiKey,
   );
   final sleepRuntimeService = await SleepRuntimeService.create(
     familyRepository: familyRepository,

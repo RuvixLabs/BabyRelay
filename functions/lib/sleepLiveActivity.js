@@ -133,6 +133,46 @@ function buildAndroidSleepMessage({fcmToken, state}) {
   };
 }
 
+function buildIosFallbackSleepMessage({fcmToken, state}) {
+  const ending = state == null;
+  const title = ending
+    ? "Sleep ended"
+    : state.activeSleepCount > 1
+      ? `${state.activeSleepCount} children sleeping`
+      : `${state.childName} is sleeping`;
+  const body = ending ? "The shared sleep timer has ended." : state.activeSleepSummary;
+  const data = {
+    [REMOTE_SLEEP_TYPE_KEY]: ending
+      ? REMOTE_SLEEP_END_TYPE
+      : REMOTE_SLEEP_UPDATE_TYPE,
+  };
+  if (state) {
+    Object.assign(data, {
+      eventId: state.eventId,
+      childName: state.childName,
+      startedAtMillis: String(state.startedAtMillis),
+      activeSleepCount: String(state.activeSleepCount),
+      activeSleepSummary: state.activeSleepSummary,
+    });
+  }
+  return {
+    token: fcmToken,
+    data,
+    apns: {
+      headers: {
+        "apns-priority": "10",
+      },
+      payload: {
+        aps: {
+          alert: {title, body},
+          sound: "default",
+          "content-available": 1,
+        },
+      },
+    },
+  };
+}
+
 function shouldProcessSleepWrite(before, after) {
   return (before && before.type === "sleep") || (after && after.type === "sleep");
 }
@@ -144,6 +184,7 @@ module.exports = {
   REMOTE_SLEEP_END_TYPE,
   activeSleepSummary,
   buildAndroidSleepMessage,
+  buildIosFallbackSleepMessage,
   buildIosLiveActivityMessage,
   isOngoingSleep,
   liveSleepState,

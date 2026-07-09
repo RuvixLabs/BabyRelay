@@ -54,6 +54,7 @@ abstract class ActivityKitTokenSource {
 }
 
 abstract class RemoteMessagingTokenSource {
+  Future<String?> getAPNSToken();
   Future<String?> getToken();
   Stream<String> get onTokenRefresh;
   Stream<Map<String, dynamic>> get foregroundMessages;
@@ -68,25 +69,42 @@ class SleepRemoteSyncService {
     required RemoteMessagingTokenSource messaging,
     required ActivityKitTokenSource activityKitTokens,
     String? platform,
+    Stream<String?>? userIdChanges,
+    List<Duration>? initialTokenRetryDelays,
+    Future<void> Function(Duration)? delay,
   }) : _repo = familyRepository,
        _userId = userId,
        _deviceId = deviceId,
        _tokenStore = tokenStore,
        _messaging = messaging,
        _activityKitTokens = activityKitTokens,
-       _platform = platform ?? _platformName();
+       _platform = platform ?? _platformName(),
+       _userIdChanges = userIdChanges ?? const Stream<String?>.empty(),
+       _initialTokenRetryDelays =
+           initialTokenRetryDelays ??
+           const [
+             Duration(milliseconds: 500),
+             Duration(seconds: 2),
+             Duration(seconds: 5),
+           ],
+       _delay = delay ?? Future<void>.delayed;
 
   final FamilyRepository _repo;
-  final String _userId;
+  String? _userId;
   final String _deviceId;
   final SleepRemoteTokenStore _tokenStore;
   final RemoteMessagingTokenSource _messaging;
   final ActivityKitTokenSource _activityKitTokens;
   final String _platform;
+  final Stream<String?> _userIdChanges;
+  final List<Duration> _initialTokenRetryDelays;
+  final Future<void> Function(Duration) _delay;
 
   final List<StreamSubscription<dynamic>> _subscriptions = [];
   String? _fcmToken;
   bool _started = false;
+  bool _disposed = false;
+  int _tokenRevision = 0;
 
   static Future<SleepRemoteSyncService> create({
     required FamilyRepository familyRepository,
@@ -111,6 +129,10 @@ class SleepRemoteSyncService {
         messaging ?? FirebaseMessaging.instance,
       ),
       activityKitTokens: MethodChannelActivityKitTokenSource(),
+      userIdChanges: resolvedAuth
+          .userChanges()
+          .map((user) => user?.uid)
+          .distinct(),
     );
     await service.start();
     return service;
@@ -121,14 +143,15 @@ class SleepRemoteSyncService {
     _started = true;
     _repo.addListener(_handleRepositoryChanged);
 
-    _fcmToken = await _messaging.getToken();
-    await _upsertCurrentDevice();
-
     _subscriptions.add(
-      _messaging.onTokenRefresh.listen((token) async {
-        _fcmToken = token;
-        await _upsertCurrentDevice();
-      }),
+      _userIdChanges.listen(
+        (userId) => unawaited(_handleUserIdChanged(userId)),
+      ),
+    );
+    _subscriptions.add(
+      _messaging.onTokenRefresh.listen(
+        (token) => unawaited(_handleTokenRefresh(token)),
+      ),
     );
     _subscriptions.add(
       _messaging.foregroundMessages.listen(
@@ -138,9 +161,16 @@ class SleepRemoteSyncService {
     _subscriptions.add(
       _activityKitTokens.updates.listen(_handleActivityKitToken),
     );
+
+    final loaded = await _tryLoadInitialToken();
+    await _upsertCurrentDevice();
+    if (!loaded && _initialTokenRetryDelays.isNotEmpty) {
+      unawaited(_retryInitialToken());
+    }
   }
 
   Future<void> dispose() async {
+    _disposed = true;
     _repo.removeListener(_handleRepositoryChanged);
     for (final subscription in _subscriptions) {
       await subscription.cancel();
@@ -152,11 +182,61 @@ class SleepRemoteSyncService {
     unawaited(_upsertCurrentDevice());
   }
 
+  Future<void> _handleTokenRefresh(String token) async {
+    if (_disposed || token.isEmpty) return;
+    _tokenRevision += 1;
+    _fcmToken = token;
+    await _upsertCurrentDevice();
+  }
+
+  Future<void> _handleUserIdChanged(String? userId) async {
+    if (_disposed || _userId == userId) return;
+    _userId = userId;
+    if (userId != null && userId.isNotEmpty) {
+      await _upsertCurrentDevice();
+    }
+  }
+
+  Future<bool> _tryLoadInitialToken() async {
+    final revision = _tokenRevision;
+    try {
+      if (_platform == 'ios') {
+        final apnsToken = await _messaging.getAPNSToken();
+        if (apnsToken == null || apnsToken.isEmpty) return false;
+      }
+      final token = await _messaging.getToken();
+      if (token == null || token.isEmpty) return false;
+      if (revision == _tokenRevision) {
+        _fcmToken = token;
+      }
+      return true;
+    } catch (_) {
+      if (kDebugMode) {
+        debugPrint(
+          '[sleep-sync] FCM token is not ready; refresh/retry remains active.',
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<void> _retryInitialToken() async {
+    for (final retryDelay in _initialTokenRetryDelays) {
+      await _delay(retryDelay);
+      if (_disposed || _fcmToken != null) return;
+      if (await _tryLoadInitialToken()) {
+        await _upsertCurrentDevice();
+        return;
+      }
+    }
+  }
+
   Future<void> _upsertCurrentDevice() async {
     final familyId = _repo.state.familyId;
-    if (familyId.isEmpty) return;
+    final userId = _userId;
+    if (familyId.isEmpty || userId == null || userId.isEmpty) return;
     await _tokenStore.upsertDevice(
-      userId: _userId,
+      userId: userId,
       deviceId: _deviceId,
       familyId: familyId,
       platform: _platform,
@@ -166,11 +246,17 @@ class SleepRemoteSyncService {
 
   Future<void> _handleActivityKitToken(ActivityKitTokenUpdate update) async {
     final familyId = _repo.state.familyId;
-    if (familyId.isEmpty || update.token.isEmpty) return;
+    final userId = _userId;
+    if (familyId.isEmpty ||
+        userId == null ||
+        userId.isEmpty ||
+        update.token.isEmpty) {
+      return;
+    }
     switch (update.kind) {
       case ActivityKitTokenKind.pushToStart:
         await _tokenStore.saveActivityKitPushToStartToken(
-          userId: _userId,
+          userId: userId,
           deviceId: _deviceId,
           familyId: familyId,
           token: update.token,
@@ -179,7 +265,7 @@ class SleepRemoteSyncService {
         final eventId = update.eventId;
         if (eventId == null || eventId.isEmpty) return;
         await _tokenStore.saveActivityKitUpdateToken(
-          userId: _userId,
+          userId: userId,
           deviceId: _deviceId,
           familyId: familyId,
           eventId: eventId,
@@ -283,6 +369,9 @@ class FirebaseRemoteMessagingTokenSource implements RemoteMessagingTokenSource {
   FirebaseRemoteMessagingTokenSource(this._messaging);
 
   final FirebaseMessaging _messaging;
+
+  @override
+  Future<String?> getAPNSToken() => _messaging.getAPNSToken();
 
   @override
   Future<String?> getToken() => _messaging.getToken();

@@ -226,7 +226,13 @@ abstract class FamilySyncAdapter {
     required bool allowOverFreeCaregiverLimit,
   });
 
-  Future<void> deleteFamily(FamilyState state);
+  /// Remove this authenticated user's remote footprint. Owners delete the
+  /// family; caregivers leave it. This is the irreversible cleanup boundary.
+  Future<void> deleteCurrentUserRemoteData(FamilyState state);
+
+  /// Delete the anonymous Auth account. Implementations may sign out as a
+  /// safe reset fallback and return false when server-side deletion fails.
+  Future<bool> deleteCurrentAuthIdentity();
 
   Future<void> dispose() async {}
 }
@@ -319,6 +325,7 @@ class FamilyRepository extends ChangeNotifier {
     unawaited(_remoteSubscription?.cancel());
     _watchedFamilyId = familyId;
     _remoteSubscription = sync.watchFamily(familyId).listen((remote) async {
+      if (_watchedFamilyId != familyId) return;
       if (_applyingRemote) return;
       _applyingRemote = true;
       try {
@@ -330,6 +337,13 @@ class FamilyRepository extends ChangeNotifier {
         _applyingRemote = false;
       }
     });
+  }
+
+  Future<void> _stopWatchingFamily() async {
+    final subscription = _remoteSubscription;
+    _remoteSubscription = null;
+    _watchedFamilyId = null;
+    await subscription?.cancel();
   }
 
   FamilyState _mergeRemoteFamilyState(FamilyState remote) {
@@ -829,14 +843,48 @@ class FamilyRepository extends ChangeNotifier {
     'family': _state.toJson(),
   });
 
-  Future<void> deleteAllData() async {
+  Future<DataDeletionResult> deleteAllData() async {
     final sync = _sync;
     final stateToDelete = _state;
-    _state = const FamilyState();
+    const emptyState = FamilyState();
+    final emptyPayload = jsonEncode(emptyState.toJson());
+    var remoteCleanupComplete = sync == null;
+    bool? authIdentityDeleted;
+    await _stopWatchingFamily();
+    _state = emptyState;
     notifyListeners();
-    await _store.delete(_storageKey);
-    if (sync != null && stateToDelete.currentCaregiver?.isOwner == true) {
-      await sync.deleteFamily(stateToDelete);
+    try {
+      // Persist empty state before any irreversible remote mutation. If the
+      // final key removal fails, a reopen still cannot restore old family data.
+      await _store.write(_storageKey, emptyPayload);
+      if (sync != null) {
+        await sync.deleteCurrentUserRemoteData(stateToDelete);
+        remoteCleanupComplete = true;
+        authIdentityDeleted = await sync.deleteCurrentAuthIdentity();
+        await sync.dispose();
+        _sync = null;
+      }
+      await _store.delete(_storageKey);
+      return DataDeletionResult(authIdentityDeleted: authIdentityDeleted);
+    } catch (_) {
+      if (!remoteCleanupComplete) {
+        _state = stateToDelete;
+        notifyListeners();
+        await _store.write(_storageKey, jsonEncode(stateToDelete.toJson()));
+        if (sync != null && stateToDelete.familyId.isNotEmpty) {
+          _watchFamily(stateToDelete.familyId);
+        }
+      } else {
+        // Remote leave/delete already happened. Never resurrect stale local
+        // state or restart its watch, even if Auth cleanup or key removal fails.
+        if (sync != null) {
+          try {
+            await sync.dispose();
+          } catch (_) {}
+          _sync = null;
+        }
+      }
+      rethrow;
     }
   }
 
@@ -967,6 +1015,14 @@ class FamilyRepository extends ChangeNotifier {
     unawaited(_sync?.dispose());
     super.dispose();
   }
+}
+
+class DataDeletionResult {
+  const DataDeletionResult({required this.authIdentityDeleted});
+
+  /// Null for local-only builds, true when Firebase deleted the anonymous
+  /// account, false when it safely signed out after server deletion failed.
+  final bool? authIdentityDeleted;
 }
 
 extension<T> on Iterable<T> {
