@@ -6,8 +6,8 @@ import '../../data/local_store.dart';
 
 enum PlanId { specialAnnual, annual, monthly }
 
-/// Store product identifiers. The RevenueCat offering maps them to [PlanId]s,
-/// so nothing else in the app touches raw product ids.
+/// Store product identifiers. Superwall maps all three products to the `pro`
+/// entitlement, so nothing else in the app touches raw product identifiers.
 abstract final class ProductIds {
   static const String specialAnnual = 'babyrelay_pro_special_annual';
   static const String monthly = 'babyrelay_pro_monthly';
@@ -70,10 +70,12 @@ enum PurchaseOutcome { success, cancelled, failed }
 /// device, never purchased" case and gets neutral copy, not an error.
 enum RestoreOutcome { restored, nothingToRestore, failed }
 
-/// Subscription seam. Screens depend only on this interface; the shipped
-/// implementation today is [LocalPurchaseService], and the RevenueCat-backed
-/// one replaces it behind the same surface once a platform RevenueCat key is
-/// provided (entitlement id: [entitlementId]).
+/// Outcome of presenting a remotely configured Superwall paywall.
+enum PaywallOutcome { purchased, restored, dismissed, skipped, failed }
+
+/// Subscription seam. Release builds use Superwall-primary purchases and
+/// remotely configured paywalls. [LocalPurchaseService] remains a debug/test
+/// simulator only; it is never selected by a correctly configured release.
 abstract class PurchaseService extends ChangeNotifier {
   static const entitlementId = 'pro';
   static const fallbackPlans = [
@@ -121,10 +123,12 @@ abstract class PurchaseService extends ChangeNotifier {
   /// [RestoreOutcome.failed], for the error snackbar.
   String? get lastErrorMessage;
 
-  /// Plans to offer. Local builds use a fixed catalog; the RevenueCat
-  /// implementation builds these from the current offering so price strings
-  /// always come from the store.
+  /// Plans shown by the local debug/test paywall. Superwall release paywalls
+  /// receive localized product and trial details directly from the store.
   List<Plan> get plans;
+
+  /// Whether this service presents the dashboard-controlled Superwall UI.
+  bool get usesRemotePaywalls => false;
 
   bool get inTrial =>
       isPro && trialEndsAt != null && DateTime.now().isBefore(trialEndsAt!);
@@ -132,11 +136,18 @@ abstract class PurchaseService extends ChangeNotifier {
   Future<void> load();
   Future<PurchaseOutcome> purchase(Plan plan);
   Future<RestoreOutcome> restore();
+
+  Future<PaywallOutcome> presentPaywall(
+    String placement, {
+    Map<String, Object>? params,
+  }) async {
+    return PaywallOutcome.skipped;
+  }
 }
 
 /// On-device implementation: simulates the store flow and persists the
-/// entitlement locally. Explicitly NOT a billing system — it exists so the
-/// whole paywall/entitlement UX is real and testable before RevenueCat lands.
+/// entitlement locally. Explicitly NOT a billing system — it exists only so
+/// debug builds and widget tests can exercise every paywall outcome.
 class LocalPurchaseService extends PurchaseService {
   LocalPurchaseService(this._store, {Duration? actionDelay})
     : _actionDelay = actionDelay ?? const Duration(milliseconds: 1200);

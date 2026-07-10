@@ -1,7 +1,7 @@
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:apprefer/apprefer.dart';
 import 'package:flutter/foundation.dart';
-import 'package:purchases_flutter/purchases_flutter.dart' as rc;
+import 'package:superwallkit_flutter/superwallkit_flutter.dart';
 
 abstract interface class AttributionPlatform {
   Future<TrackingStatus> getTrackingAuthorizationStatus();
@@ -10,15 +10,13 @@ abstract interface class AttributionPlatform {
 
   Future<void> configureAppRefer(String apiKey);
 
-  Future<bool> isRevenueCatConfigured();
-
-  Future<String> getRevenueCatAppUserId();
+  Future<bool> waitForSuperwallConfiguration();
 
   Future<void> setAppReferUserId(String userId);
 
   Future<String?> getAppReferDeviceId();
 
-  Future<void> setRevenueCatAttributes(Map<String, String> attributes);
+  Future<void> setSuperwallAttributes(Map<String, Object> attributes);
 }
 
 class ProductionAttributionPlatform implements AttributionPlatform {
@@ -44,10 +42,14 @@ class ProductionAttributionPlatform implements AttributionPlatform {
   }
 
   @override
-  Future<bool> isRevenueCatConfigured() => rc.Purchases.isConfigured;
-
-  @override
-  Future<String> getRevenueCatAppUserId() => rc.Purchases.appUserID;
+  Future<bool> waitForSuperwallConfiguration() async {
+    final deadline = DateTime.now().add(const Duration(seconds: 8));
+    do {
+      if (await Superwall.shared.getIsConfigured()) return true;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    } while (DateTime.now().isBefore(deadline));
+    return false;
+  }
 
   @override
   Future<void> setAppReferUserId(String userId) =>
@@ -57,13 +59,14 @@ class ProductionAttributionPlatform implements AttributionPlatform {
   Future<String?> getAppReferDeviceId() => AppReferSDK.getDeviceId();
 
   @override
-  Future<void> setRevenueCatAttributes(Map<String, String> attributes) =>
-      rc.Purchases.setAttributes(attributes);
+  Future<void> setSuperwallAttributes(Map<String, Object> attributes) =>
+      Superwall.shared.setUserAttributes(attributes);
 }
 
 class AttributionService {
   AttributionService({
     required this.apiKey,
+    this.userId = '',
     AttributionPlatform? platform,
     bool? shouldRequestTrackingAuthorization,
     Future<void> Function(Duration)? delay,
@@ -74,6 +77,7 @@ class AttributionService {
        _delay = delay ?? Future<void>.delayed;
 
   final String apiKey;
+  final String userId;
   final AttributionPlatform _platform;
   final bool _shouldRequestTrackingAuthorization;
   final Future<void> Function(Duration) _delay;
@@ -104,7 +108,8 @@ class AttributionService {
     // when the user denies tracking or the ATT API is unavailable.
     try {
       await _platform.configureAppRefer(apiKey);
-      await _bridgeRevenueCatIdentity();
+      if (userId.isNotEmpty) await _platform.setAppReferUserId(userId);
+      await _bridgeSuperwallAttribution();
     } catch (error) {
       if (kDebugMode) {
         debugPrint('[attribution] AppRefer initialization failed: $error');
@@ -112,16 +117,10 @@ class AttributionService {
     }
   }
 
-  Future<void> _bridgeRevenueCatIdentity() async {
-    if (!await _platform.isRevenueCatConfigured()) return;
-
-    final appUserId = await _platform.getRevenueCatAppUserId();
-    if (appUserId.isNotEmpty) {
-      await _platform.setAppReferUserId(appUserId);
-    }
-
+  Future<void> _bridgeSuperwallAttribution() async {
+    if (!await _platform.waitForSuperwallConfiguration()) return;
     final appReferId = await _platform.getAppReferDeviceId();
     if (appReferId == null || appReferId.isEmpty) return;
-    await _platform.setRevenueCatAttributes({'appreferId': appReferId});
+    await _platform.setSuperwallAttributes({'appreferId': appReferId});
   }
 }

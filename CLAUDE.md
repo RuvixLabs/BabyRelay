@@ -123,8 +123,9 @@ Provider keys arrive via `--dart-define` (never committed) and surface in
    care logs at `families/{id}/events`. The live listener is bounded to the
    most recent 500 events so app opens and live updates do not scale with
    all-time history.
-2. RevenueCat: implement `PurchaseService` against the SDK (entitlement
-   `pro`, product ids in `ProductIds`); plans come from offerings so price
-   strings are store-driven.
+2. Superwall: `SuperwallPurchaseService` is the release implementation. It
+   configures without blocking first paint, presents remotely managed paywalls
+   for the four placements, and treats entitlement `pro` as authoritative.
+   Keep the local service debug/test-only.
 3. AppRefer: override `InviteService.decorateLink` with the tracked link.
 4. Gleap: wire the Settings support row (email fallback already live).

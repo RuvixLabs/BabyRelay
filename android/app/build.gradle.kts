@@ -25,7 +25,7 @@ android {
     defaultConfig {
         applicationId = "com.ruvixlabs.babyrelay"
         multiDexEnabled = true
-        minSdk = flutter.minSdkVersion
+        minSdk = 26
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

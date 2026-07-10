@@ -3,12 +3,13 @@ import 'package:babyrelay/core/attribution/attribution_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('ATT finishes before AppRefer and RevenueCat identity bridge', () async {
+  test('ATT finishes before AppRefer and Superwall identity bridge', () async {
     final platform = _FakeAttributionPlatform(
       trackingStatus: TrackingStatus.notDetermined,
     );
     final service = AttributionService(
       apiKey: 'pk_test_example123',
+      userId: 'family_user',
       platform: platform,
       shouldRequestTrackingAuthorization: true,
       delay: (duration) async {
@@ -24,11 +25,10 @@ void main() {
       'delay',
       'att_request',
       'apprefer_configure',
-      'revenuecat_status',
-      'revenuecat_user_id',
-      'apprefer_user_id:rc_user',
+      'apprefer_user_id:family_user',
+      'superwall_status',
       'apprefer_device_id',
-      'revenuecat_attributes',
+      'superwall_attributes',
     ]);
     expect(platform.attributes, {'appreferId': 'ar_device'});
   });
@@ -36,7 +36,7 @@ void main() {
   test('denied ATT still initializes AppRefer', () async {
     final platform = _FakeAttributionPlatform(
       trackingStatus: TrackingStatus.denied,
-      revenueCatConfigured: false,
+      superwallConfigured: false,
     );
     final service = AttributionService(
       apiKey: 'pk_test_example123',
@@ -49,7 +49,7 @@ void main() {
     expect(platform.events, [
       'att_status',
       'apprefer_configure',
-      'revenuecat_status',
+      'superwall_status',
     ]);
   });
 
@@ -57,7 +57,7 @@ void main() {
     final platform = _FakeAttributionPlatform(
       trackingStatus: TrackingStatus.notDetermined,
       failTrackingStatus: true,
-      revenueCatConfigured: false,
+      superwallConfigured: false,
     );
     final service = AttributionService(
       apiKey: 'pk_test_example123',
@@ -70,7 +70,7 @@ void main() {
     expect(platform.events, [
       'att_status',
       'apprefer_configure',
-      'revenuecat_status',
+      'superwall_status',
     ]);
   });
 
@@ -90,7 +90,7 @@ void main() {
 
       final platform = _FakeAttributionPlatform(
         trackingStatus: TrackingStatus.authorized,
-        revenueCatConfigured: false,
+        superwallConfigured: false,
       );
       final service = AttributionService(
         apiKey: 'pk_test_example123',
@@ -111,12 +111,12 @@ class _FakeAttributionPlatform implements AttributionPlatform {
   _FakeAttributionPlatform({
     required this.trackingStatus,
     this.failTrackingStatus = false,
-    this.revenueCatConfigured = true,
+    this.superwallConfigured = true,
   });
 
   final TrackingStatus trackingStatus;
   final bool failTrackingStatus;
-  final bool revenueCatConfigured;
+  final bool superwallConfigured;
   final List<String> events = [];
   Map<String, String>? attributes;
 
@@ -133,12 +133,6 @@ class _FakeAttributionPlatform implements AttributionPlatform {
   }
 
   @override
-  Future<String> getRevenueCatAppUserId() async {
-    events.add('revenuecat_user_id');
-    return 'rc_user';
-  }
-
-  @override
   Future<TrackingStatus> getTrackingAuthorizationStatus() async {
     events.add('att_status');
     if (failTrackingStatus) throw StateError('ATT unavailable');
@@ -146,9 +140,9 @@ class _FakeAttributionPlatform implements AttributionPlatform {
   }
 
   @override
-  Future<bool> isRevenueCatConfigured() async {
-    events.add('revenuecat_status');
-    return revenueCatConfigured;
+  Future<bool> waitForSuperwallConfiguration() async {
+    events.add('superwall_status');
+    return superwallConfigured;
   }
 
   @override
@@ -163,8 +157,8 @@ class _FakeAttributionPlatform implements AttributionPlatform {
   }
 
   @override
-  Future<void> setRevenueCatAttributes(Map<String, String> attributes) async {
-    events.add('revenuecat_attributes');
-    this.attributes = attributes;
+  Future<void> setSuperwallAttributes(Map<String, Object> attributes) async {
+    events.add('superwall_attributes');
+    this.attributes = attributes.cast<String, String>();
   }
 }

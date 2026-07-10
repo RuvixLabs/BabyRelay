@@ -49,8 +49,13 @@ GoRouter buildRouter(FamilyRepository familyRepository) {
       GoRoute(
         path: '/paywall',
         parentNavigatorKey: _rootNavigatorKey,
-        pageBuilder: (context, state) =>
-            const MaterialPage(fullscreenDialog: true, child: PaywallScreen()),
+        pageBuilder: (context, state) => MaterialPage(
+          fullscreenDialog: true,
+          child: PaywallScreen(
+            placement:
+                state.uri.queryParameters['placement'] ?? 'settings_upgrade',
+          ),
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

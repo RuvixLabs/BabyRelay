@@ -11,8 +11,8 @@ plain-language handoff summary for the next caregiver.
 ## Status
 
 Release-candidate app. Runs fully on-device with local persistence when no
-credentials are supplied, and switches on Firebase sync, RevenueCat purchases,
-Gleap support, and the AppRefer/ATT seam through build-time defines (see
+credentials are supplied, and switches on Firebase sync, Superwall paywalls and
+subscriptions, Gleap support, and the AppRefer/ATT seam through build-time defines (see
 `lib/main.dart`, `lib/core/config/app_config.dart`, and Settings →
 Integrations in debug builds).
 
@@ -33,12 +33,12 @@ dart format lib test
 
 ```text
 lib/
-  main.dart                 # composition root (Firebase/RevenueCat/Gleap seams)
+  main.dart                 # composition root (Firebase/Superwall/Gleap seams)
   app/                      # MaterialApp.router, go_router routes, nav shell
   core/
     analytics/              # privacy-safe allowlisted analytics wrapper
     design/                 # RelayTheme (warm light + night dark), shared widgets
-    purchases/              # PurchaseService — local + RevenueCat entitlement `pro`
+    purchases/              # PurchaseService — local + Superwall entitlement `pro`
     support/                # Gleap support wrapper with email fallback
     util/                   # formatting helpers
   data/
@@ -69,5 +69,5 @@ iPhone-only (`TARGETED_DEVICE_FAMILY = 1`), portrait-only, iOS 15+,
 
 - `AGENTS.md` — agent/project instructions
 - `docs/production-readiness.md` — provider wiring, build defines, release blockers
-- `docs/provider-setup.md` — live Firebase/RevenueCat/AppRefer/ASC readback
+- `docs/provider-setup.md` — live Firebase/Superwall/AppRefer/ASC readback
 - `docs/plans/core/overview.md` — MVP direction, rules engine spec, Firestore model

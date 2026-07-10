@@ -118,7 +118,8 @@ class SettingsScreen extends StatelessWidget {
                   trailing: hasFamilyPlan
                       ? RelayChip('Active', color: c.sage)
                       : RelayChip('Upgrade', color: c.clay),
-                  onTap: () => context.push('/paywall'),
+                  onTap: () =>
+                      context.push('/paywall?placement=settings_upgrade'),
                 ),
                 if (kDebugMode &&
                     purchases.isPro &&
