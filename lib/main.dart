@@ -99,6 +99,7 @@ Future<void> main() async {
   final attributionService = AttributionService(
     apiKey: AppConfig.appReferApiKey,
     userId: familyRepository.syncUserId ?? '',
+    store: store,
   );
   final sleepRuntimeService = await SleepRuntimeService.create(
     familyRepository: familyRepository,

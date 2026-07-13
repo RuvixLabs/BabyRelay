@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/analytics/analytics_service.dart';
+import '../../core/attribution/attribution_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/purchases/purchase_service.dart';
 import '../../data/family_repository.dart';
@@ -35,6 +38,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
     final repo = context.read<FamilyRepository>();
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
+    final attribution = context.read<AttributionService>();
     final code = _codeController.text.trim();
     final name = _nameController.text.trim();
     if (code.isEmpty || name.isEmpty) {
@@ -62,6 +66,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
         allowOverFreeCaregiverLimit: purchases.isPro,
       );
       analytics.logEvent('caregiver_joined');
+      await attribution.consumePendingInviteCode();
       if (!mounted) return;
       context.go('/today');
     } catch (_) {
@@ -73,6 +78,12 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
     }
   }
 
+  Future<void> _dismissInvite() async {
+    await context.read<AttributionService>().consumePendingInviteCode();
+    if (!mounted) return;
+    context.go('/onboarding');
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.relay;
@@ -82,7 +93,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => context.go('/onboarding'),
+          onPressed: _joining ? null : () => unawaited(_dismissInvite()),
           icon: const Icon(Icons.arrow_back),
         ),
       ),
@@ -138,7 +149,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: _joining ? null : () => context.go('/onboarding'),
+              onPressed: _joining ? null : () => unawaited(_dismissInvite()),
               child: const Text('Set up a new family instead'),
             ),
           ],

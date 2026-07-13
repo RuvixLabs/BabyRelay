@@ -1,14 +1,18 @@
+import 'dart:async';
+
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:apprefer/apprefer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:superwallkit_flutter/superwallkit_flutter.dart';
+
+import '../../data/local_store.dart';
 
 abstract interface class AttributionPlatform {
   Future<TrackingStatus> getTrackingAuthorizationStatus();
 
   Future<TrackingStatus> requestTrackingAuthorization();
 
-  Future<void> configureAppRefer(String apiKey);
+  Future<Map<String, Object?>> configureAppRefer(String apiKey);
 
   Future<bool> waitForSuperwallConfiguration();
 
@@ -31,14 +35,18 @@ class ProductionAttributionPlatform implements AttributionPlatform {
       AppTrackingTransparency.requestTrackingAuthorization();
 
   @override
-  Future<void> configureAppRefer(String apiKey) async {
-    await AppReferSDK.configure(
+  Future<Map<String, Object?>> configureAppRefer(String apiKey) async {
+    final attribution = await AppReferSDK.configure(
       AppReferConfig(
         apiKey: apiKey,
         debug: kDebugMode,
         logLevel: kDebugMode ? 3 : 1,
       ),
     );
+    return attribution?.queryParams.map(
+          (key, value) => MapEntry(key, value as Object?),
+        ) ??
+        const {};
   }
 
   @override
@@ -68,9 +76,11 @@ class AttributionService {
     required this.apiKey,
     this.userId = '',
     AttributionPlatform? platform,
+    LocalStore? store,
     bool? shouldRequestTrackingAuthorization,
     Future<void> Function(Duration)? delay,
   }) : _platform = platform ?? const ProductionAttributionPlatform(),
+       _store = store,
        _shouldRequestTrackingAuthorization =
            shouldRequestTrackingAuthorization ??
            defaultTargetPlatform == TargetPlatform.iOS,
@@ -79,16 +89,31 @@ class AttributionService {
   final String apiKey;
   final String userId;
   final AttributionPlatform _platform;
+  final LocalStore? _store;
   final bool _shouldRequestTrackingAuthorization;
   final Future<void> Function(Duration) _delay;
 
-  bool _initializationStarted = false;
+  static const _pendingInviteCodeKey =
+      'babyrelay.attribution.pending_invite_code.v1';
+  static const _handledInviteKey = 'babyrelay.attribution.handled_invite.v1';
+  static final _inviteCodePattern = RegExp(
+    r'^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$',
+  );
+
+  Future<String?>? _initialization;
 
   bool get configured => apiKey.isNotEmpty;
 
-  Future<void> initializeAfterFirstFrame() async {
-    if (!configured || _initializationStarted) return;
-    _initializationStarted = true;
+  /// Initializes AppRefer and returns an invite captured before first install.
+  ///
+  /// A returned code remains pending across relaunches until the join screen is
+  /// completed or explicitly dismissed via [consumePendingInviteCode].
+  Future<String?> initializeAfterFirstFrame() =>
+      _initialization ??= _initializeAfterFirstFrame();
+
+  Future<String?> _initializeAfterFirstFrame() async {
+    final persistedInviteCode = await _readStoredCode(_pendingInviteCodeKey);
+    if (!configured) return persistedInviteCode;
 
     if (_shouldRequestTrackingAuthorization) {
       try {
@@ -104,15 +129,135 @@ class AttributionService {
       }
     }
 
-    // Configure after the first-visible-launch ATT path has finished, even
-    // when the user denies tracking or the ATT API is unavailable.
+    Map<String, Object?> queryParams;
     try {
-      await _platform.configureAppRefer(apiKey);
+      // Configure after the first-visible-launch ATT path has finished, even
+      // when the user denies tracking or the ATT API is unavailable.
+      queryParams = await _platform.configureAppRefer(apiKey);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('[attribution] AppRefer initialization failed: $error');
+      }
+      return persistedInviteCode;
+    }
+
+    final deferredInviteCode = await _rememberDeferredInvite(
+      queryParams,
+      fallback: persistedInviteCode,
+    );
+
+    if (deferredInviteCode != null) {
+      // Do not make a caregiver wait up to eight seconds for Superwall before
+      // opening the invite they installed the app to accept.
+      unawaited(_completeIdentityBridge());
+    } else {
+      await _completeIdentityBridge();
+    }
+    return deferredInviteCode;
+  }
+
+  /// Prevents a cached AppRefer install attribution from reopening the same
+  /// invite on every subsequent app launch.
+  Future<void> consumePendingInviteCode() async {
+    final store = _store;
+    if (store == null) return;
+    try {
+      final pending = _normalizeInviteCode(
+        await store.read(_pendingInviteCodeKey),
+      );
+      if (pending == null) return;
+      // AppRefer uses first-touch attribution and returns the same cached
+      // result on later launches. A boolean is sufficient and avoids retaining
+      // the family invite code after it has been used or dismissed.
+      await store.write(_handledInviteKey, 'true');
+      await store.delete(_pendingInviteCodeKey);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('[attribution] could not consume deferred invite: $error');
+      }
+    }
+  }
+
+  Future<String?> _rememberDeferredInvite(
+    Map<String, Object?> queryParams, {
+    required String? fallback,
+  }) async {
+    final attributedCode = _normalizeInviteCode(
+      queryParams['invite_code'] ?? queryParams['inviteCode'],
+    );
+    if (attributedCode == null) return fallback;
+
+    if (await _wasDeferredInviteHandled()) {
+      await _deleteStoredCode(_pendingInviteCodeKey);
+      return null;
+    }
+
+    final store = _store;
+    if (store != null) {
+      try {
+        await store.write(_pendingInviteCodeKey, attributedCode);
+      } catch (error) {
+        if (kDebugMode) {
+          debugPrint('[attribution] could not persist deferred invite: $error');
+        }
+      }
+    }
+    return attributedCode;
+  }
+
+  Future<bool> _wasDeferredInviteHandled() async {
+    final store = _store;
+    if (store == null) return false;
+    try {
+      return await store.read(_handledInviteKey) == 'true';
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint(
+          '[attribution] could not read deferred invite state: $error',
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<String?> _readStoredCode(String key) async {
+    final store = _store;
+    if (store == null) return null;
+    try {
+      return _normalizeInviteCode(await store.read(key));
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('[attribution] could not read deferred invite: $error');
+      }
+      return null;
+    }
+  }
+
+  Future<void> _deleteStoredCode(String key) async {
+    final store = _store;
+    if (store == null) return;
+    try {
+      await store.delete(key);
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('[attribution] could not clear deferred invite: $error');
+      }
+    }
+  }
+
+  static String? _normalizeInviteCode(Object? value) {
+    if (value is! String) return null;
+    final normalized = value.trim().toUpperCase();
+    return _inviteCodePattern.hasMatch(normalized) ? normalized : null;
+  }
+
+  Future<void> _completeIdentityBridge() async {
+    try {
       if (userId.isNotEmpty) await _platform.setAppReferUserId(userId);
       await _bridgeSuperwallAttribution();
     } catch (error) {
       if (kDebugMode) {
-        debugPrint('[attribution] AppRefer initialization failed: $error');
+        debugPrint('[attribution] identity bridge failed: $error');
       }
     }
   }
