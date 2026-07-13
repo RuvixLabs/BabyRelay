@@ -127,5 +127,10 @@ Provider keys arrive via `--dart-define` (never committed) and surface in
    configures without blocking first paint, presents remotely managed paywalls
    for the four placements, and treats entitlement `pro` as authoritative.
    Keep the local service debug/test-only.
-3. AppRefer: override `InviteService.decorateLink` with the tracked link.
+3. AppRefer: keep shared invites as direct
+   `https://babyrelay.app/join/<code>` universal links. The website fallback
+   forwards first installs through AppRefer link `babyrelay-meta` with an
+   `invite_code` query parameter; `AttributionService` restores and consumes
+   it. Do not wrap the shared URL in an AppRefer URL or installed-app opening
+   will break.
 4. Gleap: wire the Settings support row (email fallback already live).

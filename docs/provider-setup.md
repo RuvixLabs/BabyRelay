@@ -318,8 +318,9 @@ Live AppStore Co-Pilot readback:
 - Launcher icon: generated from the approved Android-safe glow-face source,
   with legacy density icons, adaptive foreground layers, `ic_launcher.xml`,
   `ic_launcher_round.xml`, and background color `#071537`.
-- Build status: `flutter build apk --debug --dart-define=FIREBASE_CONFIGURED=true
-  --dart-define=APPREFER_LINK_ID=babyrelay-meta` passed on 2026-06-23.
+- Build status: `flutter build apk --debug
+  --dart-define=FIREBASE_CONFIGURED=true` passed on 2026-06-23. AppRefer link
+  ID `babyrelay-meta` is website configuration, not a mobile build define.
 - Advertising ID status: Play declaration is "No." The Android manifest removes
   both `com.google.android.gms.permission.AD_ID` and
   `android.permission.ACCESS_ADSERVICES_AD_ID` with `tools:node="remove"` so
@@ -406,6 +407,7 @@ Remaining App Store / subscription blockers:
 - App tracking transparency and AppRefer SDK `0.4.1` are installed. A release
   build requires the live `APPREFER_API_KEY`; the SDK initializes only after the
   first-visible-launch ATT path and bridges `appreferId` into Superwall.
-  `APPREFER_LINK_ID=babyrelay-meta` remains the caregiver-link identifier, and
-  canonical iOS and Android store destinations plus Superwall server
-  forwarding are configured. A real paid click/install/purchase proof remains.
+  `babyrelay-meta` remains the website fallback's caregiver-link identifier;
+  it is not injected into the mobile app. Canonical iOS and Android store
+  destinations plus Superwall server forwarding are configured. A real paid
+  click/install/purchase proof remains.
