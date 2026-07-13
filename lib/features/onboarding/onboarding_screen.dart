@@ -93,7 +93,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     analytics.logEvent('onboarding_completed');
     analytics.logEvent('baby_profile_created');
     router.go('/today');
-    Future<void>.microtask(() => router.push('/paywall'));
+    Future<void>.microtask(
+      () => router.push('/paywall?placement=onboarding_complete'),
+    );
   }
 
   @override

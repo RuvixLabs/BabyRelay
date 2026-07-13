@@ -1,4 +1,5 @@
 import 'package:babyrelay/core/config/app_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -22,6 +23,36 @@ void main() {
       () => validateAppReferReleaseKey(
         releaseMode: true,
         apiKey: 'pk_live_example123',
+      ),
+      returnsNormally,
+    );
+  });
+
+  test('mobile release builds require a platform-specific Superwall key', () {
+    for (final key in ['', 'replace_me', 'pk_short']) {
+      expect(
+        () => validateSuperwallReleaseKey(
+          releaseMode: true,
+          platform: TargetPlatform.iOS,
+          apiKey: key,
+        ),
+        throwsStateError,
+      );
+    }
+
+    expect(
+      () => validateSuperwallReleaseKey(
+        releaseMode: true,
+        platform: TargetPlatform.android,
+        apiKey: 'pk_babyrelay_public_sdk_key_12345',
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validateSuperwallReleaseKey(
+        releaseMode: true,
+        platform: TargetPlatform.macOS,
+        apiKey: '',
       ),
       returnsNormally,
     );

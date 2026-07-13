@@ -13,7 +13,9 @@ import '../../data/family_repository.dart';
 /// Family paywall. Calm and honest: price, trial terms, and the limited launch
 /// offer window are stated plainly, and close is always available.
 class PaywallScreen extends StatefulWidget {
-  const PaywallScreen({super.key});
+  const PaywallScreen({super.key, this.placement = 'settings_upgrade'});
+
+  final String placement;
 
   @override
   State<PaywallScreen> createState() => _PaywallScreenState();
@@ -25,6 +27,8 @@ class _PaywallScreenState extends State<PaywallScreen> {
   DateTime? _specialOfferEndsAt;
   int _offerRemainingSeconds = 0;
   bool _timerConfigured = false;
+  bool _remotePresentationStarted = false;
+  bool _remotePresentationFailed = false;
 
   @override
   void initState() {
@@ -37,10 +41,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final purchases = context.read<PurchaseService>();
+    if (purchases.usesRemotePaywalls) {
+      if (!_remotePresentationStarted) {
+        _remotePresentationStarted = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _presentRemotePaywall();
+        });
+      }
+      return;
+    }
     if (_timerConfigured) return;
     _timerConfigured = true;
 
-    final purchases = context.read<PurchaseService>();
     Plan? specialPlan;
     for (final plan in purchases.plans) {
       if (plan.isSpecialOffer && plan.countdownSeconds != null) {
@@ -117,6 +130,49 @@ class _PaywallScreenState extends State<PaywallScreen> {
     }
   }
 
+  Future<void> _presentRemotePaywall() async {
+    final purchases = context.read<PurchaseService>();
+    final analytics = context.read<AnalyticsService>();
+    final repo = context.read<FamilyRepository>();
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _remotePresentationFailed = false);
+    analytics.logEvent('superwall_placement_registered', {
+      'placement': widget.placement,
+    });
+    final outcome = await purchases.presentPaywall(
+      widget.placement,
+      params: {'source': widget.placement},
+    );
+    if (!mounted) return;
+    switch (outcome) {
+      case PaywallOutcome.purchased:
+        analytics.logEvent('purchase_completed', {
+          'placement': widget.placement,
+          'plan': purchases.activePlan?.name ?? 'store_product',
+        });
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Welcome to BabyRelay Family')),
+        );
+        _syncFamilySubscription(repo, purchases.activePlan?.name ?? '');
+        _dismissPaywall();
+      case PaywallOutcome.restored:
+        analytics.logEvent('restore_completed', {
+          'placement': widget.placement,
+        });
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Purchases restored')),
+        );
+        _syncFamilySubscription(repo, purchases.activePlan?.name ?? '');
+        _dismissPaywall();
+      case PaywallOutcome.dismissed:
+      case PaywallOutcome.skipped:
+        _dismissPaywall();
+      case PaywallOutcome.failed:
+        analytics.logEvent('paywall_failed', {'placement': widget.placement});
+        setState(() => _remotePresentationFailed = true);
+    }
+  }
+
   Future<void> _restore() async {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
@@ -159,6 +215,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final c = context.relay;
     final text = Theme.of(context).textTheme;
     final purchases = context.watch<PurchaseService>();
+
+    if (purchases.usesRemotePaywalls) {
+      return _RemotePaywallLauncher(
+        failed: _remotePresentationFailed,
+        busy: purchases.busy,
+        errorMessage: purchases.lastErrorMessage,
+        onRetry: () {
+          if (!purchases.busy) _presentRemotePaywall();
+        },
+        onRestore: purchases.busy ? null : _restore,
+        onClose: _dismissPaywall,
+      );
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -319,6 +388,86 @@ class _PaywallScreenState extends State<PaywallScreen> {
     }
     final period = plan.id == PlanId.monthly ? 'month' : 'year';
     return '${plan.priceLabel}/$period today. Cancel anytime.';
+  }
+}
+
+class _RemotePaywallLauncher extends StatelessWidget {
+  const _RemotePaywallLauncher({
+    required this.failed,
+    required this.busy,
+    required this.errorMessage,
+    required this.onRetry,
+    required this.onRestore,
+    required this.onClose,
+  });
+
+  final bool failed;
+  final bool busy;
+  final String? errorMessage;
+  final VoidCallback onRetry;
+  final VoidCallback? onRestore;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.relay;
+    final text = Theme.of(context).textTheme;
+    return Scaffold(
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (failed) ...[
+                      Icon(Icons.cloud_off_outlined, color: c.clay, size: 42),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Couldn\'t load BabyRelay Family',
+                        textAlign: TextAlign.center,
+                        style: text.titleLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        errorMessage ??
+                            'Check your connection and try again. You can always close and continue with the free plan.',
+                        textAlign: TextAlign.center,
+                        style: text.bodyMedium,
+                      ),
+                      const SizedBox(height: 20),
+                      FilledButton(
+                        onPressed: busy ? null : onRetry,
+                        child: const Text('Try again'),
+                      ),
+                      TextButton(
+                        onPressed: onRestore,
+                        child: const Text('Restore purchases'),
+                      ),
+                    ] else ...[
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 18),
+                      Text('Loading BabyRelay Family…', style: text.bodyLarge),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 8,
+              child: IconButton(
+                icon: Icon(Icons.close, color: c.inkSoft),
+                tooltip: 'Continue with free plan',
+                onPressed: onClose,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

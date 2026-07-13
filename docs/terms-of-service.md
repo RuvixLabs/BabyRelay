@@ -58,7 +58,7 @@ account is charged for renewals according to Apple's terms.
 You can manage or cancel subscriptions in your Apple account settings. Deleting
 BabyRelay from your device does not cancel an active subscription.
 
-Purchases are processed by Apple and RevenueCat. Ruvix Labs does not receive or
+Purchases are processed by Apple and Superwall. Ruvix Labs does not receive or
 store your full payment card details.
 
 ## Acceptable Use
@@ -94,7 +94,7 @@ https://appstorecopilot.com/legal/3omln7px/privacy
 ## Third-Party Services
 
 BabyRelay may depend on third-party services including Apple, Firebase/Google
-Cloud, RevenueCat, AppRefer, and Gleap. Your use of those services may also be
+Cloud, Superwall, AppRefer, and Gleap. Your use of those services may also be
 subject to their own terms and policies.
 
 ## Changes to BabyRelay

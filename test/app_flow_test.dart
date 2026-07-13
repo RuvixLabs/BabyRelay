@@ -539,7 +539,7 @@ void main() {
     expect(find.text('Contact support'), findsOneWidget);
     // No provider keys in this test build → every seam reads not configured.
     await tester.scrollUntilVisible(find.text('Gleap'), 200);
-    expect(find.text('RevenueCat'), findsOneWidget);
+    expect(find.text('Superwall'), findsOneWidget);
     expect(find.text('Not configured'), findsNWidgets(4));
   });
 

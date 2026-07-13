@@ -6,8 +6,8 @@
 //
 // ```sh
 // flutter build ios \
-//   --dart-define=REVENUECAT_IOS_API_KEY=appl_... \
-//   --dart-define=REVENUECAT_ANDROID_API_KEY=goog_... \
+//   --dart-define=SUPERWALL_IOS_API_KEY=pk_... \
+//   --dart-define=SUPERWALL_ANDROID_API_KEY=pk_... \
 //   --dart-define=GLEAP_SDK_KEY=... \
 //   --dart-define=APPREFER_API_KEY=pk_live_... \
 //   --dart-define=APPREFER_LINK_ID=...
@@ -37,23 +37,19 @@ abstract final class AppConfig {
   static const bool firebaseConfigured = bool.fromEnvironment(
     'FIREBASE_CONFIGURED',
   );
-  static const String _legacyRevenueCatApiKey = String.fromEnvironment(
-    'REVENUECAT_API_KEY',
+  static const String superwallIosApiKey = String.fromEnvironment(
+    'SUPERWALL_IOS_API_KEY',
   );
-  static const String revenueCatIosApiKey = String.fromEnvironment(
-    'REVENUECAT_IOS_API_KEY',
-  );
-  static const String revenueCatAndroidApiKey = String.fromEnvironment(
-    'REVENUECAT_ANDROID_API_KEY',
+  static const String superwallAndroidApiKey = String.fromEnvironment(
+    'SUPERWALL_ANDROID_API_KEY',
   );
 
-  static String get revenueCatApiKey {
-    final platformKey = switch (defaultTargetPlatform) {
-      TargetPlatform.iOS => revenueCatIosApiKey,
-      TargetPlatform.android => revenueCatAndroidApiKey,
+  static String get superwallApiKey {
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.iOS => superwallIosApiKey,
+      TargetPlatform.android => superwallAndroidApiKey,
       _ => '',
     };
-    return platformKey.isNotEmpty ? platformKey : _legacyRevenueCatApiKey;
   }
 
   static const String gleapSdkKey = String.fromEnvironment('GLEAP_SDK_KEY');
@@ -65,9 +61,31 @@ abstract final class AppConfig {
   );
 
   static void validateReleaseConfiguration() {
+    validateSuperwallReleaseKey(
+      releaseMode: kReleaseMode,
+      platform: defaultTargetPlatform,
+      apiKey: superwallApiKey,
+    );
     validateAppReferReleaseKey(
       releaseMode: kReleaseMode,
       apiKey: appReferApiKey,
+    );
+  }
+}
+
+void validateSuperwallReleaseKey({
+  required bool releaseMode,
+  required TargetPlatform platform,
+  required String apiKey,
+}) {
+  if (!releaseMode ||
+      (platform != TargetPlatform.iOS && platform != TargetPlatform.android)) {
+    return;
+  }
+  final isPublicSdkKey = RegExp(r'^pk_[A-Za-z0-9_-]{20,}$').hasMatch(apiKey);
+  if (!isPublicSdkKey) {
+    throw StateError(
+      'Release builds require the platform-specific SUPERWALL API key.',
     );
   }
 }
@@ -109,13 +127,13 @@ abstract final class Integrations {
       configured: AppConfig.firebaseConfigured,
     ),
     Integration(
-      name: 'RevenueCat',
-      detail: 'Subscriptions behind the `pro` entitlement',
-      configured: AppConfig.revenueCatApiKey != '',
+      name: 'Superwall',
+      detail: 'Remote paywalls and subscriptions behind the `pro` entitlement',
+      configured: AppConfig.superwallApiKey != '',
     ),
     Integration(
       name: 'AppRefer',
-      detail: 'Install attribution and RevenueCat identity bridge',
+      detail: 'Install attribution bridged to the Superwall user',
       configured: AppConfig.appReferApiKey != '',
     ),
     Integration(

@@ -108,8 +108,8 @@ Onboarding should seed the deterministic guidance model.
 
 ### Paywall
 
-RevenueCat-backed, with a limited annual launch offer ahead of the standard
-trial plans.
+Superwall-backed, with a limited annual launch offer ahead of the standard
+trial plans and remotely managed placement campaigns.
 
 The paid story is:
 - unlimited caregivers
@@ -221,7 +221,7 @@ families/{familyId}/children/{childId}/dailySummaries/{yyyy-mm-dd}
 users/{uid}
   currentFamilyId: string
   fcmTokens: string[]
-  rcAppUserId: string
+  subscriptionAppUserId: string
   createdAt: timestamp
 ```
 
@@ -250,7 +250,7 @@ Offline:
 - `HandoffService`: deterministic handoff text generation.
 - `NotificationService`: local reminders and caregiver update notifications.
 - `AnalyticsService`: privacy-safe event wrapper.
-- `PurchaseService`: RevenueCat entitlement and restore.
+- `PurchaseService`: Superwall entitlement, paywall presentation, and restore.
 
 ## Analytics
 
@@ -320,10 +320,12 @@ Paywall placements:
 - Launch-offer copy by default, with trial copy on the standard annual plan.
   Monthly is direct-paid and should not show a trial.
 
-RevenueCat:
+Superwall:
 - entitlement: `pro`
 - products: special annual, annual, and monthly
-- do not hardcode store product IDs in business logic
+- placements: `onboarding_complete`, `caregiver_limit`, `child_limit`,
+  `settings_upgrade`
+- keep prices and purchase behavior remotely managed in the paywall
 
 ## 4-Week Build Plan
 
@@ -333,7 +335,7 @@ RevenueCat:
 - Configure iOS as iPhone-only, portrait-only.
 - Create dedicated Firebase project.
 - Wire Firebase Auth, Firestore, Analytics, Crashlytics, Messaging.
-- Add RevenueCat, AppRefer, Gleap packages.
+- Add Superwall, AppRefer, Gleap packages.
 - Build data models and security rules.
 - Build pure Dart sleep prediction engine.
 - Unit-test wake-window and transition logic.
@@ -361,7 +363,7 @@ RevenueCat:
 ### Week 4 - Monetize And Package Test Build
 
 - Build onboarding.
-- Build RevenueCat paywall.
+- Build Superwall placement launchers and remote paywalls.
 - Add AppRefer attribution links before paid traffic.
 - Add Gleap support entry.
 - Finalize analytics events.

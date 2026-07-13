@@ -27,7 +27,7 @@ Core promise:
 - **Analytics**: Firebase Analytics with privacy-safe event payloads
 - **Crash reporting**: Firebase Crashlytics
 - **Messaging**: Firebase Cloud Messaging
-- **Subscriptions**: RevenueCat
+- **Subscriptions**: Superwall
 - **Attribution**: AppRefer
 - **Support**: Gleap
 - **Store tooling**: AppStore Copilot
@@ -114,8 +114,8 @@ The MVP is implemented as a local-first release candidate:
   transition detection from `docs/plans/core/overview.md`. Pure Dart, tested.
 - `lib/domain/services/handoff_service.dart` generates the plain-language
   handoff summary. Pure Dart, tested.
-- `PurchaseService` has local and RevenueCat implementations (`pro`
-  entitlement, special annual launch offer plus monthly/annual trial plans).
+- `PurchaseService` has local and Superwall implementations (`pro`
+  entitlement, remote paywalls for onboarding and capacity/upgrade gates).
   `AnalyticsService` enforces the allowlist + no-PII rule and can forward to
   Firebase Analytics when configured.
 - Free tier allows owner + 1 caregiver; inviting beyond that gates on the

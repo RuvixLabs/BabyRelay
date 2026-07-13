@@ -89,7 +89,7 @@ class _CareTeamScreenState extends State<CareTeamScreen> {
     Future<void> startInvite() async {
       analytics.logEvent('caregiver_invite_started');
       if (!hasFamilyPlan && active.length >= kFreeCaregiverLimit) {
-        context.push('/paywall');
+        context.push('/paywall?placement=caregiver_limit');
         return;
       }
       await showInviteSheet(context, repo, analytics);
@@ -141,7 +141,7 @@ class _CareTeamScreenState extends State<CareTeamScreen> {
               padding: const EdgeInsets.all(16),
               color: c.claySoft,
               borderColor: c.clay.withValues(alpha: 0.3),
-              onTap: () => context.push('/paywall'),
+              onTap: () => context.push('/paywall?placement=caregiver_limit'),
               child: Row(
                 children: [
                   IconSquare(

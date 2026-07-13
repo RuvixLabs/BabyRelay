@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -14,7 +15,7 @@ import 'core/attribution/attribution_service.dart';
 import 'core/config/app_config.dart';
 import 'core/device/device_identity.dart';
 import 'core/purchases/purchase_service.dart';
-import 'core/purchases/revenuecat_purchase_service.dart';
+import 'core/purchases/superwall_purchase_service.dart';
 import 'core/reviews/review_prompt_service.dart';
 import 'core/sleep/sleep_remote_message_handler.dart';
 import 'core/sleep/sleep_remote_sync_service.dart';
@@ -72,24 +73,32 @@ Future<void> main() async {
     }
   }
 
-  final PurchaseService purchaseService = AppConfig.revenueCatApiKey.isEmpty
+  final PurchaseService purchaseService = AppConfig.superwallApiKey.isEmpty
       ? LocalPurchaseService(store)
-      : RevenueCatPurchaseService(
-          apiKey: AppConfig.revenueCatApiKey,
-          appUserId: familyRepository.syncUserId,
+      : SuperwallPurchaseService(
+          apiKey: AppConfig.superwallApiKey,
+          appUserId: familyRepository.syncUserId ?? '',
         );
   await purchaseService.load();
-  if (purchaseService.isPro && familyRepository.state.onboarded) {
-    await familyRepository.setFamilySubscriptionStatus(
-      active: true,
-      planId: purchaseService.activePlan?.name ?? '',
-    );
+  void syncFamilyEntitlement() {
+    if (purchaseService.isPro && familyRepository.state.onboarded) {
+      unawaited(
+        familyRepository.setFamilySubscriptionStatus(
+          active: true,
+          planId: purchaseService.activePlan?.name ?? '',
+        ),
+      );
+    }
   }
+
+  purchaseService.addListener(syncFamilyEntitlement);
+  syncFamilyEntitlement();
   final supportService = await SupportService.create(
     gleapSdkKey: AppConfig.gleapSdkKey,
   );
   final attributionService = AttributionService(
     apiKey: AppConfig.appReferApiKey,
+    userId: familyRepository.syncUserId ?? '',
   );
   final sleepRuntimeService = await SleepRuntimeService.create(
     familyRepository: familyRepository,

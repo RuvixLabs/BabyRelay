@@ -1,7 +1,7 @@
 # App Store Privacy Nutrition Worksheet
 
 This is the working App Store Connect App Privacy answer set for BabyRelay.
-It is based on the shipped Flutter code, Firebase/RevenueCat/Gleap/AppRefer
+It is based on the shipped Flutter code, Firebase/Superwall/Gleap/AppRefer
 SDKs, `docs/privacy-policy.md`, and the Google Play Data Safety declaration
 saved on 2026-06-23.
 
@@ -49,7 +49,7 @@ published in ASC on 2026-06-23; readback returned `published: true`,
   no child names, caregiver names, free-text notes, or exact health details are
   logged.
 - Firebase Crashlytics and diagnostics are used for reliability.
-- RevenueCat collects purchase history/subscription state and app user
+- Superwall collects purchase history/subscription state and app user
   identifiers for entitlement management.
 - Gleap may collect support contact details and diagnostic/support conversation
   details when a user contacts support.
@@ -93,7 +93,7 @@ Readback after publish returned these 16 rows:
 
 - Be conservative for review: if Apple asks whether data is linked to users,
   answer **Yes** for the declared data types because family data and analytics
-  are tied to Firebase/RevenueCat/Gleap identifiers.
+  are tied to Firebase/Superwall/Gleap identifiers.
 - Do not claim `Data Not Collected`; BabyRelay is a shared-care app and
   necessarily collects family care data.
 - If AppRefer attribution is disabled for the submitted build, revisit the

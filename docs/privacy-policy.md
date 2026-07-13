@@ -42,7 +42,7 @@ BabyRelay may collect:
 ### Purchase Information
 
 If you buy or restore BabyRelay Family, purchase status is processed through
-Apple and RevenueCat. We receive subscription and entitlement information such
+Apple and Superwall. We receive subscription and entitlement information such
 as product identifier, subscription status, renewal state, and transaction
 metadata. We do not receive or store your full payment card details.
 
@@ -89,7 +89,7 @@ We may share information with:
 
 - **Firebase / Google Cloud**, for authentication, cloud storage, analytics,
   crash reporting, messaging, and app infrastructure;
-- **RevenueCat**, to manage subscription status and entitlement access;
+- **Superwall**, to present paywalls and manage subscription status and entitlement access;
 - **Apple**, for App Store purchases, subscription billing, and platform
   services;
 - **Gleap**, for in-app support, feedback, and diagnostic support context;

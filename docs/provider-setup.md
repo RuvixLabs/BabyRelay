@@ -92,77 +92,50 @@ Live sync state:
 - Store destinations:
   - iOS: `https://apps.apple.com/app/id6779147183`
   - Android: `https://play.google.com/store/apps/details?id=com.ruvixlabs.babyrelay`
-- RevenueCat integration: `connected=true`
+- Superwall integration: `connected=true`
 
 `https://apprefer.com/api/c/babyrelay-meta` returns the AppRefer capture page.
-The AppRefer foundation is configured. Release proof still requires a real
-paid click through install/open and a matching RevenueCat purchase readback.
+The AppRefer foundation is configured. The app bridges its stable family user
+ID and AppRefer device ID into Superwall. Superwall endpoint
+`ep_3GICNMh0fwHjw7cVSrDamNnjoVy` sends nine subscription lifecycle event types
+to the app-scoped AppRefer webhook with an encrypted shared secret. Release
+proof still requires a real paid click through install/open and a matching
+store sandbox/production purchase readback.
 
-## RevenueCat
+## Superwall
 
 - Account email: `joe+babyrelay@ruvixlabs.com`
-- Project ID: `26c4f023`
+- Organization ID: `24639`
+- Project ID: `26262`
 - Project name: `BabyRelay`
-- Login vault services:
-  - `babyrelay-revenuecat-username`
-  - `babyrelay-revenuecat-password`
-- Test Store public SDK key vault service:
-  - `babyrelay-revenuecat-test-sdk-key`
-- App Store public SDK key vault service:
-  - `babyrelay-revenuecat-ios-sdk-key`
-- RevenueCat webhook secret vault service:
-  - `babyrelay-apprefer-revenuecat-webhook-secret`
-
-Dashboard login is now unblocked. The RevenueCat account still shows an
-unconfirmed-email banner and should be confirmed through the dashboard resend
-flow, but that is not blocking catalog edits.
-
-Live RevenueCat readback:
-
-- Test Store app: `appf68d685da8`
-- App Store app: `app70e3a91be4`
-  - Name: `BabyRelay (App Store)`
-  - Bundle ID: `com.ruvixlabs.babyrelay`
-  - In-app purchase key: configured with Ruvix key ID `9CYKZWD35Y`
-  - App Store Connect API key: configured with Ruvix key ID `D88WNB6D69`
-  - Server-to-server notification token exists in RevenueCat
-- Active entitlement: `pro`
-- AppRefer webhook: `whintgr70a141be8d`, enabled, scoped to
-  `BabyRelay (App Store)`, all events, production + sandbox. It points to the
-  per-app AppRefer RevenueCat endpoint, uses the vaulted authorization secret,
-  and returned `Response 200` in the RevenueCat test tool on 2026-07-09.
+- iOS application: `49825`, bundle `com.ruvixlabs.babyrelay`
+- Android application: `49826`, package `com.ruvixlabs.babyrelay`
+- Public SDK key vault services:
+  - `babyrelay-superwall-ios-api-key`
+  - `babyrelay-superwall-android-api-key`
+- Organization API key vault service: `babyrelay-superwall-org-api-key`
+- Entitlement: `pro` on both applications
 - Products:
-  - `babyrelay_pro_special_annual` (`P1Y`, App Store special offer)
-  - `babyrelay_pro_monthly` (`P1M`)
-  - `babyrelay_pro_annual` (`P1Y`)
-- Default offering: `default`
-- Packages:
-  - `$rc_monthly` -> Test Store `babyrelay_pro_monthly` and App Store
-    `babyrelay_pro_monthly`
-  - `$rc_annual` -> Test Store `babyrelay_pro_annual` and App Store
-    `babyrelay_pro_annual`
-- Special offer offering: `special_offer` (`ofrngdfa887bf9a`), not current
-  - Metadata: `title=Special Offer`, `badge_text=BEST VALUE`,
-    `countdown_seconds=90`
-  - `special_annual` package (`pkge0daa9fb60f`) -> App Store
-    `babyrelay_pro_special_annual`
-- No lifetime product is active.
-- App Store products imported into RevenueCat:
-  - Special annual: `prod43e81fc3ea`, `babyrelay_pro_special_annual`, attached
-    to `pro`
-  - Monthly: `prod7eca500296`, `babyrelay_pro_monthly`, attached to `pro`
-  - Annual: `prod5e1be41b9d`, `babyrelay_pro_annual`, attached to `pro`
-- Google Play products now exist in the Ruvix Play app, but they are not yet
-  imported into RevenueCat because the BabyRelay RevenueCat Android app and
-  public SDK key still need to be created from the BabyRelay-specific RevenueCat
-  account. The app code accepts a platform-specific Android public SDK key
-  through `--dart-define=REVENUECAT_ANDROID_API_KEY=...`, and it tolerates
-  Google Play product identifiers that include a base-plan suffix
-  (`productId:basePlanId`).
-
-RevenueCat initially created an accidental entitlement identifier
-`BabyRelay Pro`; the two products were moved to `pro`, and the accidental
-entitlement is archived with no products attached.
+  - `babyrelay_pro_special_annual`: `$29.99`, annual, no trial
+  - `babyrelay_pro_annual`: `$59.99`, annual, 7-day trial
+  - `babyrelay_pro_monthly`: `$9.99`, monthly, no trial
+- Published paywalls:
+  - iOS `242422`, `BabyRelay Family — iOS`
+  - Android `242424`, `BabyRelay Family — Android`
+- Campaigns:
+  - iOS `95002`
+  - Android `95003`
+  - placements `onboarding_complete`, `caregiver_limit`, `child_limit`, and
+    `settings_upgrade`, all enabled with 100% treatment
+- AppRefer webhook endpoint: `ep_3GICNMh0fwHjw7cVSrDamNnjoVy`, filtered to
+  purchase, renewal, cancellation, expiration, billing issue, product change,
+  and subscription pause/resume lifecycle events.
+- App Store Connect API and in-app purchase keys are configured in Superwall.
+- ASC production and sandbox server notification URLs both read back on the
+  Superwall V2 endpoint.
+- The former subscription-provider project was deleted, its AppRefer and
+  AppStore Co-Pilot links were cleared, and its BabyRelay vault entries were
+  removed. There is no runtime compatibility path.
 
 ## AppStore Co-Pilot
 
@@ -184,7 +157,7 @@ Live AppStore Co-Pilot readback:
 - Firebase IDs are linked:
   - Firebase project ID: `babyrelay-ruvix`
   - Firebase iOS app ID: `1:500197010265:ios:3e9e3b96b065cb7b287a48`
-- RevenueCat project ID is linked: `26c4f023`.
+- No legacy subscription-provider project is linked.
 - en-US launch metadata is staged as AppStore Co-Pilot metadata history
   version 7. The repo copy is `docs/app-store-metadata.md`. Latest
   AppStore Co-Pilot compliance result has zero metadata-copy warnings.
@@ -206,10 +179,8 @@ Live AppStore Co-Pilot readback:
 - AppStore Co-Pilot compliance now detects `hasSubscriptions: true` /
   `hasPaidContent: true` and returns zero issues after the Terms of Service
   publication.
-- RevenueCat public SDK keys are in `mc-vault`, but no BabyRelay RevenueCat
-  secret API key is stored yet. AppStore Co-Pilot's RevenueCat management tools
-  will need a `babyrelay-revenuecat-secret-key` vault entry and project field
-  before they can manage/read the RevenueCat catalog directly.
+- Subscription catalog remains sourced from live ASC; AppStore Co-Pilot has no
+  legacy provider project link.
 - The approved GPT-image-2 v3 App Store screenshot set is staged in
   AppStore Co-Pilot for `APP_IPHONE_69` / `en-US` with `syncStatus:
   local_changes`:
@@ -299,10 +270,10 @@ Live AppStore Co-Pilot readback:
   returned 16 declared data-usage rows and `published: true` with
   `lastPublishedBy: J Mambwe`. The published answer set is documented in
   `docs/app-store-privacy-nutrition.md`.
-- Apple server notifications: confirmed in ASC on 2026-06-23 via explicit
-  app-field readback. Production and sandbox RevenueCat notification URLs are
-  both present and both use `V2`. Do not print or commit the full notification
-  URLs; derive them from RevenueCat app settings when needed.
+- Apple server notifications: explicit app-field readback confirms production
+  and sandbox Superwall notification URLs are both present and both use `V2`.
+  Do not print or commit the full notification URLs; derive them from the
+  Superwall revenue-tracking settings when needed.
 - Subscription group: `22150100`, `BabyRelay Family`, localized `en-US`
 - Subscriptions:
   - Special annual: `6779256297`, product ID
@@ -388,9 +359,8 @@ Remaining Android / Play blockers:
 
 - Create Android upload signing for BabyRelay; do not reuse the ThreadCam
   keystore.
-- Create/configure the RevenueCat Android app, store its Android public SDK key
-  in `mc-vault`, attach Google Play products to entitlement `pro`, and wire
-  Google Play RTDN/Pub/Sub to RevenueCat before production submission.
+- Wire Google Play RTDN/Pub/Sub to Superwall using the correct Ruvix GCP service
+  account before production submission.
 - Upload an Android App Bundle to an internal track, run install/purchase smoke,
   then complete the production release/publishing overview path.
 
@@ -402,8 +372,6 @@ Remaining App Store / subscription blockers:
   to the existing draft review submission.
 - Run sandbox purchase/restore on TestFlight build `1.0 (3)` against the real
   offering.
-- Create/store a BabyRelay RevenueCat secret API key if AppStore Co-Pilot needs
-  direct RevenueCat catalog management.
 - Do not press final Submit until the physical two-device remote Live Activity
   and sandbox purchase/restore checks pass.
 
@@ -420,19 +388,18 @@ Remaining App Store / subscription blockers:
   payloads. Backend smoke has verified rules, token-doc writes, trigger
   invocation, and cleanup; a real APNs/FCM delivery smoke still needs physical
   or TestFlight devices with valid push tokens.
-- RevenueCat SDK is installed. `RevenueCatPurchaseService` reads current and
-  `special_offer` offerings, maps the three App Store product IDs, and unlocks
-  entitlement `pro`. Purchase/restore marks the shared family subscription
-  active so paid capacity gates apply to the family and join-by-code can accept
-  over-free-limit caregivers for a subscribed family. Platform-specific keys
-  are preferred: `REVENUECAT_IOS_API_KEY` and
-  `REVENUECAT_ANDROID_API_KEY`; the old `REVENUECAT_API_KEY` define remains a
-  fallback for local/testing builds.
+- Superwall SDK is installed. `SuperwallPurchaseService` configures without
+  blocking first paint, presents the four remote placements, treats entitlement
+  `pro` as authoritative, and owns store purchases/restores. Purchase/restore
+  marks the shared family subscription active so paid capacity gates apply to
+  the family and join-by-code can accept over-free-limit caregivers. Release
+  builds require `SUPERWALL_IOS_API_KEY` or `SUPERWALL_ANDROID_API_KEY`; there is
+  no legacy key fallback.
 - Gleap SDK is installed. Settings opens in-app support when
   `GLEAP_SDK_KEY` is supplied, otherwise it falls back to the support email.
 - App tracking transparency and AppRefer SDK `0.4.1` are installed. A release
   build requires the live `APPREFER_API_KEY`; the SDK initializes only after the
-  first-visible-launch ATT path and bridges `appreferId` into RevenueCat.
+  first-visible-launch ATT path and bridges `appreferId` into Superwall.
   `APPREFER_LINK_ID=babyrelay-meta` remains the caregiver-link identifier, and
-  canonical iOS and Android store destinations plus RevenueCat server
+  canonical iOS and Android store destinations plus Superwall server
   forwarding are configured. A real paid click/install/purchase proof remains.
