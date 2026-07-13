@@ -21,9 +21,10 @@ class InvitePayload {
 
 /// Builds deterministic invite payloads. Pure Dart, no Flutter imports.
 ///
-/// This is the AppRefer / deep-link seam: when attribution lands, only
-/// [decorateLink] changes (wrapping the join URL in a tracked AppRefer link
-/// built from `AppConfig.appReferLinkId`); every caller keeps working.
+/// Shared links deliberately stay on BabyRelay's universal-link domain so an
+/// installed app opens directly. The web `/join/<code>` fallback can forward
+/// first installs through AppRefer with an `invite_code` query parameter; the
+/// attribution service restores that code when the app first opens.
 class InviteService {
   const InviteService();
 
@@ -40,13 +41,8 @@ class InviteService {
     ).join();
   }
 
-  /// Hook for attribution: today the join link is shared as-is.
-  Uri decorateLink(Uri joinUrl) => joinUrl;
-
   InvitePayload buildInvite(String code) {
-    final url = decorateLink(
-      Uri.https(AppConfig.inviteLinkHost, '/join/$code'),
-    );
+    final url = Uri.https(AppConfig.inviteLinkHost, '/join/$code');
     return InvitePayload(
       code: code,
       url: url,

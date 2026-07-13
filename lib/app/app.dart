@@ -51,8 +51,26 @@ class _BabyRelayAppState extends State<BabyRelayApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(widget.attributionService.initializeAfterFirstFrame());
+      unawaited(_initializeAttribution());
     });
+  }
+
+  Future<void> _initializeAttribution() async {
+    final deferredInviteCode = await widget.attributionService
+        .initializeAfterFirstFrame();
+    if (!mounted || deferredInviteCode == null) return;
+
+    final currentPathSegments =
+        router.routeInformationProvider.value.uri.pathSegments;
+    final hasExplicitJoinCode =
+        currentPathSegments.length >= 2 &&
+        currentPathSegments.first == 'join' &&
+        currentPathSegments[1].isNotEmpty;
+    if (widget.familyRepository.state.onboarded || hasExplicitJoinCode) {
+      await widget.attributionService.consumePendingInviteCode();
+      return;
+    }
+    router.go('/join/$deferredInviteCode');
   }
 
   @override

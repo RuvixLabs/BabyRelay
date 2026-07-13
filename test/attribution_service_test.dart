@@ -1,5 +1,6 @@
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:babyrelay/core/attribution/attribution_service.dart';
+import 'package:babyrelay/data/local_store.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -105,6 +106,64 @@ void main() {
       );
     },
   );
+
+  test('deferred invite persists until join flow consumes it', () async {
+    final store = InMemoryStore();
+    final firstPlatform = _FakeAttributionPlatform(
+      trackingStatus: TrackingStatus.authorized,
+      superwallConfigured: false,
+      queryParams: {'invite_code': ' abc234 '},
+    );
+    final first = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: firstPlatform,
+      store: store,
+      shouldRequestTrackingAuthorization: false,
+    );
+
+    expect(await first.initializeAfterFirstFrame(), 'ABC234');
+
+    final relaunched = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: _FakeAttributionPlatform(
+        trackingStatus: TrackingStatus.authorized,
+        superwallConfigured: false,
+        queryParams: {'invite_code': 'abc234'},
+      ),
+      store: store,
+      shouldRequestTrackingAuthorization: false,
+    );
+    expect(await relaunched.initializeAfterFirstFrame(), 'ABC234');
+
+    await relaunched.consumePendingInviteCode();
+
+    final afterConsumption = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: _FakeAttributionPlatform(
+        trackingStatus: TrackingStatus.authorized,
+        superwallConfigured: false,
+        queryParams: {'invite_code': 'ABC234'},
+      ),
+      store: store,
+      shouldRequestTrackingAuthorization: false,
+    );
+    expect(await afterConsumption.initializeAfterFirstFrame(), isNull);
+  });
+
+  test('invalid deferred invite parameters are ignored', () async {
+    final service = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: _FakeAttributionPlatform(
+        trackingStatus: TrackingStatus.authorized,
+        superwallConfigured: false,
+        queryParams: {'invite_code': '../family-secret'},
+      ),
+      store: InMemoryStore(),
+      shouldRequestTrackingAuthorization: false,
+    );
+
+    expect(await service.initializeAfterFirstFrame(), isNull);
+  });
 }
 
 class _FakeAttributionPlatform implements AttributionPlatform {
@@ -112,18 +171,21 @@ class _FakeAttributionPlatform implements AttributionPlatform {
     required this.trackingStatus,
     this.failTrackingStatus = false,
     this.superwallConfigured = true,
+    this.queryParams = const {},
   });
 
   final TrackingStatus trackingStatus;
   final bool failTrackingStatus;
   final bool superwallConfigured;
+  final Map<String, Object?> queryParams;
   final List<String> events = [];
   Map<String, String>? attributes;
 
   @override
-  Future<void> configureAppRefer(String apiKey) async {
+  Future<Map<String, Object?>> configureAppRefer(String apiKey) async {
     expect(apiKey, 'pk_test_example123');
     events.add('apprefer_configure');
+    return queryParams;
   }
 
   @override

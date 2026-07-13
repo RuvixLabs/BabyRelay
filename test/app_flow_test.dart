@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:babyrelay/app/app.dart';
 import 'package:babyrelay/core/analytics/analytics_service.dart';
 import 'package:babyrelay/core/attribution/attribution_service.dart';
@@ -58,13 +59,14 @@ void main() {
     PurchaseService purchases, {
     TutorialService? tutorialService,
     ReviewPromptService? reviewPromptService,
+    AttributionService? attributionService,
   }) {
     return BabyRelayApp(
       familyRepository: repo,
       purchaseService: purchases,
       analytics: AnalyticsService(),
       supportService: SupportService.disabled(),
-      attributionService: AttributionService(apiKey: ''),
+      attributionService: attributionService ?? AttributionService(apiKey: ''),
       tutorialService: tutorialService ?? TutorialService.disabled(),
       reviewPromptService:
           reviewPromptService ?? ReviewPromptService.disabled(),
@@ -93,6 +95,103 @@ void main() {
     expect(find.text('Join a care team'), findsOneWidget);
     expect(find.text('Set up a new family instead'), findsOneWidget);
     expect(find.textContaining('local preview'), findsOneWidget);
+  });
+
+  testWidgets('deferred install invite opens a prefilled join screen', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps();
+    final store = InMemoryStore();
+    final attribution = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: _DeferredInviteAttributionPlatform('ABC234'),
+      store: store,
+      shouldRequestTrackingAuthorization: false,
+    );
+
+    await tester.pumpWidget(
+      app(repo, purchases, attributionService: attribution),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Join a care team'), findsOneWidget);
+    final inviteField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(inviteField.controller?.text, 'ABC234');
+
+    await tester.tap(find.text('Set up a new family instead'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Every caregiver.'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    final relaunched = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: _DeferredInviteAttributionPlatform('ABC234'),
+      store: store,
+      shouldRequestTrackingAuthorization: false,
+    );
+    await tester.pumpWidget(
+      app(repo, purchases, attributionService: relaunched),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Every caregiver.'), findsOneWidget);
+    expect(find.text('Join a care team'), findsNothing);
+  });
+
+  testWidgets('deferred invite does not hijack an onboarded family', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    final attribution = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: _DeferredInviteAttributionPlatform('ABC234'),
+      store: InMemoryStore(),
+      shouldRequestTrackingAuthorization: false,
+    );
+
+    await tester.pumpWidget(
+      app(repo, purchases, attributionService: attribution),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Start sleep'), findsOneWidget);
+    expect(find.text('Join a care team'), findsNothing);
+  });
+
+  testWidgets('explicit universal-link invite wins over deferred attribution', (
+    tester,
+  ) async {
+    tester.binding.platformDispatcher.defaultRouteNameTestValue =
+        '/join/XYZ789';
+    addTearDown(
+      tester.binding.platformDispatcher.clearDefaultRouteNameTestValue,
+    );
+    final completion = Completer<Map<String, Object?>>();
+    final (repo, purchases) = await buildDeps();
+    final attribution = AttributionService(
+      apiKey: 'pk_test_example123',
+      platform: _DeferredInviteAttributionPlatform(
+        'ABC234',
+        completion: completion,
+      ),
+      store: InMemoryStore(),
+      shouldRequestTrackingAuthorization: false,
+    );
+
+    await tester.pumpWidget(
+      app(repo, purchases, attributionService: attribution),
+    );
+    await tester.pump();
+
+    expect(find.text('Join a care team'), findsOneWidget);
+    var inviteField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(inviteField.controller?.text, 'XYZ789');
+
+    completion.complete({'invite_code': 'ABC234'});
+    await tester.pumpAndSettle();
+
+    inviteField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(inviteField.controller?.text, 'XYZ789');
   });
 
   testWidgets('onboarding finishes at paywall without a rating gate', (
@@ -598,6 +697,37 @@ void main() {
     expect(purchases.isPro, isFalse);
     expect(find.text('No previous purchase found'), findsOneWidget);
   });
+}
+
+class _DeferredInviteAttributionPlatform implements AttributionPlatform {
+  _DeferredInviteAttributionPlatform(this.code, {this.completion});
+
+  final String code;
+  final Completer<Map<String, Object?>>? completion;
+
+  @override
+  Future<Map<String, Object?>> configureAppRefer(String apiKey) async =>
+      completion?.future ?? {'invite_code': code};
+
+  @override
+  Future<String?> getAppReferDeviceId() async => null;
+
+  @override
+  Future<TrackingStatus> getTrackingAuthorizationStatus() async =>
+      TrackingStatus.authorized;
+
+  @override
+  Future<TrackingStatus> requestTrackingAuthorization() async =>
+      TrackingStatus.authorized;
+
+  @override
+  Future<void> setAppReferUserId(String userId) async {}
+
+  @override
+  Future<void> setSuperwallAttributes(Map<String, Object> attributes) async {}
+
+  @override
+  Future<bool> waitForSuperwallConfiguration() async => false;
 }
 
 class _UiFakeFamilySyncAdapter implements FamilySyncAdapter {
