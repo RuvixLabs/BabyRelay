@@ -9,8 +9,7 @@
 //   --dart-define=SUPERWALL_IOS_API_KEY=pk_... \
 //   --dart-define=SUPERWALL_ANDROID_API_KEY=pk_... \
 //   --dart-define=GLEAP_SDK_KEY=... \
-//   --dart-define=APPREFER_API_KEY=pk_live_... \
-//   --dart-define=APPREFER_LINK_ID=...
+//   --dart-define=APPREFER_API_KEY=pk_live_...
 // ```
 //
 // Firebase is configured by its platform files (GoogleService-Info.plist /
@@ -55,9 +54,6 @@ abstract final class AppConfig {
   static const String gleapSdkKey = String.fromEnvironment('GLEAP_SDK_KEY');
   static const String appReferApiKey = String.fromEnvironment(
     'APPREFER_API_KEY',
-  );
-  static const String appReferLinkId = String.fromEnvironment(
-    'APPREFER_LINK_ID',
   );
 
   static void validateReleaseConfiguration() {

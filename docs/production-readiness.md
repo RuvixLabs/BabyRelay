@@ -86,19 +86,18 @@ flutter build ios --release \
   --dart-define=FIREBASE_CONFIGURED=true \
   --dart-define=SUPERWALL_IOS_API_KEY=<from mc-vault: babyrelay-superwall-ios-api-key> \
   --dart-define=GLEAP_SDK_KEY=<from mc-vault> \
-  --dart-define=APPREFER_API_KEY=<from mc-vault: babyrelay-apprefer-api-key> \
-  --dart-define=APPREFER_LINK_ID=babyrelay-meta
+  --dart-define=APPREFER_API_KEY=<from mc-vault: babyrelay-apprefer-api-key>
 
 flutter build apk --debug \
   --dart-define=FIREBASE_CONFIGURED=true \
   --dart-define=SUPERWALL_ANDROID_API_KEY=<from mc-vault: babyrelay-superwall-android-api-key> \
-  --dart-define=APPREFER_API_KEY=<from mc-vault: babyrelay-apprefer-api-key> \
-  --dart-define=APPREFER_LINK_ID=babyrelay-meta
+  --dart-define=APPREFER_API_KEY=<from mc-vault: babyrelay-apprefer-api-key>
 ```
 
 Debug builds keep local fallback behavior when provider keys are omitted.
 Release iOS/Android builds fail closed unless the platform Superwall key and
-live AppRefer key are supplied.
+live AppRefer key are supplied. AppRefer link ID `babyrelay-meta` belongs to
+the website fallback and is not a mobile build define.
 
 ## Remaining Provider Work
 
