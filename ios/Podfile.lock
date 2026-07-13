@@ -139,10 +139,10 @@ PODS:
     - Flutter
   - flutter_timezone (0.0.1):
     - Flutter
-  - Gleap (15.3.0)
-  - gleap_sdk (15.3.0):
+  - Gleap (15.4.0)
+  - gleap_sdk (15.4.0):
     - Flutter
-    - Gleap (= 15.3.0)
+    - Gleap (= 15.4.0)
   - GoogleAdsOnDeviceConversion (3.6.0):
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
@@ -369,8 +369,8 @@ SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
   flutter_timezone: 7c838e17ffd4645d261e87037e5bebf6d38fe544
-  Gleap: b5c98f582de22a4bd8959bb4faad60bbab9e554c
-  gleap_sdk: 8b69b03779d39c645dff2b18d069c4e86adb7ef0
+  Gleap: c56edf65b385f40d1bc9009c41b4ba0f5519dd28
+  gleap_sdk: 87c90ea0944cb3a0a2351bd2fa9e7b63f272078e
   GoogleAdsOnDeviceConversion: 80ce443fa1b4b5750913d53a04ecda644ff57744
   GoogleAppMeasurement: 1987ffa55055dfb22c52e363c31aa50c1e11d349
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7

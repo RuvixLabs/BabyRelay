@@ -38,7 +38,7 @@ Remaining Android launch work:
 
 - Create BabyRelay Android upload signing and upload an AAB to an internal
   track.
-- Create/configure the BabyRelay RevenueCat Android app, store its Android
-  public SDK key in `mc-vault`, import Play products, and wire RTDN/Pub/Sub.
-- Run Android install and RevenueCat purchase/restore smoke before production
+- Wire Google Play RTDN/Pub/Sub to the existing BabyRelay Superwall Android
+  application using the verified Ruvix GCP/Play context.
+- Run Android install and Superwall purchase/restore smoke before production
   release submission.

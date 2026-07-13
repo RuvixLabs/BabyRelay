@@ -103,7 +103,7 @@ live AppRefer key are supplied.
 | Follow-up | Needs | Where it lands |
 |---|---|---|
 | In-app two-device join smoke | Manual device/TestFlight session or simulator UI automation that can tap/type into Flutter | Backend client smoke has passed live Auth/Firestore rules against the optimized subcollection model. Still worth confirming the exact invite-code UI flow end to end in a running app. |
-| Universal/deep links | Apple associated domains + web route for `babyrelay.app/join/<code>` | Join links open the app directly instead of only showing the code |
+| Universal/deep links | Platform intent/associated-domain declarations are committed. The domain still needs AASA + Android `assetlinks.json` and a `/join/<code>` fallback route. | Join links open the app directly instead of only showing the code |
 | Superwall sandbox purchase | TestFlight/sandbox and Play test builds with the platform SDK keys | Validate all three products, restore, remote placements, and entitlement `pro` end to end |
 | Android upload/release track | BabyRelay Android upload signing + first AAB internal track upload | Validate installable release artifact, Play signing, and publishing overview readiness |
 | Android Superwall RTDN | Correct Ruvix GCP/Pub/Sub authority and Play RTDN wiring | Complete server-side Android subscription notifications, then validate purchase/renewal/cancel readback |
