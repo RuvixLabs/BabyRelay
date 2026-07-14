@@ -1,4 +1,24 @@
 {
+  "apphosting": {
+    "backendId": "babyrelay-web",
+    "rootDir": "website",
+    "ignore": [
+      "**/node_modules/**",
+      "**/.next/**",
+      ".git/**",
+      ".dart_tool/**",
+      "android/**",
+      "artifacts/**",
+      "assets/**",
+      "docs/**",
+      "functions/**",
+      "ios/**",
+      "lib/**",
+      "test/**",
+      "firebase-debug.log",
+      "firebase-debug.*.log"
+    ]
+  },
   "firestore": {
     "rules": "firestore.rules"
   },
