@@ -597,7 +597,7 @@ void main() {
 
       expect(find.text('Invite a caregiver'), findsWidgets);
       expect(find.text('Add caregiver on this device'), findsNothing);
-      expect(find.textContaining('babyrelay.app/join'), findsOneWidget);
+      expect(find.textContaining('joinbabyrelay.com/join'), findsOneWidget);
     },
   );
 

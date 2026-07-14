@@ -42,7 +42,7 @@ Provider creation status is tracked in `docs/provider-setup.md`.
   gates and join-by-code evaluate the family plan, not only the joining
   device's local subscription status.
 - **Invites**: pure-Dart `InviteService` — unambiguous 6-char codes,
-  deterministic `https://babyrelay.app/join/<code>` payload, share text, and a
+  deterministic `https://joinbabyrelay.com/join/<code>` payload, share text, and a
   scannable QR code in the invite sheet. AppRefer install attribution restores
   a validated `invite_code` into the Join screen, keeps it pending across
   relaunch until join or dismissal, then suppresses the cached attribution.

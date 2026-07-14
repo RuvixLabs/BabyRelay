@@ -15,7 +15,8 @@ class InvitePayload {
   final Uri url;
   final String shareText;
 
-  /// Link without the scheme, for compact display ("babyrelay.app/join/ABC").
+  /// Link without the scheme, for compact display
+  /// ("joinbabyrelay.com/join/ABC").
   String get displayLink => '${url.host}${url.path}';
 }
 

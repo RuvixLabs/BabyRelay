@@ -102,7 +102,7 @@ to the app-scoped AppRefer webhook with an encrypted shared secret. Release
 proof still requires a real paid click through install/open and a matching
 store sandbox/production purchase readback.
 
-Caregiver shares remain direct `https://babyrelay.app/join/<code>` universal
+Caregiver shares remain direct `https://joinbabyrelay.com/join/<code>` universal
 links. The website fallback must pass `invite_code=<code>` through AppRefer
 only when the app did not open. On first launch, BabyRelay validates that
 parameter against its six-character invite alphabet, persists it until join or
