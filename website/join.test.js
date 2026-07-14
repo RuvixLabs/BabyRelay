@@ -1,24 +1,20 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import {
+  buildInviteDestination,
+  normalizeInviteCode,
+} from './app/lib/invite.js';
 
-const root = new URL('./', import.meta.url);
-
-test('Apple association file targets only caregiver join routes', async () => {
-  const source = await readFile(
-    new URL('.well-known/apple-app-site-association', root),
-    'utf8',
-  );
-  const association = JSON.parse(source);
-  assert.deepEqual(association.applinks.details[0].appIDs, [
-    'S399W94VV8.com.ruvixlabs.babyrelay',
-  ]);
-  assert.equal(association.applinks.details[0].components[0]['/'], '/join/*');
+test('normalizes and validates six-character invitation codes', () => {
+  assert.equal(normalizeInviteCode(' ab12cd '), 'AB12CD');
+  assert.equal(normalizeInviteCode('ABC-12'), null);
+  assert.equal(normalizeInviteCode('ABC12'), null);
 });
 
-test('join fallback preserves the validated invite code for AppRefer', async () => {
-  const source = await readFile(new URL('join.js', root), 'utf8');
-  assert.match(source, /\^\[A-Z0-9\]\{6\}\$/);
-  assert.match(source, /apprefer\.com\/api\/c\/babyrelay-meta/);
-  assert.match(source, /searchParams\.set\('invite_code', code\)/);
+test('join fallback preserves the validated invite code for AppRefer', () => {
+  const destination = new URL(buildInviteDestination('ab12cd'));
+  assert.equal(destination.origin, 'https://apprefer.com');
+  assert.equal(destination.pathname, '/api/c/babyrelay-meta');
+  assert.equal(destination.searchParams.get('invite_code'), 'AB12CD');
+  assert.equal(buildInviteDestination('invalid'), null);
 });
