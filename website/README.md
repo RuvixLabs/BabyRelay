@@ -4,9 +4,10 @@ This is a small Next.js application for Firebase App Hosting. It owns the
 marketing root, caregiver invitation fallback, and the Universal/App Link
 association endpoints.
 
-The production domain is intentionally not encoded here. Choose and register
-the Ruvix-owned domain before attaching it to the App Hosting backend and
-before changing the mobile associated-domain declarations.
+The canonical production domain is `ourbabyrelay.com`. It must be registered
+to Ruvix Labs and attached to the `babyrelay-web` Firebase App Hosting backend
+before a store build containing the mobile associated-domain declarations is
+released.
 
 ## Local verification
 

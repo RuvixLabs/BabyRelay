@@ -41,7 +41,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="joinbabyrelay.com"
+                    android:host="ourbabyrelay.com"
                     android:pathPrefix="/join/" />
             </intent-filter>
         </activity>

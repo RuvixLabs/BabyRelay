@@ -6,7 +6,7 @@
 	<string>$(APS_ENVIRONMENT)</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:joinbabyrelay.com</string>
+		<string>applinks:ourbabyrelay.com</string>
 	</array>
 </dict>
 </plist>

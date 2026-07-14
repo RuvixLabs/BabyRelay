@@ -29,7 +29,7 @@ abstract final class AppConfig {
 
   /// Host for caregiver invite links (`https://<host>/join/<code>`). The
   /// universal-link handler ships with the Firebase backend integration.
-  static const String inviteLinkHost = 'joinbabyrelay.com';
+  static const String inviteLinkHost = 'ourbabyrelay.com';
 
   // --- Provider wiring (empty ⇒ not configured, app stays local-only) ----
 
