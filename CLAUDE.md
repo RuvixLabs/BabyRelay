@@ -128,7 +128,7 @@ Provider keys arrive via `--dart-define` (never committed) and surface in
    for the four placements, and treats entitlement `pro` as authoritative.
    Keep the local service debug/test-only.
 3. AppRefer: keep shared invites as direct
-   `https://joinbabyrelay.com/join/<code>` universal links. The website fallback
+   `https://ourbabyrelay.com/join/<code>` universal links. The website fallback
    forwards first installs through AppRefer link `babyrelay-meta` with an
    `invite_code` query parameter; `AttributionService` restores and consumes
    it. Do not wrap the shared URL in an AppRefer URL or installed-app opening
