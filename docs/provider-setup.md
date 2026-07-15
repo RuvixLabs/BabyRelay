@@ -318,14 +318,17 @@ Live AppStore Co-Pilot readback:
 - Launcher icon: generated from the approved Android-safe glow-face source,
   with legacy density icons, adaptive foreground layers, `ic_launcher.xml`,
   `ic_launcher_round.xml`, and background color `#071537`.
-- Build status: `flutter build apk --debug
-  --dart-define=FIREBASE_CONFIGURED=true` passed on 2026-06-23. AppRefer link
-  ID `babyrelay-meta` is website configuration, not a mobile build define.
-- Advertising ID status: Play declaration is "No." The Android manifest removes
-  both `com.google.android.gms.permission.AD_ID` and
-  `android.permission.ACCESS_ADSERVICES_AD_ID` with `tools:node="remove"` so
-  Firebase/measurement transitive permissions do not land in the merged app
-  manifest.
+- Build status: signed release AAB `1.0.0 (4)` was built with the live
+  Firebase, Superwall Android, and AppRefer configuration and published to
+  Play Internal testing on 2026-07-15. AppRefer link ID `babyrelay-meta` is
+  website configuration, not a mobile build define.
+- Signing status: the Ruvix-owned BabyRelay upload keystore is stored outside
+  the repository and Play App Signing is active. The Play signing certificate
+  is used by Firebase App Hosting to generate `assetlinks.json`.
+- Advertising ID status: AppRefer contributes
+  `com.google.android.gms.permission.AD_ID` to the merged release manifest for
+  attribution. Update the Play declaration from "No" to "Yes" with analytics
+  and advertising/marketing purposes before production submission.
 - Device smoke: installed and launched on Android device `SM G973F`
   (`RF8MC08242T`, Android 11). First Flutter frame appeared after the native
   splash; logcat showed Firebase/Crashlytics initialization and no fatal
@@ -364,12 +367,11 @@ Live AppStore Co-Pilot readback:
 
 Remaining Android / Play blockers:
 
-- Create Android upload signing for BabyRelay; do not reuse the ThreadCam
-  keystore.
 - Wire Google Play RTDN/Pub/Sub to Superwall using the correct Ruvix GCP service
   account before production submission.
-- Upload an Android App Bundle to an internal track, run install/purchase smoke,
-  then complete the production release/publishing overview path.
+- Update the Play Advertising ID declaration, install build 4 from Internal
+  testing, run purchase/restore and remote-notification smoke tests, then
+  complete the production release/publishing overview path.
 
 Remaining App Store / subscription blockers:
 

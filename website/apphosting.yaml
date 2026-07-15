@@ -4,3 +4,9 @@ runConfig:
   concurrency: 80
   cpu: 1
   memoryMiB: 512
+
+env:
+  - variable: ANDROID_SHA256_CERT_FINGERPRINTS
+    value: "ED:2F:2E:3A:2D:86:8E:27:66:60:AE:3D:C3:5D:6A:CD:76:CD:56:72:EF:F1:2C:48:49:D0:DC:31:ED:74:B6:14"
+    availability:
+      - RUNTIME
