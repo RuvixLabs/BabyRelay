@@ -318,10 +318,16 @@ Live AppStore Co-Pilot readback:
 - Launcher icon: generated from the approved Android-safe glow-face source,
   with legacy density icons, adaptive foreground layers, `ic_launcher.xml`,
   `ic_launcher_round.xml`, and background color `#071537`.
-- Build status: signed release AAB `1.0.0 (4)` was built with the live
+- Build status: signed release AAB `1.0.0 (5)` was built with the live
   Firebase, Superwall Android, and AppRefer configuration and published to
-  Play Internal testing on 2026-07-15. AppRefer link ID `babyrelay-meta` is
-  website configuration, not a mobile build define.
+  Play Internal testing on 2026-07-15. Build 5 fixes the Android FlutterFire
+  codec mismatch found in build 4 by aligning `firebase_core 4.11.0` with
+  platform interface `7.1.0`. Its production-config cold launch initialized
+  Firebase and the live Superwall Android configuration without a fatal or
+  `CoreFirebaseOptions` range error. The Play-generated universal APK reads
+  back as version code 5 and verifies with the expected Play signing
+  certificate and source stamp. AppRefer link ID `babyrelay-meta` is website
+  configuration, not a mobile build define.
 - Signing status: the Ruvix-owned BabyRelay upload keystore is stored outside
   the repository and Play App Signing is active. The Play signing certificate
   is used by Firebase App Hosting to generate `assetlinks.json`.
@@ -329,10 +335,14 @@ Live AppStore Co-Pilot readback:
   `com.google.android.gms.permission.AD_ID` to the merged release manifest for
   attribution. Update the Play declaration from "No" to "Yes" with analytics
   and advertising/marketing purposes before production submission.
-- Device smoke: installed and launched on Android device `SM G973F`
+- Device smoke: build 4 was installed and launched on Android device `SM G973F`
   (`RF8MC08242T`, Android 11). First Flutter frame appeared after the native
-  splash; logcat showed Firebase/Crashlytics initialization and no fatal
-  exception/ANR.
+  splash; sleep timer, ongoing notification start/end, retrospective entry,
+  and relaunch persistence passed. Build 5 was then cold-launched on a clean
+  Android 15 emulator with the production Firebase/Superwall/AppRefer
+  configuration; Firebase and Superwall initialized without the prior codec
+  error or any fatal exception. Physical purchase/restore still requires the
+  Play Internal install rather than a sideload.
 - Play listing draft:
   - Title: `BabyRelay: Shared Baby Care`
   - Short description: `Shared baby logs, sleep guidance, and care handoffs for
@@ -369,7 +379,7 @@ Remaining Android / Play blockers:
 
 - Wire Google Play RTDN/Pub/Sub to Superwall using the correct Ruvix GCP service
   account before production submission.
-- Update the Play Advertising ID declaration, install build 4 from Internal
+- Update the Play Advertising ID declaration, install build 5 from Internal
   testing, run purchase/restore and remote-notification smoke tests, then
   complete the production release/publishing overview path.
 
