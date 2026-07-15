@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: ^3.11.1
@@ -45,9 +45,10 @@ dependencies:
   share_plus: ^12.0.2
   provider: ^6.1.5+1
   in_app_review: ^2.0.12
-  # Keep FlutterFire on the release-tested compatible set. The July 2026
-  # latest set resolved to plugins referencing a removed FirebasePlugin type.
-  firebase_core: 4.10.0
+  # Keep FlutterFire on the release-tested compatible set. firebase_core
+  # 4.11.0 is required because platform interface 7.1 adds recaptchaSiteKey;
+  # core 4.10's Android codec still emits the older 14-field payload.
+  firebase_core: 4.11.0
   firebase_auth: 6.5.2
   cloud_firestore: 6.5.0
   firebase_analytics: 12.4.2
