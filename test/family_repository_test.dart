@@ -132,6 +132,18 @@ void main() {
     },
   );
 
+  test('sync health becomes visible after a remote listener failure', () async {
+    final sync = FakeFamilySyncAdapter();
+    repo = FamilyRepository(store, sync: sync);
+    await onboard();
+    expect(repo.syncStatus, FamilySyncStatus.connected);
+
+    sync.emitError(StateError('permission denied'));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(repo.syncStatus, FamilySyncStatus.unavailable);
+  });
+
   test(
     'remote family snapshots preserve this device caregiver identity',
     () async {
@@ -882,6 +894,8 @@ class FakeFamilySyncAdapter implements FamilySyncAdapter {
   }
 
   void emitRemote(FamilyState state) => _controller.add(state);
+
+  void emitError(Object error) => _controller.addError(error);
 
   @override
   Future<FamilyState> joinFamilyByInviteCode({

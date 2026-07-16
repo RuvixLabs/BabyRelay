@@ -1,6 +1,6 @@
 # Provider Setup
 
-Last updated: 2026-07-09
+Last updated: 2026-07-17
 
 ## Firebase
 
@@ -26,8 +26,9 @@ Live sync state:
 - Anonymous Auth is enabled for `babyrelay-ruvix`. This was provisioned through
   the Ruvix-authenticated Firebase Management API after the first live smoke
   returned `CONFIGURATION_NOT_FOUND`.
-- Firestore rules are deployed to the `cloud.firestore` release:
-  `22a5e94c-4d73-433e-a5d5-d71b9537f7f3`.
+- Firestore rules are deployed to the `cloud.firestore` release as ruleset
+  `d0470ce5-f393-4c1f-a4a9-ad90797b9ee6`. Family subscription fields are
+  backend-only: clients must create them inactive and cannot mutate them.
 - Cloud Function `onSleepEventWritten` is deployed as a Gen 2 function in
   `us-central1`, runtime `nodejs22`, revision
   `onsleepeventwritten-00003-pon`, with Eventarc trigger
@@ -77,6 +78,18 @@ Live sync state:
   project, trigger, service accounts, limits, and no-retry policy.
   Future CLI deploys should explicitly select the Ruvix context before mutating
   live Firebase state.
+- The generalized Ruvix deploy identity remains the administrative deployment
+  principal. App runtime is deliberately separate for transferability and
+  least privilege: both BabyRelay functions run as
+  `babyrelay-functions@babyrelay-ruvix.iam.gserviceaccount.com`, with only
+  Datastore user, FCM admin, log writer, Eventarc receiver, and secret-specific
+  access to `SUPERWALL_WEBHOOK_SECRET`.
+- `onSuperwallWebhook` is live in `us-central1`. It verifies the raw request
+  with Svix before accepting a BabyRelay project/application/product event,
+  rejects Superwall aliases in place of Firebase UIDs, records idempotent
+  receipts, ignores stale lifecycle events, and aggregates active member
+  entitlements onto the family. A signed synthetic unmatched-user smoke
+  returned `200`; the same endpoint rejected an unsigned request with `400`.
 
 ## AppRefer
 
@@ -120,6 +133,12 @@ dismissal, and suppresses the same cached attribution on later launches.
   - `babyrelay-superwall-ios-api-key`
   - `babyrelay-superwall-android-api-key`
 - Organization API key vault service: `babyrelay-superwall-org-api-key`
+- Family entitlement webhook endpoint:
+  `ep_3GbeTVB33kE2Q9FdwXvNjhnLjXC`
+- Webhook signing secret locations (never print or commit the value):
+  `mc-vault` service
+  `babyrelay-superwall-entitlement-webhook-signing-secret` and GCP Secret
+  Manager secret `SUPERWALL_WEBHOOK_SECRET`
 - Entitlement: `pro` on both applications
 - Products:
   - `babyrelay_pro_special_annual`: `$29.99`, annual, no trial
@@ -416,7 +435,7 @@ Remaining App Store / subscription blockers:
   `--dart-define=FIREBASE_CONFIGURED=true` is present.
 - Firestore rules are committed in `firestore.rules` and deployed to the
   `cloud.firestore` release on `babyrelay-ruvix` as ruleset
-  `22a5e94c-4d73-433e-a5d5-d71b9537f7f3`.
+  `d0470ce5-f393-4c1f-a4a9-ad90797b9ee6`.
 - Cloud Function `onSleepEventWritten` is deployed on Node.js 22 and fans out
   Firestore sleep event writes to family devices through FCM / ActivityKit
   payloads. Backend smoke has verified rules, token-doc writes, trigger
@@ -424,11 +443,12 @@ Remaining App Store / subscription blockers:
   or TestFlight devices with valid push tokens.
 - Superwall SDK is installed. `SuperwallPurchaseService` configures without
   blocking first paint, presents the four remote placements, treats entitlement
-  `pro` as authoritative, and owns store purchases/restores. Purchase/restore
-  marks the shared family subscription active so paid capacity gates apply to
-  the family and join-by-code can accept over-free-limit caregivers. Release
-  builds require `SUPERWALL_IOS_API_KEY` or `SUPERWALL_ANDROID_API_KEY`; there is
-  no legacy key fallback.
+  `pro` as authoritative for the current device, and owns store
+  purchases/restores. Shared family capacity is not client-authoritative: the
+  verified `onSuperwallWebhook` backend updates per-user entitlement documents
+  and the family aggregate. Release builds require Firebase, the applicable
+  `SUPERWALL_IOS_API_KEY` or `SUPERWALL_ANDROID_API_KEY`, and the live AppRefer
+  key; there is no local release fallback.
 - Gleap SDK is installed. Settings opens in-app support when
   `GLEAP_SDK_KEY` is supplied, otherwise it falls back to the support email.
 - App tracking transparency and AppRefer SDK `0.4.1` are installed. A release

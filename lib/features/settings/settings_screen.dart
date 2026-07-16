@@ -10,6 +10,7 @@ import '../../core/design/relay_theme.dart';
 import '../../core/design/relay_widgets.dart';
 import '../../core/legal/legal_links.dart';
 import '../../core/purchases/purchase_service.dart';
+import '../../core/sleep/sleep_runtime_service.dart';
 import '../../core/support/support_service.dart';
 import '../../data/family_repository.dart';
 import '../../domain/models/baby_profile.dart';
@@ -134,6 +135,33 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ],
               ],
+            ),
+          ),
+          const SizedBox(height: 22),
+          const SectionLabel('Shared alerts'),
+          RelayCard(
+            padding: EdgeInsets.zero,
+            child: _SettingsRow(
+              icon: Icons.notifications_active_outlined,
+              iconColor: c.dusk,
+              title: 'Shared sleep alerts',
+              subtitle:
+                  'Lock Screen updates when another caregiver starts sleep',
+              onTap: () async {
+                final granted = await context
+                    .read<SleepRuntimeService>()
+                    .requestSharedSleepAlerts();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      granted
+                          ? 'Shared sleep alerts enabled'
+                          : 'Alerts are off. You can enable them in system settings.',
+                    ),
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(height: 22),

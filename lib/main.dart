@@ -62,6 +62,7 @@ Future<void> main() async {
         deviceId: deviceId,
       );
     } catch (error, stack) {
+      familyRepository.markSyncUnavailable();
       FlutterError.reportError(
         FlutterErrorDetails(
           exception: error,
@@ -80,19 +81,6 @@ Future<void> main() async {
           appUserId: familyRepository.syncUserId ?? '',
         );
   await purchaseService.load();
-  void syncFamilyEntitlement() {
-    if (purchaseService.isPro && familyRepository.state.onboarded) {
-      unawaited(
-        familyRepository.setFamilySubscriptionStatus(
-          active: true,
-          planId: purchaseService.activePlan?.name ?? '',
-        ),
-      );
-    }
-  }
-
-  purchaseService.addListener(syncFamilyEntitlement);
-  syncFamilyEntitlement();
   final supportService = await SupportService.create(
     gleapSdkKey: AppConfig.gleapSdkKey,
   );

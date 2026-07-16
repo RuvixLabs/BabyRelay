@@ -13,6 +13,7 @@ const {
   buildIosLiveActivityMessage,
   liveSleepState,
   shouldProcessSleepWrite,
+  shouldRetryRemoteStart,
 } = require("../lib/sleepLiveActivity");
 
 test("builds multi-child active sleep summary in start order", () => {
@@ -94,6 +95,29 @@ test("iOS remote start payload uses FCM live_activity_token and ActivityKit aps 
     activeSleepCount: 1,
     activeSleepSummary: "Mae sleeping",
   });
+  assert.equal(
+    message.apns.payload.aps["stale-date"],
+    Math.floor((456000 + 18 * 60 * 60 * 1000) / 1000),
+  );
+});
+
+test("remote Live Activity start retries are bounded", () => {
+  const now = 1_000_000;
+  assert.equal(shouldRetryRemoteStart({
+    active: true,
+    remoteStartRequestedAt: {toMillis: () => now - 120_000},
+    remoteStartAttemptCount: 1,
+  }, now), true);
+  assert.equal(shouldRetryRemoteStart({
+    active: true,
+    remoteStartRequestedAt: {toMillis: () => now - 30_000},
+    remoteStartAttemptCount: 1,
+  }, now), false);
+  assert.equal(shouldRetryRemoteStart({
+    active: true,
+    remoteStartRequestedAt: {toMillis: () => now - 600_000},
+    remoteStartAttemptCount: 3,
+  }, now), false);
 });
 
 test("iOS Live Activity update and end payloads keep the expected event shape", () => {

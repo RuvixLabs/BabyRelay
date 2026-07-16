@@ -237,6 +237,8 @@ abstract class FamilySyncAdapter {
   Future<void> dispose() async {}
 }
 
+enum FamilySyncStatus { localOnly, connecting, connected, unavailable }
+
 /// Local-first repository for the shared family state.
 ///
 /// This is the seam where Firestore lands later: same mutation API, but
@@ -245,7 +247,10 @@ abstract class FamilySyncAdapter {
 class FamilyRepository extends ChangeNotifier {
   FamilyRepository(this._store, {FamilySyncAdapter? sync, String? deviceId})
     : _sync = sync,
-      _deviceId = deviceId;
+      _deviceId = deviceId,
+      _syncStatus = sync == null
+          ? FamilySyncStatus.localOnly
+          : FamilySyncStatus.connected;
 
   static const int freeCaregiverLimit = 2;
   static const _storageKey = 'babyrelay.family.v1';
@@ -255,11 +260,25 @@ class FamilyRepository extends ChangeNotifier {
   StreamSubscription<FamilyState>? _remoteSubscription;
   String? _watchedFamilyId;
   bool _applyingRemote = false;
+  FamilySyncStatus _syncStatus;
 
   FamilyState _state = const FamilyState();
   FamilyState get state => _state;
   bool get syncConfigured => _sync != null;
   String? get syncUserId => _sync?.userId;
+  FamilySyncStatus get syncStatus => _syncStatus;
+
+  void markSyncUnavailable() {
+    if (_syncStatus == FamilySyncStatus.unavailable) return;
+    _syncStatus = FamilySyncStatus.unavailable;
+    notifyListeners();
+  }
+
+  void _markSyncConnected() {
+    if (_syncStatus == FamilySyncStatus.connected) return;
+    _syncStatus = FamilySyncStatus.connected;
+    notifyListeners();
+  }
 
   int _idCounter = 0;
 
@@ -277,17 +296,21 @@ class FamilyRepository extends ChangeNotifier {
 
   Future<void> attachSync(FamilySyncAdapter sync) async {
     _sync = sync;
+    _syncStatus = FamilySyncStatus.connecting;
+    notifyListeners();
     final current = _state.currentCaregiver;
     if (_state.onboarded &&
         current?.isOwner == true &&
         current!.id != sync.userId) {
       await _commit(_rekeyCaregiver(_state, from: current.id, to: sync.userId));
+      _markSyncConnected();
       return;
     }
     if (_state.onboarded && _state.familyId.isNotEmpty) {
       await sync.saveFamily(_state);
       _watchFamily(_state.familyId);
     }
+    _markSyncConnected();
   }
 
   FamilyState _rekeyCaregiver(
@@ -331,12 +354,13 @@ class FamilyRepository extends ChangeNotifier {
       try {
         final merged = _mergeRemoteFamilyState(remote);
         _state = merged;
+        _markSyncConnected();
         notifyListeners();
         await _store.write(_storageKey, jsonEncode(merged.toJson()));
       } finally {
         _applyingRemote = false;
       }
-    });
+    }, onError: (Object error, StackTrace stack) => markSyncUnavailable());
   }
 
   Future<void> _stopWatchingFamily() async {
@@ -779,19 +803,6 @@ class FamilyRepository extends ChangeNotifier {
 
   Future<void> regenerateInviteCode() async {
     await _commit(_state.copyWith(inviteCode: InviteService.generateCode()));
-  }
-
-  Future<void> setFamilySubscriptionStatus({
-    required bool active,
-    String planId = '',
-  }) async {
-    await _commit(
-      _state.copyWith(
-        familySubscriptionActive: active,
-        familySubscriptionPlanId: active ? planId : '',
-        familySubscriptionOwnerId: active ? _state.currentCaregiverId : '',
-      ),
-    );
   }
 
   Future<void> joinFamilyByInviteCode({

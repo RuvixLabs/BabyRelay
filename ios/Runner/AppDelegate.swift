@@ -74,7 +74,12 @@ import UIKit
       sleepActivity = activity
       observeSleepActivity(activity)
       Task {
-        await activity.update(ActivityContent(state: state, staleDate: nil))
+        await activity.update(
+          ActivityContent(
+            state: state,
+            staleDate: sleepActivityStaleDate(startedAtMillis: startedAtMillis)
+          )
+        )
       }
       return
     }
@@ -84,7 +89,10 @@ import UIKit
     do {
       sleepActivity = try Activity.request(
         attributes: attributes,
-        content: ActivityContent(state: state, staleDate: nil),
+        content: ActivityContent(
+          state: state,
+          staleDate: sleepActivityStaleDate(startedAtMillis: startedAtMillis)
+        ),
         pushType: .token
       )
       if let activity = sleepActivity as? Activity<BabyRelaySleepAttributes> {
@@ -93,6 +101,11 @@ import UIKit
     } catch {
       sleepActivity = nil
     }
+  }
+
+  private func sleepActivityStaleDate(startedAtMillis: Double) -> Date {
+    Date(timeIntervalSince1970: startedAtMillis / 1000)
+      .addingTimeInterval(18 * 60 * 60)
   }
 
   private func millisValue(_ raw: Any?) -> Double? {

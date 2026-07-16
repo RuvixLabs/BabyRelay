@@ -92,6 +92,7 @@ class _BabyRelayAppState extends State<BabyRelayApp> {
         Provider.value(value: widget.analytics),
         Provider.value(value: widget.supportService),
         Provider.value(value: widget.attributionService),
+        Provider<SleepRuntimeService>.value(value: sleepRuntimeService),
       ],
       child: MaterialApp.router(
         title: 'BabyRelay',

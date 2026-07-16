@@ -8,7 +8,6 @@ import '../../core/design/relay_theme.dart';
 import '../../core/legal/legal_links.dart';
 import '../../core/purchases/purchase_service.dart';
 import '../../core/tutorial/tutorial_service.dart';
-import '../../data/family_repository.dart';
 
 /// Family paywall. Calm and honest: price, trial terms, and the limited launch
 /// offer window are stated plainly, and close is always available.
@@ -91,7 +90,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _purchase() async {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
-    final repo = context.read<FamilyRepository>();
     final messenger = ScaffoldMessenger.of(context);
     final plan = purchases.plans.firstWhere((p) => p.id == _selected);
     analytics.logEvent('purchase_started', {'plan': plan.id.name});
@@ -110,7 +108,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ),
         );
         _dismissPaywall();
-        _syncFamilySubscription(repo, plan.id.name);
         break;
       case PurchaseOutcome.cancelled:
         // Backing out of the store sheet is not an error; stay quiet.
@@ -133,7 +130,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _presentRemotePaywall() async {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
-    final repo = context.read<FamilyRepository>();
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _remotePresentationFailed = false);
     analytics.logEvent('superwall_placement_registered', {
@@ -153,7 +149,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
         messenger.showSnackBar(
           const SnackBar(content: Text('Welcome to BabyRelay Family')),
         );
-        _syncFamilySubscription(repo, purchases.activePlan?.name ?? '');
         _dismissPaywall();
       case PaywallOutcome.restored:
         analytics.logEvent('restore_completed', {
@@ -162,7 +157,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
         messenger.showSnackBar(
           const SnackBar(content: Text('Purchases restored')),
         );
-        _syncFamilySubscription(repo, purchases.activePlan?.name ?? '');
         _dismissPaywall();
       case PaywallOutcome.dismissed:
       case PaywallOutcome.skipped:
@@ -176,7 +170,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
   Future<void> _restore() async {
     final purchases = context.read<PurchaseService>();
     final analytics = context.read<AnalyticsService>();
-    final repo = context.read<FamilyRepository>();
     final messenger = ScaffoldMessenger.of(context);
     analytics.logEvent('restore_tapped');
     final outcome = await purchases.restore();
@@ -188,7 +181,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
           const SnackBar(content: Text('Purchases restored')),
         );
         _dismissPaywall();
-        _syncFamilySubscription(repo, purchases.activePlan?.name ?? '');
         break;
       case RestoreOutcome.nothingToRestore:
         analytics.logEvent('restore_empty');
@@ -347,27 +339,6 @@ class _PaywallScreenState extends State<PaywallScreen> {
     Navigator.of(context).pop();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       tutorials.requestVisibleTutorialCheck();
-    });
-  }
-
-  void _syncFamilySubscription(FamilyRepository repo, String planId) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(
-        repo
-            .setFamilySubscriptionStatus(active: true, planId: planId)
-            .catchError((Object error, StackTrace stack) {
-              FlutterError.reportError(
-                FlutterErrorDetails(
-                  exception: error,
-                  stack: stack,
-                  library: 'BabyRelay purchases',
-                  context: ErrorDescription(
-                    'syncing family subscription status',
-                  ),
-                ),
-              );
-            }),
-      );
     });
   }
 
