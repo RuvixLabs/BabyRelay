@@ -333,8 +333,10 @@ Live AppStore Co-Pilot readback:
   is used by Firebase App Hosting to generate `assetlinks.json`.
 - Advertising ID status: AppRefer contributes
   `com.google.android.gms.permission.AD_ID` to the merged release manifest for
-  attribution. Update the Play declaration from "No" to "Yes" with analytics
-  and advertising/marketing purposes before production submission.
+  attribution. The Play declaration is saved as "Yes" with Analytics and
+  Advertising or marketing purposes. Play shows the change as saved and ready
+  to send from Publishing overview; keep it with the held production review
+  packet until physical QA passes.
 - Device smoke: build 4 was installed and launched on Android device `SM G973F`
   (`RF8MC08242T`, Android 11). First Flutter frame appeared after the native
   splash; sleep timer, ongoing notification start/end, retrospective entry,
@@ -392,9 +394,9 @@ Live AppStore Co-Pilot readback:
 
 Remaining Android / Play blockers:
 
-- Update the Play Advertising ID declaration, install build 5 from Internal
-  testing, run purchase/restore and remote-notification smoke tests, then
-  complete the production release/publishing overview path.
+- Install build 5 from Internal testing, run purchase/restore and
+  remote-notification smoke tests, then send the saved Advertising ID change
+  and complete the production release/publishing overview path.
 
 Remaining App Store / subscription blockers:
 
