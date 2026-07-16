@@ -374,11 +374,24 @@ Live AppStore Co-Pilot readback:
   - Special annual: `babyrelay_pro_special_annual`, base plan
     `special-annual`, period `P1Y`, USA price `$29.99`, active, no trial,
     `173` regions
+- Google Play RTDN is configured on the BabyRelay-owned Pub/Sub topic
+  `projects/babyrelay-ruvix/topics/babyrelay-google-play-rtdn` with notification
+  content set to subscriptions, voided purchases, and all one-time products.
+  Superwall Android app `49826` reads back subscription
+  `projects/babyrelay-ruvix/subscriptions/Superwall-49826` on that topic.
+- The Superwall revenue credential is the app-owned service account
+  `superwall-revenue@babyrelay-ruvix.iam.gserviceaccount.com`. In Play it is
+  limited to the BabyRelay package and the three revenue/order permissions;
+  it has no release or other-app access. The credential JSON is vault-backed
+  and is not stored in the repository.
+- Live transport proof passed on 2026-07-16: Play's test notification reached
+  the app-owned topic with package `com.ruvixlabs.babyrelay`, and Superwall
+  diagnostics recorded one webhook with no detail or revenue-processing
+  errors. The temporary smoke subscription and the superseded shared-project
+  topic were deleted after proof.
 
 Remaining Android / Play blockers:
 
-- Wire Google Play RTDN/Pub/Sub to Superwall using the correct Ruvix GCP service
-  account before production submission.
 - Update the Play Advertising ID declaration, install build 5 from Internal
   testing, run purchase/restore and remote-notification smoke tests, then
   complete the production release/publishing overview path.
