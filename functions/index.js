@@ -3,7 +3,10 @@
 const admin = require("firebase-admin");
 const {getFirestore} = require("firebase-admin/firestore");
 const {logger} = require("firebase-functions");
-const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+const {
+  onDocumentDeleted,
+  onDocumentWritten,
+} = require("firebase-functions/v2/firestore");
 const {onRequest} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
 const {GoogleAuth} = require("google-auth-library");
@@ -24,6 +27,7 @@ const {
 } = require("./lib/tokenCleanup");
 const {
   applySuperwallEntitlementEvent,
+  cleanupDeletedUserEntitlement,
 } = require("./lib/superwallEntitlement");
 
 admin.initializeApp();
@@ -78,6 +82,23 @@ exports.onSuperwallWebhook = onRequest(
       });
       response.status(500).send("Webhook processing failed");
     }
+  },
+);
+
+exports.onUserDeleted = onDocumentDeleted(
+  {
+    document: "users/{userId}",
+    region: "us-central1",
+    serviceAccount: runtimeServiceAccount,
+  },
+  async (event) => {
+    const outcome = await cleanupDeletedUserEntitlement({
+      firestore: db,
+      userId: event.params.userId,
+      deletedUser: event.data.data() || {},
+      serverTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    logger.info("Cleaned deleted user entitlement", {outcome});
   },
 );
 

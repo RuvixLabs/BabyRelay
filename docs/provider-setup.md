@@ -82,14 +82,19 @@ Live sync state:
   principal. App runtime is deliberately separate for transferability and
   least privilege: both BabyRelay functions run as
   `babyrelay-functions@babyrelay-ruvix.iam.gserviceaccount.com`, with only
-  Datastore user, FCM admin, log writer, Eventarc receiver, and secret-specific
-  access to `SUPERWALL_WEBHOOK_SECRET`.
+  Datastore user, FCM admin, log writer, Eventarc receiver, Cloud Run invoker,
+  and secret-specific access to `SUPERWALL_WEBHOOK_SECRET`. The Run invoker
+  role is required for Eventarc to deliver Firestore events to the Gen 2
+  function services.
 - `onSuperwallWebhook` is live in `us-central1`. It verifies the raw request
   with Svix before accepting a BabyRelay project/application/product event,
   rejects Superwall aliases in place of Firebase UIDs, records idempotent
   receipts, ignores stale lifecycle events, and aggregates active member
   entitlements onto the family. A signed synthetic unmatched-user smoke
   returned `200`; the same endpoint rejected an unsigned request with `400`.
+- `onUserDeleted` removes the deleted user's server-owned entitlement and
+  recomputes any remaining family aggregate. Future webhook receipt documents
+  intentionally contain no user or family identifiers.
 
 ## AppRefer
 

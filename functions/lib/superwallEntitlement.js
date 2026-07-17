@@ -121,8 +121,6 @@ async function applySuperwallEntitlementEvent({
     if (typeof familyId !== "string" || familyId.length === 0) {
       transaction.create(eventRef, webhookReceipt({
         event,
-        userId,
-        familyId: "",
         outcome: "unmatched_user",
         serverTimestamp,
       }));
@@ -134,8 +132,6 @@ async function applySuperwallEntitlementEvent({
     if (!familySnapshot.exists) {
       transaction.create(eventRef, webhookReceipt({
         event,
-        userId,
-        familyId,
         outcome: "missing_family",
         serverTimestamp,
       }));
@@ -146,8 +142,6 @@ async function applySuperwallEntitlementEvent({
     if (!memberIds.includes(userId)) {
       transaction.create(eventRef, webhookReceipt({
         event,
-        userId,
-        familyId,
         outcome: "not_family_member",
         serverTimestamp,
       }));
@@ -157,8 +151,6 @@ async function applySuperwallEntitlementEvent({
     if (decision === null) {
       transaction.create(eventRef, webhookReceipt({
         event,
-        userId,
-        familyId,
         outcome: "acknowledged_no_access_change",
         serverTimestamp,
       }));
@@ -178,8 +170,6 @@ async function applySuperwallEntitlementEvent({
         Number(current.sourceTimestampMillis || 0) > timestampMillis) {
       transaction.create(eventRef, webhookReceipt({
         event,
-        userId,
-        familyId,
         outcome: "stale_ignored",
         serverTimestamp,
       }));
@@ -216,8 +206,6 @@ async function applySuperwallEntitlementEvent({
     });
     transaction.create(eventRef, webhookReceipt({
       event,
-      userId,
-      familyId,
       outcome: aggregate.active ? "family_active" : "family_inactive",
       serverTimestamp,
     }));
@@ -225,10 +213,56 @@ async function applySuperwallEntitlementEvent({
   });
 }
 
+async function cleanupDeletedUserEntitlement({
+  firestore,
+  userId,
+  deletedUser,
+  serverTimestamp,
+  nowMillis = Date.now(),
+}) {
+  const entitlementRef = firestore.doc(`users/${userId}/entitlements/pro`);
+  const entitlementSnapshot = await entitlementRef.get();
+  const entitlement = entitlementSnapshot.exists
+    ? entitlementSnapshot.data()
+    : null;
+  const familyId = entitlement && typeof entitlement.familyId === "string"
+    ? entitlement.familyId
+    : deletedUser && typeof deletedUser.currentFamilyId === "string"
+      ? deletedUser.currentFamilyId
+      : "";
+
+  // Firestore does not cascade-delete subcollections when the parent user
+  // document is removed. Delete the server-owned entitlement explicitly.
+  await entitlementRef.delete();
+  if (!familyId) return "entitlement_deleted";
+
+  const familyRef = firestore.doc(`families/${familyId}`);
+  const familySnapshot = await familyRef.get();
+  if (!familySnapshot.exists) return "family_missing";
+  const family = familySnapshot.data();
+  const memberIds = Array.isArray(family.memberIds)
+    ? family.memberIds.filter((memberId) => memberId !== userId)
+    : [];
+  const rows = [];
+  for (const memberId of memberIds) {
+    const snapshot = await firestore
+      .doc(`users/${memberId}/entitlements/pro`)
+      .get();
+    rows.push(snapshot.exists ? snapshot.data() : null);
+  }
+  const aggregate = familyEntitlementFromRows(rows);
+  await familyRef.update({
+    familySubscriptionActive: aggregate.active,
+    familySubscriptionPlanId: aggregate.planId,
+    familySubscriptionOwnerId: aggregate.ownerId,
+    familySubscriptionUpdatedAtMillis: nowMillis,
+    familySubscriptionUpdatedAt: serverTimestamp,
+  });
+  return aggregate.active ? "family_active" : "family_inactive";
+}
+
 function webhookReceipt({
   event,
-  userId,
-  familyId,
   outcome,
   serverTimestamp,
 }) {
@@ -237,8 +271,6 @@ function webhookReceipt({
     type: event.type,
     projectId: event.projectId,
     applicationId: event.applicationId,
-    userId,
-    familyId,
     environment: event.data.environment || "",
     outcome,
     receivedAt: serverTimestamp,
@@ -251,10 +283,12 @@ module.exports = {
   SUPERWALL_APPLICATION_IDS,
   SUPERWALL_PROJECT_ID,
   applySuperwallEntitlementEvent,
+  cleanupDeletedUserEntitlement,
   entitlementDecision,
   eventDocumentId,
   eventTimestampMillis,
   familyEntitlementFromRows,
   isFirebaseUserId,
   validateSuperwallEvent,
+  webhookReceipt,
 };
