@@ -4,10 +4,12 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 const {
+  cleanupDeletedUserEntitlement,
   entitlementDecision,
   eventDocumentId,
   familyEntitlementFromRows,
   validateSuperwallEvent,
+  webhookReceipt,
 } = require("../lib/superwallEntitlement");
 
 function event(type, overrides = {}) {
@@ -77,4 +79,75 @@ test("webhook receipt ids are deterministic and Firestore-safe", () => {
   const id = eventDocumentId(event("renewal"));
   assert.match(id, /^[a-f0-9]{64}$/);
   assert.equal(id, eventDocumentId(event("renewal")));
+});
+
+test("webhook receipts retain no user or family identifiers", () => {
+  const receipt = webhookReceipt({
+    event: event("renewal"),
+    outcome: "family_active",
+    serverTimestamp: "server-time",
+  });
+  assert.equal(receipt.userId, undefined);
+  assert.equal(receipt.familyId, undefined);
+  assert.equal(receipt.outcome, "family_active");
+});
+
+test("deleted users lose their entitlement and family access is recomputed", async () => {
+  const documents = new Map([
+    ["users/deleted/entitlements/pro", {
+      active: true,
+      familyId: "family-1",
+      productId: "babyrelay_pro_monthly",
+      userId: "deleted",
+      sourceTimestampMillis: 200,
+    }],
+    ["users/remaining/entitlements/pro", {
+      active: true,
+      familyId: "family-1",
+      productId: "babyrelay_pro_annual",
+      userId: "remaining",
+      sourceTimestampMillis: 100,
+    }],
+    ["families/family-1", {
+      memberIds: ["remaining"],
+      familySubscriptionActive: true,
+      familySubscriptionOwnerId: "deleted",
+      familySubscriptionPlanId: "babyrelay_pro_monthly",
+    }],
+  ]);
+  const firestore = {
+    doc(path) {
+      return {
+        async get() {
+          const value = documents.get(path);
+          return {exists: value !== undefined, data: () => value};
+        },
+        async delete() {
+          documents.delete(path);
+        },
+        async update(patch) {
+          documents.set(path, {...documents.get(path), ...patch});
+        },
+      };
+    },
+  };
+
+  const outcome = await cleanupDeletedUserEntitlement({
+    firestore,
+    userId: "deleted",
+    deletedUser: {currentFamilyId: "family-1"},
+    serverTimestamp: "server-time",
+    nowMillis: 300,
+  });
+
+  assert.equal(outcome, "family_active");
+  assert.equal(documents.has("users/deleted/entitlements/pro"), false);
+  assert.deepEqual(documents.get("families/family-1"), {
+    memberIds: ["remaining"],
+    familySubscriptionActive: true,
+    familySubscriptionOwnerId: "remaining",
+    familySubscriptionPlanId: "babyrelay_pro_annual",
+    familySubscriptionUpdatedAtMillis: 300,
+    familySubscriptionUpdatedAt: "server-time",
+  });
 });

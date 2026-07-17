@@ -40,7 +40,9 @@ Provider creation status is tracked in `docs/provider-setup.md`.
   Family-level paid capacity is server-authoritative: signed Superwall
   lifecycle webhooks update a per-user entitlement record and recompute the
   family aggregate. Mobile clients cannot write subscription fields, so a
-  modified client cannot unlock extra-child/caregiver capacity.
+  modified client cannot unlock extra-child/caregiver capacity. Deleting a
+  user triggers backend removal of the server-owned entitlement and recomputes
+  the remaining family's access; webhook receipts retain no user/family IDs.
 - **Invites**: pure-Dart `InviteService` — unambiguous 6-char codes,
   deterministic `https://ourbabyrelay.com/join/<code>` payload, share text, and a
   scannable QR code in the invite sheet. AppRefer install attribution restores

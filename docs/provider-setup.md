@@ -90,6 +90,9 @@ Live sync state:
   receipts, ignores stale lifecycle events, and aggregates active member
   entitlements onto the family. A signed synthetic unmatched-user smoke
   returned `200`; the same endpoint rejected an unsigned request with `400`.
+- `onUserDeleted` removes the deleted user's server-owned entitlement and
+  recomputes any remaining family aggregate. Future webhook receipt documents
+  intentionally contain no user or family identifiers.
 
 ## AppRefer
 
