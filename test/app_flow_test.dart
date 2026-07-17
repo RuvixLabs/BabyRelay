@@ -158,6 +158,19 @@ void main() {
     expect(find.text('Join a care team'), findsNothing);
   });
 
+  testWidgets('shared sync failure is visible instead of silent', (
+    tester,
+  ) async {
+    final (repo, purchases) = await buildDeps(onboarded: true);
+    repo.markSyncUnavailable();
+
+    await tester.pumpWidget(app(repo, purchases));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Shared sync is offline'), findsOneWidget);
+    expect(find.text('Start sleep'), findsOneWidget);
+  });
+
   testWidgets('explicit universal-link invite wins over deferred attribution', (
     tester,
   ) async {
@@ -632,6 +645,8 @@ void main() {
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Shared sleep alerts'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Delete all data'), 200);
     expect(find.text('Delete all data'), findsOneWidget);
     expect(find.text('Export my data'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Contact support'), 200);

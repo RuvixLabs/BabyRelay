@@ -13,6 +13,8 @@ import '../analytics/analytics_service.dart';
 import '../util/formats.dart';
 
 abstract class SleepRuntimeService {
+  Future<bool> requestSharedSleepAlerts();
+
   Future<void> dispose();
 
   static SleepRuntimeService disabled() => _DisabledSleepRuntimeService();
@@ -129,6 +131,11 @@ class RepositorySleepRuntimeService implements SleepRuntimeService {
       activeSleepCount: ongoing.length,
       activeSleepSummary: activeSleepSummary,
     );
+  }
+
+  @override
+  Future<bool> requestSharedSleepAlerts() {
+    return _platform.requestNotificationPermissions();
   }
 
   @override
@@ -400,6 +407,9 @@ class FlutterSleepRuntimePlatform implements SleepRuntimePlatform {
 }
 
 class _DisabledSleepRuntimeService implements SleepRuntimeService {
+  @override
+  Future<bool> requestSharedSleepAlerts() async => false;
+
   @override
   Future<void> dispose() async {}
 }

@@ -24,6 +24,12 @@ service cloud.firestore {
         request.resource.data.familySubscriptionOwnerId == resource.data.familySubscriptionOwnerId;
     }
 
+    function subscriptionFieldsAreFree() {
+      return request.resource.data.familySubscriptionActive == false &&
+        request.resource.data.familySubscriptionPlanId == '' &&
+        request.resource.data.familySubscriptionOwnerId == '';
+    }
+
     function onlyAddsSignedInMember() {
       return request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1 &&
         request.resource.data.memberIds.hasAll(resource.data.memberIds) &&
@@ -158,12 +164,12 @@ service cloud.firestore {
     match /families/{familyId} {
       allow get: if isFamilyMember() || canReadByInvite(familyId);
       allow list: if false;
-      allow create: if willBeFamilyMember();
+      allow create: if willBeFamilyMember() && subscriptionFieldsAreFree();
       allow update: if (
         isFamilyMember() &&
         willBeFamilyMember() &&
         request.resource.data.ownerId == resource.data.ownerId &&
-        (subscriptionFieldsUnchanged() || resource.data.ownerId == request.auth.uid) &&
+        subscriptionFieldsUnchanged() &&
         (memberIdsUnchanged() || resource.data.ownerId == request.auth.uid)
       ) || isInviteJoin(familyId) || isSelfLeave();
       allow delete: if isFamilyMember() && resource.data.ownerId == request.auth.uid;

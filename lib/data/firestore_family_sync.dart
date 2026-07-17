@@ -89,9 +89,13 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
       'memberIds': memberIds,
       'inviteCode': state.inviteCode.toUpperCase(),
       'selectedChildId': state.selectedChildId,
-      'familySubscriptionActive': state.familySubscriptionActive,
-      'familySubscriptionPlanId': state.familySubscriptionPlanId,
-      'familySubscriptionOwnerId': state.familySubscriptionOwnerId,
+      if (isNewFamily) ...{
+        // Only a trusted backend may promote these fields after creation.
+        // Firestore rules require every client-created family to start free.
+        'familySubscriptionActive': false,
+        'familySubscriptionPlanId': '',
+        'familySubscriptionOwnerId': '',
+      },
       'onboarded': state.onboarded,
       'liveEventLimit': liveEventLimit,
       'updatedBy': userId,
@@ -245,10 +249,6 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
           ) ||
           previous.inviteCode.toUpperCase() != state.inviteCode.toUpperCase() ||
           previous.selectedChildId != state.selectedChildId ||
-          previous.familySubscriptionActive != state.familySubscriptionActive ||
-          previous.familySubscriptionPlanId != state.familySubscriptionPlanId ||
-          previous.familySubscriptionOwnerId !=
-              state.familySubscriptionOwnerId ||
           previous.onboarded != state.onboarded;
     }
 
@@ -256,6 +256,7 @@ class FirestoreFamilySyncAdapter implements FamilySyncAdapter {
       batch.set(
         _familyRef(state.familyId),
         _familyDocument(state, isNewFamily: previous == null),
+        SetOptions(merge: true),
       );
       writeCount++;
     }

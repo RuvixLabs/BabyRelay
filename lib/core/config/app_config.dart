@@ -31,7 +31,9 @@ abstract final class AppConfig {
   /// universal-link handler ships with the Firebase backend integration.
   static const String inviteLinkHost = 'ourbabyrelay.com';
 
-  // --- Provider wiring (empty ⇒ not configured, app stays local-only) ----
+  // --- Provider wiring ----------------------------------------------------
+  // Firebase is optional only for debug/test previews. Production is a
+  // shared-care product, so release builds fail closed when it is omitted.
 
   static const bool firebaseConfigured = bool.fromEnvironment(
     'FIREBASE_CONFIGURED',
@@ -57,6 +59,10 @@ abstract final class AppConfig {
   );
 
   static void validateReleaseConfiguration() {
+    validateFirebaseReleaseConfiguration(
+      releaseMode: kReleaseMode,
+      firebaseConfigured: firebaseConfigured,
+    );
     validateSuperwallReleaseKey(
       releaseMode: kReleaseMode,
       platform: defaultTargetPlatform,
@@ -65,6 +71,17 @@ abstract final class AppConfig {
     validateAppReferReleaseKey(
       releaseMode: kReleaseMode,
       apiKey: appReferApiKey,
+    );
+  }
+}
+
+void validateFirebaseReleaseConfiguration({
+  required bool releaseMode,
+  required bool firebaseConfigured,
+}) {
+  if (releaseMode && !firebaseConfigured) {
+    throw StateError(
+      'Release builds require FIREBASE_CONFIGURED=true for shared sync.',
     );
   }
 }

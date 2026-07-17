@@ -3,6 +3,30 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('release builds require Firebase shared sync', () {
+    expect(
+      () => validateFirebaseReleaseConfiguration(
+        releaseMode: true,
+        firebaseConfigured: false,
+      ),
+      throwsStateError,
+    );
+    expect(
+      () => validateFirebaseReleaseConfiguration(
+        releaseMode: true,
+        firebaseConfigured: true,
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validateFirebaseReleaseConfiguration(
+        releaseMode: false,
+        firebaseConfigured: false,
+      ),
+      returnsNormally,
+    );
+  });
+
   test('debug builds may omit the AppRefer SDK key', () {
     expect(
       () => validateAppReferReleaseKey(releaseMode: false, apiKey: ''),

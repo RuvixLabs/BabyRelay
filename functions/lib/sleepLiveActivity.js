@@ -4,6 +4,9 @@ const LIVE_ACTIVITY_ATTRIBUTES_TYPE = "BabyRelaySleepAttributes";
 const REMOTE_SLEEP_TYPE_KEY = "babyrelayType";
 const REMOTE_SLEEP_UPDATE_TYPE = "sleep_live_update";
 const REMOTE_SLEEP_END_TYPE = "sleep_live_end";
+const LIVE_ACTIVITY_STALE_AFTER_MILLIS = 18 * 60 * 60 * 1000;
+const REMOTE_START_RETRY_AFTER_MILLIS = 2 * 60 * 1000;
+const REMOTE_START_MAX_ATTEMPTS = 3;
 
 function isOngoingSleep(event) {
   return Boolean(event && event.type === "sleep" && !event.endAt);
@@ -71,6 +74,9 @@ function buildIosLiveActivityMessage({
     timestamp: nowSeconds,
     event,
     "content-state": liveActivityContentState(state),
+    "stale-date": Math.floor(
+      (state.startedAtMillis + LIVE_ACTIVITY_STALE_AFTER_MILLIS) / 1000,
+    ),
   };
 
   if (event === "start") {
@@ -106,6 +112,30 @@ function buildIosLiveActivityMessage({
       payload: {aps},
     },
   };
+}
+
+function shouldRetryRemoteStart(activity, nowMillis = Date.now()) {
+  if (!activity || !activity.active || !activity.remoteStartRequestedAt) {
+    return false;
+  }
+  const attempts = Number(activity.remoteStartAttemptCount || 1);
+  if (attempts >= REMOTE_START_MAX_ATTEMPTS) return false;
+  const requestedAt = firestoreTimestampMillis(
+    activity.remoteStartRequestedAt,
+  );
+  return requestedAt != null &&
+    nowMillis - requestedAt >= REMOTE_START_RETRY_AFTER_MILLIS;
+}
+
+function firestoreTimestampMillis(value) {
+  if (value && typeof value.toMillis === "function") return value.toMillis();
+  if (value && Number.isFinite(value._seconds)) {
+    return value._seconds * 1000 + Math.floor((value._nanoseconds || 0) / 1e6);
+  }
+  if (value && Number.isFinite(value.seconds)) {
+    return value.seconds * 1000 + Math.floor((value.nanoseconds || 0) / 1e6);
+  }
+  return null;
 }
 
 function buildAndroidSleepMessage({fcmToken, state}) {
@@ -190,5 +220,6 @@ module.exports = {
   liveSleepState,
   ongoingSleeps,
   shouldProcessSleepWrite,
+  shouldRetryRemoteStart,
   startMillis,
 };

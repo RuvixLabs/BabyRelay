@@ -59,6 +59,25 @@ void main() {
     },
   );
 
+  test(
+    'shared sleep alert opt-in requests permission before a sleep',
+    () async {
+      final repo = await onboardedRepo();
+      final platform = _FakeSleepRuntimePlatform();
+      final service = RepositorySleepRuntimeService(
+        familyRepository: repo,
+        platform: platform,
+      );
+
+      await service.start();
+      final granted = await service.requestSharedSleepAlerts();
+
+      expect(granted, isTrue);
+      expect(platform.permissionRequests, 1);
+      await service.dispose();
+    },
+  );
+
   test('ending sleep cancels scheduled alert and live surfaces', () async {
     final repo = await onboardedRepo();
     final platform = _FakeSleepRuntimePlatform();

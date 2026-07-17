@@ -4,7 +4,10 @@ const admin = require("firebase-admin");
 const {getFirestore} = require("firebase-admin/firestore");
 const {logger} = require("firebase-functions");
 const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+const {onRequest} = require("firebase-functions/v2/https");
+const {defineSecret} = require("firebase-functions/params");
 const {GoogleAuth} = require("google-auth-library");
+const {Webhook} = require("svix");
 
 const {
   buildAndroidSleepMessage,
@@ -13,11 +16,15 @@ const {
   isOngoingSleep,
   liveSleepState,
   shouldProcessSleepWrite,
+  shouldRetryRemoteStart,
 } = require("./lib/sleepLiveActivity");
 const {
   clearInvalidTokenIfCurrent,
   invalidTokenTarget,
 } = require("./lib/tokenCleanup");
+const {
+  applySuperwallEntitlementEvent,
+} = require("./lib/superwallEntitlement");
 
 admin.initializeApp();
 
@@ -25,11 +32,60 @@ const db = getFirestore();
 const messagingAuth = new GoogleAuth({
   scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
 });
+const superwallWebhookSecret = defineSecret("SUPERWALL_WEBHOOK_SECRET");
+const runtimeServiceAccount =
+  "babyrelay-functions@babyrelay-ruvix.iam.gserviceaccount.com";
+
+exports.onSuperwallWebhook = onRequest(
+  {
+    region: "us-central1",
+    secrets: [superwallWebhookSecret],
+    serviceAccount: runtimeServiceAccount,
+  },
+  async (request, response) => {
+    if (request.method !== "POST") {
+      response.status(405).send("Method not allowed");
+      return;
+    }
+    const rawBody = request.rawBody && request.rawBody.toString("utf8");
+    const headers = {
+      "svix-id": request.get("svix-id"),
+      "svix-timestamp": request.get("svix-timestamp"),
+      "svix-signature": request.get("svix-signature"),
+    };
+    let event;
+    try {
+      event = new Webhook(superwallWebhookSecret.value()).verify(
+        rawBody || "",
+        headers,
+      );
+    } catch (_) {
+      logger.warn("Rejected unverified Superwall webhook");
+      response.status(400).send("Webhook verification failed");
+      return;
+    }
+
+    try {
+      const outcome = await applySuperwallEntitlementEvent({
+        firestore: db,
+        event,
+        serverTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      response.status(200).json({received: true, outcome});
+    } catch (error) {
+      logger.error("Superwall entitlement webhook failed", {
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+      response.status(500).send("Webhook processing failed");
+    }
+  },
+);
 
 exports.onSleepEventWritten = onDocumentWritten(
   {
     document: "families/{familyId}/events/{eventId}",
     region: "us-central1",
+    serviceAccount: runtimeServiceAccount,
   },
   async (event) => {
     const before = event.data.before.exists ? event.data.before.data() : null;
@@ -178,7 +234,10 @@ async function sendDeviceSleepSurface({
     );
     return;
   }
-  if (activity && activity.active && activity.remoteStartRequestedAt) {
+  if (activity &&
+      activity.active &&
+      activity.remoteStartRequestedAt &&
+      !shouldRetryRemoteStart(activity)) {
     return;
   }
 
@@ -208,6 +267,8 @@ async function sendDeviceSleepSurface({
     userId: device.userId,
     deviceId: device.id,
     active: true,
+    remoteStartAttemptCount:
+      Number((activity && activity.remoteStartAttemptCount) || 0) + 1,
     remoteStartRequestedAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   }, {merge: true});
@@ -222,9 +283,8 @@ async function endIosActivitiesForDevice(device, endedEventId, nowSeconds) {
   const updates = [];
   for (const doc of snapshot.docs) {
     const activity = doc.data();
-    if (!activity.updateToken) continue;
-    updates.push(
-      sendFcmMessage(
+    if (activity.updateToken) {
+      updates.push(sendFcmMessage(
         buildIosLiveActivityMessage({
           fcmToken: device.fcmToken,
           liveActivityToken: activity.updateToken,
@@ -246,15 +306,16 @@ async function endIosActivitiesForDevice(device, endedEventId, nowSeconds) {
           ),
           tokenKind: "activity_end",
         },
-      ).then(() => doc.ref.set({
-        active: false,
-        endedAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      }, {merge: true})),
-    );
+      ));
+    }
+    updates.push(doc.ref.set({
+      active: false,
+      endedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    }, {merge: true}));
   }
   await Promise.all(updates);
-  return updates.length;
+  return snapshot.docs.filter((doc) => Boolean(doc.data().updateToken)).length;
 }
 
 async function sendIosFallbackNotification(device, state) {

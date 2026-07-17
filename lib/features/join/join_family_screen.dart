@@ -8,6 +8,7 @@ import '../../core/analytics/analytics_service.dart';
 import '../../core/attribution/attribution_service.dart';
 import '../../core/design/relay_theme.dart';
 import '../../core/purchases/purchase_service.dart';
+import '../../core/sleep/shared_sleep_alerts_prompt.dart';
 import '../../data/family_repository.dart';
 
 class JoinFamilyScreen extends StatefulWidget {
@@ -67,6 +68,8 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
       );
       analytics.logEvent('caregiver_joined');
       await attribution.consumePendingInviteCode();
+      if (!mounted) return;
+      await offerSharedSleepAlerts(context);
       if (!mounted) return;
       context.go('/today');
     } catch (_) {

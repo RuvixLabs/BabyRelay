@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'app_chrome.dart';
+import '../data/family_repository.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -14,9 +15,48 @@ class AppShell extends StatelessWidget {
     final tabsVisible = context.select<AppChromeController, bool>(
       (chrome) => chrome.tabsVisible,
     );
+    final syncUnavailable = context.select<FamilyRepository, bool>(
+      (repo) => repo.syncStatus == FamilySyncStatus.unavailable,
+    );
 
     return Scaffold(
-      body: navigationShell,
+      body: Column(
+        children: [
+          if (syncUnavailable)
+            Material(
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.cloud_off_outlined,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Shared sync is offline. New logs stay on this device until BabyRelay reconnects.',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          Expanded(child: navigationShell),
+        ],
+      ),
       bottomNavigationBar: AnimatedSwitcher(
         duration: const Duration(milliseconds: 160),
         switchInCurve: Curves.easeOutCubic,
