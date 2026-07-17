@@ -82,8 +82,10 @@ Live sync state:
   principal. App runtime is deliberately separate for transferability and
   least privilege: both BabyRelay functions run as
   `babyrelay-functions@babyrelay-ruvix.iam.gserviceaccount.com`, with only
-  Datastore user, FCM admin, log writer, Eventarc receiver, and secret-specific
-  access to `SUPERWALL_WEBHOOK_SECRET`.
+  Datastore user, FCM admin, log writer, Eventarc receiver, Cloud Run invoker,
+  and secret-specific access to `SUPERWALL_WEBHOOK_SECRET`. The Run invoker
+  role is required for Eventarc to deliver Firestore events to the Gen 2
+  function services.
 - `onSuperwallWebhook` is live in `us-central1`. It verifies the raw request
   with Svix before accepting a BabyRelay project/application/product event,
   rejects Superwall aliases in place of Firebase UIDs, records idempotent
