@@ -280,11 +280,12 @@ Live AppStore Co-Pilot readback:
   territories enabled and no pre-order. The previous Apple route/API blocker is
   cleared.
 - App price: free, initialized in the app price schedule.
-- Signed build `1.0 (3)`:
-  - Build ID: `59a88169-b775-4a97-aa98-50977cbccaad`
+- Signed build `1.0 (6)`:
+  - Build ID: `03df36e2-a0f5-458a-a042-04bf4dfe7912`
   - Processing state: `VALID`
   - Attached to App Store version `1.0`
-  - TestFlight state: `IN_BETA_TESTING` in `BabyRelay Internal`
+  - TestFlight state: `READY_FOR_BETA_TESTING` in `BabyRelay Internal`; stale
+    build 3 was removed from that group
   - TestFlight contact and en-US What to Test notes are complete; validator has
     zero errors, warnings, or blockers.
 - Browser / web-session state: the registered Ruvix ASC profile currently lands
@@ -326,7 +327,9 @@ Live AppStore Co-Pilot readback:
   - Monthly: `4eecee8b-68a0-4c29-9fb5-39bf4b6943f3`
 - Current ASC product state: all three subscriptions read `READY_TO_SUBMIT`.
   They must be selected on App Store version 1.0 and travel with that first app
-  submission, not through a standalone subscription submission.
+  submission, not through a standalone subscription submission. Their review
+  notes still name build 3 and must be updated to build 6 in the authenticated
+  ASC web session before submission.
 
 ## Google Play / Android
 
@@ -342,16 +345,14 @@ Live AppStore Co-Pilot readback:
 - Launcher icon: generated from the approved Android-safe glow-face source,
   with legacy density icons, adaptive foreground layers, `ic_launcher.xml`,
   `ic_launcher_round.xml`, and background color `#071537`.
-- Build status: signed release AAB `1.0.0 (5)` was built with the live
+- Build status: signed release AAB `1.0.0 (6)` was built with the live
   Firebase, Superwall Android, and AppRefer configuration and published to
-  Play Internal testing on 2026-07-15. Build 5 fixes the Android FlutterFire
-  codec mismatch found in build 4 by aligning `firebase_core 4.11.0` with
-  platform interface `7.1.0`. Its production-config cold launch initialized
-  Firebase and the live Superwall Android configuration without a fatal or
-  `CoreFirebaseOptions` range error. The Play-generated universal APK reads
-  back as version code 5 and verifies with the expected Play signing
-  certificate and source stamp. AppRefer link ID `babyrelay-meta` is website
-  configuration, not a mobile build define.
+  Play Internal testing on 2026-07-17. Its SHA-256 is
+  `f82dd5ad283a38df46523105fa6b0a3543e9d95d3a5c519b21cdd3be38d81d42`,
+  matching the live Play bundle readback. Build 6 includes the production
+  entitlement, Firebase fail-closed, shared-alert, and remote Live Activity
+  hardening on top of build 5's FlutterFire codec correction. AppRefer link ID
+  `babyrelay-meta` is website configuration, not a mobile build define.
 - Signing status: the Ruvix-owned BabyRelay upload keystore is stored outside
   the repository and Play App Signing is active. The Play signing certificate
   is used by Firebase App Hosting to generate `assetlinks.json`.
@@ -418,7 +419,7 @@ Live AppStore Co-Pilot readback:
 
 Remaining Android / Play blockers:
 
-- Install build 5 from Internal testing, run purchase/restore and
+- Install build 6 from Internal testing, run purchase/restore and
   remote-notification smoke tests, then send the saved Advertising ID change
   and complete the production release/publishing overview path.
 
@@ -426,9 +427,10 @@ Remaining App Store / subscription blockers:
 
 - Reauthenticate the registered Ruvix ASC browser profile and set the web-only
   regulated medical device declaration to `No`.
+- Update the three subscription review notes from build 3 to build 6.
 - Select all three first-time subscriptions on version 1.0 and add the version
   to the existing draft review submission.
-- Run sandbox purchase/restore on TestFlight build `1.0 (3)` against the real
+- Run sandbox purchase/restore on TestFlight build `1.0 (6)` against the real
   offering.
 - Do not press final Submit until the physical two-device remote Live Activity
   and sandbox purchase/restore checks pass.
